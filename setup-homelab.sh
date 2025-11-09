@@ -165,6 +165,14 @@ configure_docker_user() {
     else
         print_warning "User '$CURRENT_USER' is already in docker group"
     fi
+    
+    # Fix Docker socket permissions
+    if [ -S /var/run/docker.sock ]; then
+        chmod 666 /var/run/docker.sock
+        print_success "Fixed Docker socket permissions"
+    else
+        print_warning "Docker socket not found, will be created on Docker start"
+    fi
 }
 
 configure_nfs_client() {
