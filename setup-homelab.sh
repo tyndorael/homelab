@@ -282,6 +282,14 @@ configure_firewall() {
         ufw allow 3420/tcp comment 'Dockpeek'
         ufw allow 3001/tcp comment 'Uptime Kuma'
         
+        # Allow media automation (*arr apps)
+        ufw allow 8989/tcp comment 'Sonarr'
+        ufw allow 7878/tcp comment 'Radarr'
+        ufw allow 9696/tcp comment 'Prowlarr'
+        ufw allow 6767/tcp comment 'Bazarr'
+        ufw allow 8686/tcp comment 'Lidarr'
+        ufw allow 8787/tcp comment 'Readarr'
+        
         # Allow development tools
         ufw allow 8443/tcp comment 'Code-Server'
         ufw allow 8282/tcp comment 'Termix'

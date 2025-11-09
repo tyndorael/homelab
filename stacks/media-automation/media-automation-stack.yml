@@ -1,0 +1,132 @@
+services:
+  # Sonarr - TV Show management
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+    ports:
+      - "8989:8989"
+    volumes:
+      - /nfs/vm_shares/herta/apps/sonarr/config:/config
+      - /nfs/vm_shares/herta/media/tv:/tv
+      - /nfs/vm_shares/herta/downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - media-automation
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=media,automation,arr"
+
+  # Radarr - Movie management
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+    ports:
+      - "7878:7878"
+    volumes:
+      - /nfs/vm_shares/herta/apps/radarr/config:/config
+      - /nfs/vm_shares/herta/media/movies:/movies
+      - /nfs/vm_shares/herta/downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - media-automation
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=media,automation,arr"
+
+  # Prowlarr - Indexer management
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+    ports:
+      - "9696:9696"
+    volumes:
+      - /nfs/vm_shares/herta/apps/prowlarr/config:/config
+    restart: unless-stopped
+    networks:
+      - media-automation
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=media,automation,arr"
+
+  # Bazarr - Subtitle management (optional)
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+    ports:
+      - "6767:6767"
+    volumes:
+      - /nfs/vm_shares/herta/apps/bazarr/config:/config
+      - /nfs/vm_shares/herta/media/tv:/tv
+      - /nfs/vm_shares/herta/media/movies:/movies
+    restart: unless-stopped
+    networks:
+      - media-automation
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=media,automation,arr"
+
+  # Lidarr - Music management (optional)
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+    ports:
+      - "8686:8686"
+    volumes:
+      - /nfs/vm_shares/herta/apps/lidarr/config:/config
+      - /nfs/vm_shares/herta/media/music:/music
+      - /nfs/vm_shares/herta/downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - media-automation
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=media,automation,arr"
+
+  # Readarr - Book management (optional)
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+    ports:
+      - "8787:8787"
+    volumes:
+      - /nfs/vm_shares/herta/apps/readarr/config:/config
+      - /nfs/vm_shares/herta/media/books:/books
+      - /nfs/vm_shares/herta/downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - media-automation
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=media,automation,arr"
+
+networks:
+  media-automation:
+    name: media-automation
+    driver: bridge
+  nginx-proxy-manager:
+    name: nginx-proxy-manager
+    external: true
