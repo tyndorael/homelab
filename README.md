@@ -12,6 +12,7 @@ homelab/
 │   ├── dashboards/       # Web dashboards & homepages
 │   ├── monitoring/       # Container monitoring tools
 │   ├── media-automation/ # *arr apps (Sonarr, Radarr, etc.)
+│   ├── media-players/    # Media servers (Plex, Jellyfin)
 │   └── development/      # IDE & terminal tools
 └── apps/                 # Individual app configs (legacy)
 ```
@@ -102,6 +103,21 @@ Container monitoring and management tools.
 - **Lidarr** - Music management (Port: 8686)
 - **Readarr** - Book management (Port: 8787)
 
+### 🎥 Media Players Stack
+Media streaming servers with NFS config and CIFS media storage.
+
+**Location**: `stacks/media-players/`
+**Setup Guide**: `stacks/media-players/MEDIA_PLAYERS_SETUP.md`
+**Stack File**: `media-players-stack.yml`
+
+**Services Included**:
+- **Plex** - Popular media streaming platform (Port: 32400)
+- **Jellyfin** - Open-source media server (Port: 8096)
+
+**Storage Architecture**:
+- Config: NFS shared storage (`/nfs/vm_shares/cyrene/apps/`)
+- Media: CIFS/SMB mount (`/mnt/media/`) - configure with `setup-cifs-media.sh`
+
 ### 💻 Development Stack
 IDE and terminal management tools for development work.
 
@@ -152,7 +168,12 @@ IDE and terminal management tools for development work.
    - Deploy *arr apps for media management
    - See `stacks/media-automation/MEDIA_AUTOMATION_SETUP.md`
 
-6. **Development Stack** (Optional)
+6. **Media Players Stack** (Optional)
+   - Deploy Plex or Jellyfin for media streaming
+   - Requires CIFS media share configured first
+   - See `stacks/media-players/MEDIA_PLAYERS_SETUP.md`
+
+7. **Development Stack** (Optional)
    - Deploy if you need code editing or SSH management
    - See `stacks/development/DEVELOPMENT_SETUP.md`
 
@@ -200,6 +221,10 @@ docker compose -f monitoring-stack.yml up -d
 # Media Automation (optional)
 cd stacks/media-automation
 docker compose -f media-automation-stack.yml up -d
+
+# Media Players (optional - requires CIFS setup first)
+cd stacks/media-players
+docker compose -f media-players-stack.yml up -d
 
 # Development (optional)
 cd stacks/development
@@ -261,7 +286,13 @@ Each stack has its own setup guide with detailed configuration and troubleshooti
 - `stacks/dashboards/DASHBOARDS_SETUP.md`
 - `stacks/monitoring/MONITORING_SETUP.md`
 - `stacks/media-automation/MEDIA_AUTOMATION_SETUP.md`
+- `stacks/media-players/MEDIA_PLAYERS_SETUP.md`
 - `stacks/development/DEVELOPMENT_SETUP.md`
+
+## Setup Scripts
+
+- `setup-homelab.sh` - Main Ubuntu VM setup (NFS, Docker, firewall)
+- `setup-cifs-media.sh` - CIFS/SMB media share configuration (required for media players)
 
 ## License
 

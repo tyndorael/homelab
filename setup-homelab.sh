@@ -240,11 +240,14 @@ create_app_directories() {
     
     # Create directory structure
     mkdir -p "$APPS_BASE"/{portainer,nginx-proxy-manager,homepage,dashy,dockpeek,code-server,termix,uptime-kuma}
+    mkdir -p "$APPS_BASE"/{plex,jellyfin}
     mkdir -p "$APPS_BASE"/portainer/data
     mkdir -p "$APPS_BASE"/homepage/config
     mkdir -p "$APPS_BASE"/dashy/config
     mkdir -p "$APPS_BASE"/code-server/{config,projects}
     mkdir -p "$APPS_BASE"/uptime-kuma/data
+    mkdir -p "$APPS_BASE"/plex/{config,transcode}
+    mkdir -p "$APPS_BASE"/jellyfin/{config,cache}
     
     print_success "Created application directories"
     
@@ -289,6 +292,11 @@ configure_firewall() {
         ufw allow 6767/tcp comment 'Bazarr'
         ufw allow 8686/tcp comment 'Lidarr'
         ufw allow 8787/tcp comment 'Readarr'
+        
+        # Allow media players
+        ufw allow 32400/tcp comment 'Plex'
+        ufw allow 8096/tcp comment 'Jellyfin HTTP'
+        ufw allow 8920/tcp comment 'Jellyfin HTTPS'
         
         # Allow development tools
         ufw allow 8443/tcp comment 'Code-Server'

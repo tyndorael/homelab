@@ -1,0 +1,122 @@
+version: '3.8'
+
+################################################################################
+# Media Players Stack
+# 
+# This stack includes:
+# - Plex Media Server: Popular media streaming platform
+# - Jellyfin: Open-source media server
+#
+# Configuration storage: NFS shared storage (/nfs/vm_shares/herta)
+# Media files: CIFS/SMB mount (/mnt/media)
+################################################################################
+
+services:
+  #############################################################################
+  # Plex Media Server
+  # Web UI: http://<your-server>:32400/web
+  # Documentation: https://hub.docker.com/r/linuxserver/plex
+  #############################################################################
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    hostname: plex
+    restart: unless-stopped
+    networks:
+      - media-players
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York  # Change to your timezone
+      - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}  # Optional: Get from https://www.plex.tv/claim/
+    volumes:
+      # Config on NFS share
+      - /nfs/vm_shares/cyrene/apps/plex/config:/config
+      # Media from CIFS mount
+      - /mnt/media:/media:ro  # Read-only access to media
+      # Optional: Transcode directory (can be local for better performance)
+      - /nfs/vm_shares/cyrene/apps/plex/transcode:/transcode
+    ports:
+      - "32400:32400"  # Plex Web UI
+      - "1900:1900/udp"  # DLNA
+      - "5353:5353/udp"  # Bonjour/Avahi
+      - "8324:8324"  # Plex for Roku
+      - "32410:32410/udp"  # GDM network discovery
+      - "32412:32412/udp"  # GDM network discovery
+      - "32413:32413/udp"  # GDM network discovery
+      - "32414:32414/udp"  # GDM network discovery
+      - "32469:32469"  # Plex DLNA Server
+    devices:
+      # Fix libusb_init error - grants access to USB devices
+      - /dev/bus/usb:/dev/bus/usb
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  #############################################################################
+  # Jellyfin Media Server
+  # Web UI: http://<your-server>:8096
+  # Documentation: https://hub.docker.com/r/linuxserver/jellyfin
+  #############################################################################
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    hostname: jellyfin
+    restart: unless-stopped
+    networks:
+      - media-players
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York  # Change to your timezone
+      - JELLYFIN_PublishedServerUrl=${JELLYFIN_URL}  # Optional: Your public URL
+    volumes:
+      # Config on NFS share
+      - /nfs/vm_shares/cyrene/apps/jellyfin/config:/config
+      # Cache on NFS share
+      - /nfs/vm_shares/cyrene/apps/jellyfin/cache:/cache
+      # Media from CIFS mount
+      - /mnt/media:/media:ro  # Read-only access to media
+    ports:
+      - "8096:8096"  # HTTP web UI
+      - "8920:8920"  # HTTPS web UI (optional)
+      - "7359:7359/udp"  # Discovery (optional)
+    devices:
+      # Optional: Hardware transcoding support
+      # Uncomment the appropriate line for your hardware:
+      # Intel Quick Sync:
+      # - /dev/dri:/dev/dri
+      # NVIDIA GPU:
+      # - /dev/nvidia0:/dev/nvidia0
+      # - /dev/nvidiactl:/dev/nvidiactl
+      # - /dev/nvidia-modeset:/dev/nvidia-modeset
+      # - /dev/nvidia-uvm:/dev/nvidia-uvm
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+################################################################################
+# Networks
+################################################################################
+networks:
+  media-players:
+    name: media-players
+    driver: bridge
+
+################################################################################
+# Notes:
+# 
+# 1. Both Plex and Jellyfin use bridge network mode for Nginx Proxy Manager compatibility
+# 2. UDP port 1900 (DLNA) is used by Plex only (removed from Jellyfin to avoid conflict)
+# 3. Both services mount /mnt/media as read-only (configure with setup-cifs-media.sh)
+# 4. Config stored on NFS for easy backup and migration
+# 5. For hardware transcoding, uncomment appropriate device mappings
+# 6. Change timezone (TZ) to match your location
+# 
+# Media Organization:
+# /mnt/media/
+#   ├── tv/         - TV Shows
+#   ├── movies/     - Movies
+#   ├── music/      - Music
+#   ├── books/      - Audiobooks/Ebooks
+#   └── downloads/  - Downloads from *arr apps
+################################################################################
