@@ -91,13 +91,89 @@ Configuration is done via environment variables in the compose file.
 
 #### Adding Multiple Docker Hosts
 
-To monitor multiple Docker servers:
+To monitor multiple Docker servers, you need to expose the Docker API on remote VMs.
 
-1. Uncomment the `DOCKER_HOST_2_*` variables in the compose file
-2. Set the Docker host URL (e.g., `tcp://192.168.1.100:2375` or `unix:///var/run/docker.sock`)
-3. Set a friendly name for the host
-4. Optionally set the public hostname for web access links
-5. Add more hosts by following the same pattern with `DOCKER_HOST_3_*`, etc.
+**Step 1: On Each Remote Docker Host VM**
+
+1. **Edit Docker daemon configuration:**
+   ```bash
+   sudo nano /etc/docker/daemon.json
+   ```
+
+2. **Add TCP socket configuration:**
+   ```json
+   {
+     "hosts": ["unix:///var/run/docker.sock", "tcp://0.0.0.0:2375"]
+   }
+   ```
+
+3. **Create systemd override:**
+   ```bash
+   sudo mkdir -p /etc/systemd/system/docker.service.d
+   sudo nano /etc/systemd/system/docker.service.d/override.conf
+   ```
+   
+   Add this content:
+   ```ini
+   [Service]
+   ExecStart=
+   ExecStart=/usr/bin/dockerd
+   ```
+
+4. **Reload and restart Docker:**
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl restart docker
+   ```
+
+5. **Open firewall port (restrict to monitoring VM IP):**
+   ```bash
+   # Replace MONITORING_VM_IP with your Dockpeek host's IP
+   sudo ufw allow from MONITORING_VM_IP to any port 2375 proto tcp comment 'Docker API for Dockpeek'
+   
+   # Example:
+   sudo ufw allow from 192.168.50.100 to any port 2375 proto tcp comment 'Docker API for Dockpeek'
+   
+   # Verify
+   sudo ufw status
+   ```
+
+6. **Test Docker API (from monitoring VM):**
+   ```bash
+   curl http://REMOTE_VM_IP:2375/version
+   ```
+
+**Step 2: Configure Dockpeek**
+
+1. Edit `monitoring-stack.yml` and uncomment remote host entries:
+   ```yaml
+   # Docker Host 2 (Herta VM)
+   - DOCKER_HOST_2_URL=tcp://192.168.50.105:2375
+   - DOCKER_HOST_2_NAME=Herta VM
+   - DOCKER_HOST_2_PUBLIC_HOSTNAME=herta.local
+   
+   # Docker Host 3 (Cyrene VM)
+   - DOCKER_HOST_3_URL=tcp://192.168.50.107:2375
+   - DOCKER_HOST_3_NAME=Cyrene VM
+   - DOCKER_HOST_3_PUBLIC_HOSTNAME=cyrene.local
+   ```
+
+2. **Redeploy the stack:**
+   ```bash
+   cd stacks/monitoring
+   docker compose -f monitoring-stack.yml down
+   docker compose -f monitoring-stack.yml up -d
+   ```
+
+3. **Verify in Dockpeek:**
+   - Access Dockpeek at `http://YOUR_IP:3420`
+   - You should see all configured hosts in the host selector dropdown
+
+**Security Note**: TCP port 2375 is unencrypted. For production environments, consider:
+- Using Docker over SSH instead
+- Implementing TLS on port 2376
+- Restricting firewall rules to specific IPs only
+- Using a VPN or private network
 
 **Example for remote host:**
 ```yaml

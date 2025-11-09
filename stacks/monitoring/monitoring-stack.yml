@@ -9,20 +9,26 @@ services:
       - PASSWORD=${DOCKPEEK_PASSWORD:-admin}
       - TZ=${TZ:-America/New_York}
       
-      # Docker Host 1 (Local)
+      # Docker Host 1 (Local - Unix Socket)
       - DOCKER_HOST_1_URL=unix:///var/run/docker.sock
       - DOCKER_HOST_1_NAME=${DOCKER_HOST_1_NAME:-Local}
       # - DOCKER_HOST_1_PUBLIC_HOSTNAME=${DOCKER_HOST_1_PUBLIC_HOSTNAME}
       
-      # Docker Host 2 (Remote) - Uncomment and configure to add
-      # - DOCKER_HOST_2_URL=${DOCKER_HOST_2_URL}
-      # - DOCKER_HOST_2_NAME=${DOCKER_HOST_2_NAME:-Remote Server}
-      # - DOCKER_HOST_2_PUBLIC_HOSTNAME=${DOCKER_HOST_2_PUBLIC_HOSTNAME}
+      # Docker Host 2 (Remote VM - TCP)
+      # Uncomment and configure to add remote hosts
+      # Format: tcp://IP:PORT (default Docker TCP port is 2375)
+      # - DOCKER_HOST_2_URL=tcp://192.168.X.X:2375
+      # - DOCKER_HOST_2_NAME=Herta VM
+      # - DOCKER_HOST_2_PUBLIC_HOSTNAME=herta.local
       
-      # Docker Host 3 - Add more hosts as needed
-      # - DOCKER_HOST_3_URL=${DOCKER_HOST_3_URL}
-      # - DOCKER_HOST_3_NAME=${DOCKER_HOST_3_NAME}
-      # - DOCKER_HOST_3_PUBLIC_HOSTNAME=${DOCKER_HOST_3_PUBLIC_HOSTNAME}
+      # Docker Host 3 (Another Remote VM - TCP)
+      # - DOCKER_HOST_3_URL=tcp://192.168.X.Y:2375
+      # - DOCKER_HOST_3_NAME=Cyrene VM
+      # - DOCKER_HOST_3_PUBLIC_HOSTNAME=cyrene.local
+      
+      # Add more hosts as needed (up to DOCKER_HOST_10)
+      # - DOCKER_HOST_4_URL=tcp://...
+      # - DOCKER_HOST_4_NAME=...
       
       # Configuration
       - TRAEFIK_LABELS=true
@@ -30,7 +36,7 @@ services:
       - PORT_RANGE_GROUPING=true
       - TRUST_PROXY_HEADERS=true
       - TRUSTED_PROXY_COUNT=1
-      - DOCKER_CONNECTION_TIMEOUT=2
+      - DOCKER_CONNECTION_TIMEOUT=5
     ports:
       - "3420:8000"
     volumes:
