@@ -108,9 +108,15 @@ install_utilities() {
         tree \
         ncdu \
         iotop \
-        iftop
+        iftop \
+        qemu-guest-agent
+    
+    # Enable and start qemu-guest-agent for Proxmox integration
+    systemctl enable qemu-guest-agent
+    systemctl start qemu-guest-agent
     
     print_success "Utilities installed successfully"
+    print_success "QEMU Guest Agent enabled for Proxmox integration"
 }
 
 install_docker() {
