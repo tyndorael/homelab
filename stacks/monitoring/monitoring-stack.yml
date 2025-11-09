@@ -42,6 +42,21 @@ services:
     labels:
       - "dockpeek.tags=monitoring,docker"
 
+  # Uptime Kuma - Service uptime monitoring
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime-kuma-data:/app/data
+    restart: unless-stopped
+    networks:
+      - monitoring
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=monitoring,uptime"
+
 networks:
   monitoring:
     name: monitoring
@@ -49,3 +64,8 @@ networks:
   nginx-proxy-manager:
     name: nginx-proxy-manager
     external: true
+
+volumes:
+  uptime-kuma-data:
+    name: uptime-kuma-data
+    driver: local

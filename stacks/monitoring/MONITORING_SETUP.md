@@ -16,11 +16,35 @@ This stack contains monitoring and container management tools for your homelab.
   - Multi-host Docker management
   - Real-time container stats
 
+### Uptime Kuma
+- **Purpose**: Self-hosted uptime monitoring tool
+- **Port**: 3001
+- **Features**:
+  - Beautiful and modern UI
+  - Monitor HTTP(S), TCP, Ping, DNS, and more
+  - Push notifications (Discord, Telegram, Slack, Email, etc.)
+  - Status pages (public or private)
+  - Multiple notification channels
+  - Certificate expiry monitoring
+  - Multi-language support
+  - 2FA authentication
+
 ## Prerequisites
 
 - Docker and Docker Compose installed
+- NFS mount at `/nfs/vm_shares/herta` (or update volume paths)
 - Infrastructure stack deployed (nginx-proxy-manager network must exist)
 - Docker socket accessible
+
+## Directory Setup
+
+Before deploying, create the necessary directories:
+
+```bash
+# Create Uptime Kuma data directory
+sudo mkdir -p /nfs/vm_shares/herta/apps/uptime-kuma/data
+
+**Note**: If you ran the setup script with the optional directory creation, these directories are already created.
 
 ## Deployment
 
@@ -92,21 +116,30 @@ When connecting to remote Docker hosts:
 
 ## Post-Deployment
 
-Access Dockpeek:
+Access the monitoring tools:
 - Dockpeek: `http://your-server-ip:3420`
+- Uptime Kuma: `http://your-server-ip:3001`
 
-### Initial Login
+### Dockpeek Initial Login
 - Username: Set via `DOCKPEEK_USERNAME` (default: admin)
 - Password: Set via `DOCKPEEK_PASSWORD` (default: admin)
 
 **⚠️ Change the default password immediately!**
 
+### Uptime Kuma Initial Setup
+1. Access Uptime Kuma at `http://your-server-ip:3001`
+2. Create your admin account on first visit
+3. Start adding monitors for your services
+4. Configure notification channels (optional)
+
 ## Setting Up Reverse Proxy
 
-Use Nginx Proxy Manager to create a proxy host:
+Use Nginx Proxy Manager to create proxy hosts:
 
 1. Access Nginx Proxy Manager at `http://your-server-ip:81`
 2. Go to **Hosts** → **Proxy Hosts** → **Add Proxy Host**
+
+### Dockpeek Proxy
 3. Configure:
    - **Domain Names**: `dockpeek.your-domain.com`
    - **Forward Hostname/IP**: `dockpeek`
@@ -116,34 +149,40 @@ Use Nginx Proxy Manager to create a proxy host:
    - Enable SSL certificate
 4. Click **Save**
 
+### Uptime Kuma Proxy
+5. Add another proxy host:
+   - **Domain Names**: `uptime.your-domain.com`
+   - **Forward Hostname/IP**: `uptime-kuma`
+   - **Forward Port**: `3001`
+   - **Scheme**: `http`
+   - Enable **Websockets Support** (required for real-time updates)
+   - Enable SSL certificate
+6. Click **Save**
+
 ## Features and Usage
 
-### Container Management
+### Dockpeek - Container Management
 - Start, stop, restart, and remove containers
 - View real-time logs with live streaming
 - Access container web interfaces with one click
 - Inspect container details and environment variables
-
-### Image Management
-- View all Docker images
-- Check for image updates
-- Pull new image versions
-- Remove unused images
-
-### Network and Volume Management
-- View Docker networks and their connections
-- Manage Docker volumes
-- Inspect volume usage and data
-
-### Tagging and Organization
+- View all Docker images and check for updates
+- Manage Docker networks and volumes
 - Tag containers for better organization
-- Filter containers by tags
-- Group related containers together
 
-### Port Mapping
-- View all exposed ports
-- Quick access to service web interfaces
-- Port range grouping for cleaner display
+### Uptime Kuma - Service Monitoring
+- **Adding Monitors**: Click "+ New Monitor" to add services
+- **Monitor Types**:
+  - HTTP(S) - Monitor websites and APIs
+  - TCP Port - Check if ports are open
+  - Ping - Basic connectivity check
+  - DNS - Monitor DNS resolution
+  - Docker Container - Monitor container health
+  - Push - Receive push notifications
+- **Notifications**: Configure alerts via Discord, Telegram, Slack, Email, etc.
+- **Status Pages**: Create public or private status pages for your services
+- **Tags**: Organize monitors with tags
+- **Maintenance Windows**: Schedule maintenance to pause alerts
 
 ## Updating Services
 
@@ -155,67 +194,110 @@ docker image prune -f
 
 ## Troubleshooting
 
-### Cannot connect to Docker
+### Dockpeek Issues
+
+#### Cannot connect to Docker
 - Verify Docker socket is mounted: `ls -la /var/run/docker.sock`
 - Check Docker socket permissions: `sudo chmod 666 /var/run/docker.sock`
 - Ensure Docker service is running: `sudo systemctl status docker`
 
-### Remote host connection issues
+#### Remote host connection issues
 - Verify Docker API is exposed on remote host
 - Check firewall rules allow connection
 - Test connection: `curl http://remote-host:2375/version`
 - Consider using SSH tunnel for security
 
-### Dockpeek login issues
+#### Dockpeek login issues
 - Verify `SECRET_KEY` is set and consistent
 - Check username and password environment variables
 - Clear browser cache and cookies
 - Check logs: `docker logs dockpeek`
 
-### Live logs not updating
+#### Live logs not updating
 - Ensure WebSockets support is enabled in reverse proxy
 - Check browser console for WebSocket errors
 - Verify network connectivity
 
-### Permission errors
-- Dockpeek needs read-only access to Docker socket
-- Check socket mount: `/var/run/docker.sock:/var/run/docker.sock:ro`
-- Verify container has socket access
+### Uptime Kuma Issues
+
+#### Cannot access web UI
+- Verify container is running: `docker ps | grep uptime-kuma`
+- Check logs: `docker logs uptime-kuma`
+- Ensure port 3001 is not in use: `netstat -tulpn | grep 3001`
+
+#### Notifications not working
+- Verify notification channel configuration
+- Test the notification channel from Uptime Kuma settings
+- Check firewall/network allows outbound connections
+- Review Uptime Kuma logs for errors
+
+#### Database errors
+- Data is stored in `/nfs/vm_shares/herta/apps/uptime-kuma/data`
+- Backup this directory before upgrades
+- Check directory permissions (should be writable by container)
+
+#### Monitors showing as down
+- Verify the monitored service is actually running
+- Check network connectivity from container
+- Try increasing timeout values
+- Review monitor logs in Uptime Kuma
 
 ## Security Best Practices
 
-1. **Change Default Credentials** - Set strong username and password
-2. **Use SECRET_KEY** - Generate a strong random secret key
-3. **Read-Only Socket** - Keep Docker socket mounted as `:ro` (read-only)
+1. **Change Default Credentials** - Set strong username and password for Dockpeek
+2. **Use SECRET_KEY** - Generate a strong random secret key for Dockpeek
+3. **Read-Only Socket** - Keep Docker socket mounted as `:ro` (read-only) in Dockpeek
 4. **Reverse Proxy** - Access via HTTPS through Nginx Proxy Manager
-5. **Firewall Rules** - Don't expose port 3420 to the internet
+5. **Firewall Rules** - Don't expose ports 3420 or 3001 to the internet
 6. **Remote Connections** - Use TLS or SSH tunnels for remote Docker hosts
-7. **Regular Updates** - Keep Dockpeek image updated
+7. **Regular Updates** - Keep all images updated
+8. **Enable 2FA** - Enable two-factor authentication in Uptime Kuma
+9. **Backup Data** - Regular backup of `/nfs/vm_shares/herta/apps/uptime-kuma/data`
+10. **Status Page Privacy** - Use authentication for sensitive status pages
 
-## Adding More Monitoring Tools
+## Expanding Your Monitoring
 
-This monitoring stack can be expanded with additional tools:
+This monitoring stack can be further expanded with additional tools:
 
 - **Grafana** - Metrics visualization and dashboards
 - **Prometheus** - Metrics collection and alerting
-- **Uptime Kuma** - Service uptime monitoring
 - **Netdata** - Real-time system monitoring
 - **cAdvisor** - Container metrics collector
+- **Loki** - Log aggregation system
 
-Example additions can be made to this stack file as your monitoring needs grow.
+These can be added to the monitoring stack as needed.
+
+## Example Monitors to Add in Uptime Kuma
+
+Once Uptime Kuma is running, consider adding monitors for:
+
+1. **Portainer** - `https://your-domain.com:9443` (HTTPS)
+2. **Nginx Proxy Manager** - `http://nginx-proxy-manager:81` (HTTP)
+3. **Homepage** - `http://homepage:3000` (HTTP)
+4. **Dashy** - `http://dashy:8080` (HTTP)
+5. **Your public website** - External URL monitoring
+6. **SSL Certificates** - Certificate expiry monitoring
+7. **DNS Records** - DNS resolution checks
+8. **Database** - TCP port monitoring
+9. **NFS Server** - Ping monitoring
 
 ## Next Steps
 
 After deploying the monitoring stack:
 
-1. ✅ Access Dockpeek and change default password
-2. 🔒 Set up reverse proxy with SSL
-3. 🏷️ Tag your containers for better organization
-4. 📊 Monitor container health and resource usage
-5. 🔄 Set up alerts for container failures (future enhancement)
+1. ✅ Access Uptime Kuma and create admin account
+2. ✅ Access Dockpeek and change default password
+3. 🔒 Set up reverse proxy with SSL for both services
+4. 📊 Add monitors for all your critical services
+5. � Configure notification channels (Discord, Telegram, Email, etc.)
+6. � Create a status page for your services
+7. 🏷️ Tag your containers in Dockpeek for organization
+8. 💾 Set up regular backups of Uptime Kuma data
 
 ## Resources
 
 - [Dockpeek Documentation](https://dockpeek.com/docs) (if available)
+- [Uptime Kuma GitHub](https://github.com/louislam/uptime-kuma)
+- [Uptime Kuma Wiki](https://github.com/louislam/uptime-kuma/wiki)
 - [Docker API Documentation](https://docs.docker.com/engine/api/)
 - [Docker Security Best Practices](https://docs.docker.com/engine/security/)

@@ -80,6 +80,12 @@ Container monitoring and management tools.
   - Multi-host Docker management
   - Port: 3420
 
+- **Uptime Kuma** - Self-hosted uptime monitoring
+  - Beautiful modern UI
+  - Monitor HTTP(S), TCP, Ping, DNS
+  - Push notifications and status pages
+  - Port: 3001
+
 ### 💻 Development Stack
 IDE and terminal management tools for development work.
 

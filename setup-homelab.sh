@@ -239,11 +239,12 @@ create_app_directories() {
     APPS_BASE="$LOCAL_MOUNT_POINT/${HOSTNAME}/apps"
     
     # Create directory structure
-    mkdir -p "$APPS_BASE"/{portainer,nginx-proxy-manager,homepage,dashy,dockpeek,code-server,termix}
+    mkdir -p "$APPS_BASE"/{portainer,nginx-proxy-manager,homepage,dashy,dockpeek,code-server,termix,uptime-kuma}
     mkdir -p "$APPS_BASE"/portainer/data
     mkdir -p "$APPS_BASE"/homepage/config
     mkdir -p "$APPS_BASE"/dashy/config
     mkdir -p "$APPS_BASE"/code-server/{config,projects}
+    mkdir -p "$APPS_BASE"/uptime-kuma/data
     
     print_success "Created application directories"
     
@@ -276,7 +277,10 @@ configure_firewall() {
         # Allow dashboard ports
         ufw allow 3000/tcp comment 'Homepage'
         ufw allow 4000/tcp comment 'Dashy'
+        
+        # Allow monitoring tools
         ufw allow 3420/tcp comment 'Dockpeek'
+        ufw allow 3001/tcp comment 'Uptime Kuma'
         
         # Allow development tools
         ufw allow 8443/tcp comment 'Code-Server'
