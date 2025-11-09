@@ -1,0 +1,60 @@
+---
+# Homepage Services Configuration
+# Place this file in /nfs/vm_shares/herta/apps/homepage/config/
+
+- Network Services:
+    - Nginx Proxy Manager:
+        icon: nginx-proxy-manager.png
+        href: https://npm.yourdomain.com
+        description: Reverse Proxy & SSL Management
+        widget:
+          type: npm
+          url: http://nginx-proxy-manager:81
+          username: admin@example.com
+          password: your_npm_password
+
+    - Portainer:
+        icon: portainer.png
+        href: https://portainer.yourdomain.com
+        description: Docker Container Management
+        widget:
+          type: portainer
+          url: http://portainer:9000
+          env: 1
+          key: ptr_your_api_key_here
+
+- Dashboards:
+    - Homepage:
+        icon: homepage.png
+        href: https://home.yourdomain.com
+        description: Service Dashboard (This Page)
+
+    - Dashy:
+        icon: dashy.png
+        href: https://dashy.yourdomain.com
+        description: Alternative Dashboard
+
+- Monitoring:
+    - Dockpeek:
+        icon: docker.png
+        href: https://dockpeek.yourdomain.com
+        description: Docker Monitoring & Updates
+        widget:
+          type: docker
+          url: unix:///var/run/docker.sock
+
+- Development:
+    - Code-Server:
+        icon: vscode.png
+        href: https://code.yourdomain.com
+        description: VS Code in Browser
+        widget:
+          type: customapi
+          url: http://code-server:8080
+          method: GET
+
+    - Termix:
+        icon: terminal.png
+        href: https://termix.yourdomain.com
+        description: SSH Server Management Platform
+

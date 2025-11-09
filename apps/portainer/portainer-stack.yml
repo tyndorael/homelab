@@ -1,0 +1,27 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    user: "1000:1000"
+    ports:
+      - "9443:9443"   # HTTPS Web UI
+      - "9000:9000"   # HTTP Web UI
+      - "8000:8000"   # Edge Agent (optional)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /nfs/vm_shares/herta/apps/portainer/data:/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - portainer_network
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=docker,management"
+
+networks:
+  portainer_network:
+    driver: bridge
+  nginx-proxy-manager:
+    external: true
