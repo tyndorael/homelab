@@ -9,7 +9,8 @@ homelab/
 ├── stacks/               # Thematic grouped stacks (recommended)
 │   ├── portainer/        # Container management (deploy first!)
 │   ├── infrastructure/   # Networking & reverse proxy
-│   ├── dashboards/       # Web dashboards & monitoring
+│   ├── dashboards/       # Web dashboards & homepages
+│   ├── monitoring/       # Container monitoring tools
 │   └── development/      # IDE & terminal tools
 └── apps/                 # Individual app configs (legacy)
 ```
@@ -48,7 +49,7 @@ Essential networking and reverse proxy services.
   - Ports: 80 (HTTP), 443 (HTTPS), 81 (Web UI)
 
 ### 📊 Dashboards Stack
-Web dashboards and monitoring interfaces for your homelab.
+Web dashboards and homepage interfaces for your homelab.
 
 **Location**: `stacks/dashboards/`
 **Setup Guide**: `stacks/dashboards/DASHBOARDS_SETUP.md`
@@ -64,10 +65,19 @@ Web dashboards and monitoring interfaces for your homelab.
   - Multi-page support with custom layouts
   - Real-time status monitoring
   - Port: 4000
-  
+
+### 📈 Monitoring Stack
+Container monitoring and management tools.
+
+**Location**: `stacks/monitoring/`
+**Setup Guide**: `stacks/monitoring/MONITORING_SETUP.md`
+**Stack File**: `monitoring-stack.yml`
+
+**Services Included**:
 - **Dockpeek** - Lightweight Docker dashboard
   - One-click container web access
   - Live log streaming and update detection
+  - Multi-host Docker management
   - Port: 3420
 
 ### 💻 Development Stack
@@ -112,7 +122,11 @@ IDE and terminal management tools for development work.
    - Choose your preferred dashboard solution
    - See `stacks/dashboards/DASHBOARDS_SETUP.md`
 
-4. **Development Stack** (Optional)
+4. **Monitoring Stack** (Optional)
+   - Deploy for Docker container monitoring
+   - See `stacks/monitoring/MONITORING_SETUP.md`
+
+5. **Development Stack** (Optional)
    - Deploy if you need code editing or SSH management
    - See `stacks/development/DEVELOPMENT_SETUP.md`
 
@@ -152,6 +166,10 @@ docker compose -f infrastructure-stack.yml up -d
 # Dashboards (optional)
 cd stacks/dashboards
 docker compose -f dashboards-stack.yml up -d
+
+# Monitoring (optional)
+cd stacks/monitoring
+docker compose -f monitoring-stack.yml up -d
 
 # Development (optional)
 cd stacks/development
@@ -211,6 +229,7 @@ Each stack has its own setup guide with detailed configuration and troubleshooti
 - `stacks/portainer/PORTAINER_SETUP.md` - **Start here!**
 - `stacks/infrastructure/INFRASTRUCTURE_SETUP.md`
 - `stacks/dashboards/DASHBOARDS_SETUP.md`
+- `stacks/monitoring/MONITORING_SETUP.md`
 - `stacks/development/DEVELOPMENT_SETUP.md`
 
 ## License

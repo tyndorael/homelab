@@ -1,4 +1,5 @@
 services:
+  # Dockpeek - Lightweight Docker dashboard
   dockpeek:
     image: dockpeek/dockpeek:latest
     container_name: dockpeek
@@ -36,13 +37,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
     networks:
-      - dockpeek
+      - monitoring
       - nginx-proxy-manager
     labels:
       - "dockpeek.tags=monitoring,docker"
 
 networks:
-  dockpeek:
+  monitoring:
+    name: monitoring
     driver: bridge
   nginx-proxy-manager:
+    name: nginx-proxy-manager
     external: true
