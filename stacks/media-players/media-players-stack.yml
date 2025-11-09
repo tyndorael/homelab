@@ -52,6 +52,9 @@ services:
       - /dev/bus/usb:/dev/bus/usb
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+      - "dockpeek.tags=media,streaming"
+      - "dockpeek.description=Plex Media Server"
+      - "dockpeek.icon=https://www.plex.tv/wp-content/uploads/2018/01/plex-icon.svg"
 
   #############################################################################
   # Jellyfin Media Server
@@ -81,7 +84,7 @@ services:
       - "8096:8096"  # HTTP web UI
       - "8920:8920"  # HTTPS web UI (optional)
       - "7359:7359/udp"  # Discovery (optional)
-    devices:
+    #devices:
       # Optional: Hardware transcoding support
       # Uncomment the appropriate line for your hardware:
       # Intel Quick Sync:
@@ -93,6 +96,9 @@ services:
       # - /dev/nvidia-uvm:/dev/nvidia-uvm
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+      - "dockpeek.tags=media,streaming"
+      - "dockpeek.description=Jellyfin Media Server"
+      - "dockpeek.icon=https://jellyfin.org/images/logo.svg"
 
 ################################################################################
 # Networks
