@@ -16,12 +16,15 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - portainer_network
+      - portainer
+      - nginx-proxy-manager
     labels:
       - "dockpeek.tags=docker,management"
 
 networks:
-  portainer_network:
+  portainer:
+    name: portainer
     driver: bridge
   nginx-proxy-manager:
+    name: nginx-proxy-manager
     external: true

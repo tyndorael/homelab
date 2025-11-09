@@ -93,6 +93,8 @@ services:
 
 networks:
   dashboards:
+    name: dashboards
     driver: bridge
   nginx-proxy-manager:
+    name: nginx-proxy-manager
     external: true

@@ -44,10 +44,13 @@ services:
 
 networks:
   development:
+    name: development
     driver: bridge
   nginx-proxy-manager:
+    name: nginx-proxy-manager
     external: true
 
 volumes:
   termix-data:
+    name: termix-data
     driver: local
