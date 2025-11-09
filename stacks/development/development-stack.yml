@@ -1,0 +1,53 @@
+services:
+  # Code-Server - VS Code in browser
+  code-server:
+    image: codercom/code-server:latest
+    container_name: code-server
+    user: "1000:1000"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+      - PASSWORD=${CODE_SERVER_PASSWORD}
+      - SUDO_PASSWORD=${CODE_SERVER_SUDO_PASSWORD}
+      - PROXY_DOMAIN=${CODE_SERVER_PROXY_DOMAIN}
+    ports:
+      - "8443:8080"
+    volumes:
+      - /nfs/vm_shares/herta/apps/code-server/config:/home/coder/.config
+      - /nfs/vm_shares/herta/apps/code-server/projects:/home/coder/projects
+      - /nfs/vm_shares:/nfs/vm_shares
+    restart: unless-stopped
+    networks:
+      - development
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=development,ide"
+
+  # Termix - SSH server management platform
+  termix:
+    image: ghcr.io/lukegus/termix:latest
+    container_name: termix
+    environment:
+      - TZ=${TZ:-America/New_York}
+      - PORT=8080
+    ports:
+      - "8282:8080"
+    volumes:
+      - termix-data:/app/data
+    restart: unless-stopped
+    networks:
+      - development
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=ssh,terminal,management"
+
+networks:
+  development:
+    driver: bridge
+  nginx-proxy-manager:
+    external: true
+
+volumes:
+  termix-data:
+    driver: local

@@ -1,101 +1,93 @@
 # Homelab Docker Stack
 
-This repository contains Docker compose stacks for managing homelab services with reverse proxy and SSL support.
+This repository contains Docker compose stacks for managing homelab services with reverse proxy and SSL support. Services are organized by theme for easier management.
+
+## Repository Structure
+
+```
+homelab/
+├── stacks/               # Thematic grouped stacks (recommended)
+│   ├── portainer/        # Container management (deploy first!)
+│   ├── infrastructure/   # Networking & reverse proxy
+│   ├── dashboards/       # Web dashboards & monitoring
+│   └── development/      # IDE & terminal tools
+└── apps/                 # Individual app configs (legacy)
+```
 
 ## Prerequisites
 
-**Install Portainer first!** See `apps/portainer/PORTAINER_SETUP.md` for instructions.
+**Deploy Portainer first!** It's required for managing all other stacks.
 
 ## Available Stacks
 
-### Nginx Proxy Manager
-Easy-to-use reverse proxy with web UI for managing SSL certificates and proxy hosts.
+### 🐳 Portainer Stack (DEPLOY FIRST!)
+Container management platform - required for deploying other stacks.
 
-**Location**: `apps/nginx-proxy-manager/`
-**Setup Guide**: `apps/nginx-proxy-manager/NGINX_SETUP.md`
-**Features**:
-- Beautiful web interface
-- Manual SSL certificate upload
-- Access control lists
-- Stream proxies for TCP/UDP
+**Location**: `stacks/portainer/`
+**Setup Guide**: `stacks/portainer/PORTAINER_SETUP.md`
+**Stack File**: `portainer-stack.yml`
 
-### Homepage
-Modern, fast, and secure application dashboard with 100+ service integrations.
+**Service Included**:
+- **Portainer** - Docker container management platform
+  - Web-based stack deployment
+  - Container and image management
+  - Network and volume management
+  - Ports: 9443 (HTTPS), 9000 (HTTP), 8000 (Edge Agent)
 
-**Location**: `apps/homepage/`
-**Setup Guide**: `apps/homepage/HOMEPAGE_SETUP.md`
-**Features**:
-- Docker service auto-discovery via labels
-- 100+ service widget integrations
-- Information widgets (weather, system stats)
-- Fast static generation
-- Fully customizable themes and layouts
-- Secure API proxying
+### 🏗️ Infrastructure Stack
+Essential networking and reverse proxy services.
 
-### Dashy
-Highly customizable homepage and dashboard for organizing all your services.
+**Location**: `stacks/infrastructure/`
+**Setup Guide**: `stacks/infrastructure/INFRASTRUCTURE_SETUP.md`
+**Stack File**: `infrastructure-stack.yml`
 
-**Location**: `apps/dashy/`
-**Setup Guide**: `apps/dashy/DASHY_SETUP.md`
-**Features**:
-- Multi-page support with custom layouts
-- Real-time status monitoring
-- Dynamic widgets and content
-- Multiple themes and customization
-- Authentication and multi-user support
-- Instant search and keyboard shortcuts
-- Icon packs and auto-fetched favicons
+**Service Included**:
+- **Nginx Proxy Manager** - Reverse proxy with SSL management
+  - Web UI for managing proxy hosts and SSL certificates
+  - Access control lists and stream proxies
+  - Ports: 80 (HTTP), 443 (HTTPS), 81 (Web UI)
 
-### Dockpeek
-Lightweight Docker dashboard for quick access to containers and monitoring.
+### 📊 Dashboards Stack
+Web dashboards and monitoring interfaces for your homelab.
 
-**Location**: `apps/dockpeek/`
-**Setup Guide**: `apps/dockpeek/DOCKPEEK_SETUP.md`
-**Features**:
-- One-click container web access
-- Live log streaming
-- Image update detection
-- Port mapping and management
-- Container tagging and organization
+**Location**: `stacks/dashboards/`
+**Setup Guide**: `stacks/dashboards/DASHBOARDS_SETUP.md`
+**Stack File**: `dashboards-stack.yml`
 
-### Code-Server
-VS Code in your browser - code from anywhere on any device.
+**Services Included**:
+- **Homepage** - Modern application dashboard with service integrations
+  - Docker auto-discovery via labels
+  - 100+ service widgets
+  - Port: 3000
+  
+- **Dashy** - Highly customizable homepage
+  - Multi-page support with custom layouts
+  - Real-time status monitoring
+  - Port: 4000
+  
+- **Dockpeek** - Lightweight Docker dashboard
+  - One-click container web access
+  - Live log streaming and update detection
+  - Port: 3420
 
-**Location**: `apps/code-server/`
-**Setup Guide**: `apps/code-server/CODE_SERVER_SETUP.md`
-**Features**:
-- Full VS Code experience in browser
-- Code on tablets, Chromebooks, any device
-- Cloud-powered intensive tasks
-- Consistent development environment
-- VS Code extensions support
-- Built-in terminal and Git integration
+### 💻 Development Stack
+IDE and terminal management tools for development work.
 
-### Termix
-All-in-one SSH server management platform with terminal, tunnels, and file management.
+**Location**: `stacks/development/`
+**Setup Guide**: `stacks/development/DEVELOPMENT_SETUP.md`
+**Stack File**: `development-stack.yml`
 
-**Location**: `apps/termix/`
-**Setup Guide**: `apps/termix/TERMIX_SETUP.md`
-**Features**:
-- SSH terminal with split-screen (up to 4 panels)
-- SSH tunnel management with auto-reconnect
-- Remote file manager with code/media preview
-- Server stats and monitoring
-- User authentication with 2FA and OIDC
-- Command snippets and broadcast
-- Available on all platforms (web, desktop, mobile)
-
-### Portainer
-Docker container management platform with web UI.
-
-**Location**: `apps/portainer/`
-**Setup Guide**: `apps/portainer/PORTAINER_SETUP.md`
-
-### Traefik (Alternative)
-Cloudflare Tunnel setup for services without port forwarding.
-
-**Location**: `apps/traefik/`
-**Setup Guide**: `apps/traefik/CLOUDFLARE_SETUP.md`
+**Services Included**:
+- **Code-Server** - VS Code in your browser
+  - Full VS Code experience with extensions
+  - Built-in terminal and Git integration
+  - Port: 8443
+  
+- **Termix** - SSH server management platform
+  - Multi-panel SSH terminal
+  - SSH tunnel management
+  - Remote file manager
+  - Port: 8282
 
 ## Quick Start
 
@@ -105,16 +97,122 @@ Cloudflare Tunnel setup for services without port forwarding.
 4. Deploy Homepage for service dashboard with integrations
 5. (Optional) Deploy Dashy for alternative customizable homepage
 6. Deploy Dockpeek for container monitoring
-7. (Optional) Deploy Code-Server for browser-based development
-8. Configure proxy hosts for your services
+
+## Deployment Order
+
+1. **Portainer Stack** (Required first - deploy manually)
+   - Must be deployed via Docker Compose before using Portainer UI
+   - See `stacks/portainer/PORTAINER_SETUP.md`
+
+2. **Infrastructure Stack** (Required second)
+   - Creates the nginx-proxy-manager network used by other stacks
+   - See `stacks/infrastructure/INFRASTRUCTURE_SETUP.md`
+
+3. **Dashboards Stack** (Optional)
+   - Choose your preferred dashboard solution
+   - See `stacks/dashboards/DASHBOARDS_SETUP.md`
+
+4. **Development Stack** (Optional)
+   - Deploy if you need code editing or SSH management
+   - See `stacks/development/DEVELOPMENT_SETUP.md`
+
+## Deployment Methods
+
+### Initial Setup: Deploy Portainer First
+
+**Portainer must be deployed manually via Docker Compose:**
+
+```bash
+cd stacks/portainer
+docker compose -f portainer-stack.yml up -d
+```
+
+Then access Portainer at `https://your-server-ip:9443` and create your admin account.
+
+### Option 1: Via Portainer (Recommended for other stacks)
+
+1. Access Portainer at `https://your-server-ip:9443`
+2. Go to **Stacks** → **Add stack**
+3. Name your stack (e.g., "infrastructure", "dashboards", "development")
+4. Upload the respective `*-stack.yml` file
+5. Configure environment variables
+6. Click **Deploy the stack**
+
+### Option 2: Via Docker Compose
+
+```bash
+# Portainer (deploy first)
+cd stacks/portainer
+docker compose -f portainer-stack.yml up -d
+
+# Infrastructure (deploy second)
+cd stacks/infrastructure
+docker compose -f infrastructure-stack.yml up -d
+
+# Dashboards (optional)
+cd stacks/dashboards
+docker compose -f dashboards-stack.yml up -d
+
+# Development (optional)
+cd stacks/development
+docker compose -f development-stack.yml up -d
+```
 
 ## Network Architecture
 
-All services use Docker bridge networks for isolation and communication:
-- Nginx Proxy Manager exposes ports 80, 443 (public) and 81 (admin)
-- Internal services communicate via container names
-- External access controlled through NPM proxy hosts
+All stacks connect to the `nginx-proxy-manager` bridge network created by the Infrastructure stack. This allows:
+- Central reverse proxy management
+- SSL termination at the proxy level
+- Easy subdomain routing
+- Isolated service networks within each stack
+
+All services communicate via container names on their respective networks. External access is controlled through Nginx Proxy Manager proxy hosts on ports 80/443.
+
+## Environment Variables
+
+Each stack requires a `.env` file or environment variables configured in Portainer. Common variables:
+
+```env
+TZ=America/New_York
+```
+
+See individual setup guides for stack-specific variables.
+
+## Updating Stacks
+
+### Via Portainer
+1. Go to **Stacks** → Select your stack
+2. Click **Editor** → **Pull and redeploy**
+
+### Via Docker Compose
+```bash
+cd stacks/<stack-name>
+docker compose -f <stack-name>-stack.yml pull
+docker compose -f <stack-name>-stack.yml up -d
+docker image prune -f
+```
+
+## Migrating from Individual Apps
+
+If you have existing individual app deployments in the `apps/` directory:
+
+1. **Backup your data** - Export configurations and note volume locations
+2. **Stop old containers** - `docker stop <container-name>`
+3. **Deploy new stacks** - Follow the deployment order above
+4. **Verify data paths** - Ensure volume mounts match your existing data
+5. **Update proxy configs** - Reconfigure Nginx Proxy Manager with new container names
+6. **Remove old containers** - `docker rm <container-name>` after verification
+
+The `apps/` directory remains for reference and individual deployments if preferred.
 
 ## Support
 
-Each application has its own setup guide with troubleshooting steps. Check the respective `*_SETUP.md` files.
+Each stack has its own setup guide with detailed configuration and troubleshooting:
+- `stacks/portainer/PORTAINER_SETUP.md` - **Start here!**
+- `stacks/infrastructure/INFRASTRUCTURE_SETUP.md`
+- `stacks/dashboards/DASHBOARDS_SETUP.md`
+- `stacks/development/DEVELOPMENT_SETUP.md`
+
+## License
+
+MIT License - Feel free to use and modify for your homelab!

@@ -1,0 +1,98 @@
+services:
+  # Homepage - Modern application dashboard
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    user: "1000:1000"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
+    ports:
+      - "3000:3000"
+    volumes:
+      - /nfs/vm_shares/herta/apps/homepage/config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - dashboards
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=dashboard,startpage"
+
+  # Dashy - Highly customizable homepage
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    user: "1000:1000"
+    environment:
+      - NODE_ENV=production
+      - TZ=${TZ:-America/New_York}
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - "4000:8080"
+    volumes:
+      - /nfs/vm_shares/herta/apps/dashy/config:/app/user-data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'node', '/app/services/healthcheck']
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - dashboards
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=dashboard,homepage"
+
+  # Dockpeek - Lightweight Docker dashboard
+  dockpeek:
+    image: dockpeek/dockpeek:latest
+    container_name: dockpeek
+    environment:
+      - SECRET_KEY=${DOCKPEEK_SECRET_KEY}
+      - USERNAME=${DOCKPEEK_USERNAME:-admin}
+      - PASSWORD=${DOCKPEEK_PASSWORD:-admin}
+      - TZ=${TZ:-America/New_York}
+      
+      # Docker Host 1 (Local)
+      - DOCKER_HOST_1_URL=unix:///var/run/docker.sock
+      - DOCKER_HOST_1_NAME=${DOCKER_HOST_1_NAME:-Local}
+      # - DOCKER_HOST_1_PUBLIC_HOSTNAME=${DOCKER_HOST_1_PUBLIC_HOSTNAME}
+      
+      # Docker Host 2 (Remote) - Uncomment and configure to add
+      # - DOCKER_HOST_2_URL=${DOCKER_HOST_2_URL}
+      # - DOCKER_HOST_2_NAME=${DOCKER_HOST_2_NAME:-Remote Server}
+      # - DOCKER_HOST_2_PUBLIC_HOSTNAME=${DOCKER_HOST_2_PUBLIC_HOSTNAME}
+      
+      # Docker Host 3 - Add more hosts as needed
+      # - DOCKER_HOST_3_URL=${DOCKER_HOST_3_URL}
+      # - DOCKER_HOST_3_NAME=${DOCKER_HOST_3_NAME}
+      # - DOCKER_HOST_3_PUBLIC_HOSTNAME=${DOCKER_HOST_3_PUBLIC_HOSTNAME}
+      
+      # Configuration
+      - TRAEFIK_LABELS=true
+      - TAGS=true
+      - PORT_RANGE_GROUPING=true
+      - TRUST_PROXY_HEADERS=true
+      - TRUSTED_PROXY_COUNT=1
+      - DOCKER_CONNECTION_TIMEOUT=2
+    ports:
+      - "3420:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - dashboards
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=monitoring,docker"
+
+networks:
+  dashboards:
+    driver: bridge
+  nginx-proxy-manager:
+    external: true
