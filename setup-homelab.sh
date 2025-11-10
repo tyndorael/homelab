@@ -241,6 +241,7 @@ create_app_directories() {
     # Create directory structure
     mkdir -p "$APPS_BASE"/{portainer,nginx-proxy-manager,homepage,dashy,dockpeek,code-server,termix,uptime-kuma}
     mkdir -p "$APPS_BASE"/{plex,jellyfin}
+    mkdir -p "$APPS_BASE"/{speedtest-tracker,stirling-pdf,filebrowser}
     mkdir -p "$APPS_BASE"/portainer/data
     mkdir -p "$APPS_BASE"/homepage/config
     mkdir -p "$APPS_BASE"/dashy/config
@@ -248,6 +249,12 @@ create_app_directories() {
     mkdir -p "$APPS_BASE"/uptime-kuma/data
     mkdir -p "$APPS_BASE"/plex/{config,transcode}
     mkdir -p "$APPS_BASE"/jellyfin/{config,cache}
+    mkdir -p "$APPS_BASE"/speedtest-tracker/config
+    mkdir -p "$APPS_BASE"/stirling-pdf/{configs,logs}
+    
+    # Create FileBrowser initial files
+    touch "$APPS_BASE"/filebrowser/database.db
+    touch "$APPS_BASE"/filebrowser/settings.json
     
     print_success "Created application directories"
     
@@ -297,6 +304,15 @@ configure_firewall() {
         ufw allow 32400/tcp comment 'Plex'
         ufw allow 8096/tcp comment 'Jellyfin HTTP'
         ufw allow 8920/tcp comment 'Jellyfin HTTPS'
+        
+        # Allow utilities
+        ufw allow 8765/tcp comment 'Speedtest Tracker'
+        ufw allow 8766/tcp comment 'IT-Tools'
+        ufw allow 8767/tcp comment 'CyberChef'
+        ufw allow 8768/tcp comment 'Excalidraw'
+        ufw allow 8769/tcp comment 'Stirling-PDF'
+        ufw allow 8770/tcp comment 'Dozzle'
+        ufw allow 8771/tcp comment 'FileBrowser'
         
         # Allow development tools
         ufw allow 8443/tcp comment 'Code-Server'

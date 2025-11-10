@@ -13,6 +13,7 @@ homelab/
 │   ├── monitoring/       # Container monitoring tools
 │   ├── media-automation/ # *arr apps (Sonarr, Radarr, etc.)
 │   ├── media-players/    # Media servers (Plex, Jellyfin)
+│   ├── utilities/        # Utility apps & tools
 │   └── development/      # IDE & terminal tools
 └── apps/                 # Individual app configs (legacy)
 ```
@@ -118,7 +119,23 @@ Media streaming servers with NFS config and CIFS media storage.
 - Config: NFS shared storage (`/nfs/vm_shares/cyrene/apps/`)
 - Media: CIFS/SMB mount (`/mnt/media/`) - configure with `setup-cifs-media.sh`
 
-### 💻 Development Stack
+### �️ Utilities Stack
+Handy utility applications and tools for homelab management.
+
+**Location**: `stacks/utilities/`
+**Setup Guide**: `stacks/utilities/UTILITIES_SETUP.md`
+**Stack File**: `utilities-stack.yml`
+
+**Services Included**:
+- **Speedtest Tracker** - Internet speed monitoring (Port: 8765)
+- **IT-Tools** - 80+ developer tools collection (Port: 8766)
+- **CyberChef** - Data analysis and transformation (Port: 8767)
+- **Excalidraw** - Virtual whiteboard for diagrams (Port: 8768)
+- **Stirling-PDF** - PDF manipulation tool (Port: 8769)
+- **Dozzle** - Real-time Docker log viewer (Port: 8770)
+- **FileBrowser** - Web-based file manager (Port: 8771)
+
+### �💻 Development Stack
 IDE and terminal management tools for development work.
 
 **Location**: `stacks/development/`
@@ -173,7 +190,11 @@ IDE and terminal management tools for development work.
    - Requires CIFS media share configured first
    - See `stacks/media-players/MEDIA_PLAYERS_SETUP.md`
 
-7. **Development Stack** (Optional)
+7. **Utilities Stack** (Optional)
+   - Deploy helpful utility tools
+   - See `stacks/utilities/UTILITIES_SETUP.md`
+
+8. **Development Stack** (Optional)
    - Deploy if you need code editing or SSH management
    - See `stacks/development/DEVELOPMENT_SETUP.md`
 
@@ -225,6 +246,10 @@ docker compose -f media-automation-stack.yml up -d
 # Media Players (optional - requires CIFS setup first)
 cd stacks/media-players
 docker compose -f media-players-stack.yml up -d
+
+# Utilities (optional)
+cd stacks/utilities
+docker compose -f utilities-stack.yml up -d
 
 # Development (optional)
 cd stacks/development
@@ -287,6 +312,7 @@ Each stack has its own setup guide with detailed configuration and troubleshooti
 - `stacks/monitoring/MONITORING_SETUP.md`
 - `stacks/media-automation/MEDIA_AUTOMATION_SETUP.md`
 - `stacks/media-players/MEDIA_PLAYERS_SETUP.md`
+- `stacks/utilities/UTILITIES_SETUP.md`
 - `stacks/development/DEVELOPMENT_SETUP.md`
 
 ## Setup Scripts
