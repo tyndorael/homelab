@@ -175,6 +175,119 @@ configure_docker_user() {
     fi
 }
 
+configure_docker_tcp_api() {
+    print_header "Configuring Docker TCP API for Dockpeek"
+    
+    echo -e "${YELLOW}This will expose Docker API on TCP port 2375 for Dockpeek monitoring.${NC}"
+    echo -e "${YELLOW}This is UNENCRYPTED and should only be used on trusted networks.${NC}"
+    echo ""
+    
+    if ! confirm_action "Do you want to enable Docker TCP API?"; then
+        print_warning "Skipping Docker TCP API configuration"
+        return 0
+    fi
+    
+    # Create daemon.json if it doesn't exist
+    if [ ! -f /etc/docker/daemon.json ]; then
+        echo '{}' > /etc/docker/daemon.json
+        print_success "Created /etc/docker/daemon.json"
+    fi
+    
+    # Backup existing daemon.json
+    cp /etc/docker/daemon.json /etc/docker/daemon.json.backup.$(date +%Y%m%d_%H%M%S)
+    print_success "Backed up daemon.json"
+    
+    # Add hosts configuration
+    cat > /etc/docker/daemon.json << 'EOF'
+{
+  "hosts": ["unix:///var/run/docker.sock", "tcp://0.0.0.0:2375"]
+}
+EOF
+    
+    print_success "Updated /etc/docker/daemon.json"
+    
+    # Create systemd override directory
+    mkdir -p /etc/systemd/system/docker.service.d
+    
+    # Create override file to remove -H fd:// from ExecStart
+    cat > /etc/systemd/system/docker.service.d/override.conf << 'EOF'
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd
+EOF
+    
+    print_success "Created systemd override configuration"
+    
+    # Reload systemd and restart Docker
+    systemctl daemon-reload
+    systemctl restart docker
+    
+    # Wait for Docker to start
+    sleep 3
+    
+    # Verify Docker is running
+    if systemctl is-active --quiet docker; then
+        print_success "Docker restarted successfully with TCP API enabled"
+        
+        # Test TCP API
+        if curl -s http://localhost:2375/version > /dev/null; then
+            print_success "Docker TCP API is responding on port 2375"
+        else
+            print_error "Docker TCP API is not responding"
+            return 1
+        fi
+    else
+        print_error "Docker failed to start. Rolling back configuration..."
+        
+        # Restore backup
+        mv /etc/docker/daemon.json.backup.* /etc/docker/daemon.json 2>/dev/null || true
+        rm /etc/systemd/system/docker.service.d/override.conf 2>/dev/null || true
+        systemctl daemon-reload
+        systemctl restart docker
+        
+        print_warning "Configuration rolled back"
+        return 1
+    fi
+    
+    # Prompt for firewall configuration
+    echo ""
+    echo -e "${YELLOW}Firewall Configuration:${NC}"
+    echo "For security, you should restrict TCP port 2375 to specific IPs."
+    echo ""
+    
+    if confirm_action "Do you want to configure firewall rules now?"; then
+        echo ""
+        echo -e "${YELLOW}Enter the IP address of your Dockpeek/monitoring VM:${NC}"
+        echo "(e.g., 192.168.1.100)"
+        read -p "IP address: " MONITOR_IP
+        
+        if [ -n "$MONITOR_IP" ]; then
+            # Allow from monitoring VM
+            ufw allow from "$MONITOR_IP" to any port 2375 proto tcp comment 'Docker TCP API for Dockpeek'
+            print_success "Firewall rule added for $MONITOR_IP"
+        else
+            print_warning "No IP provided, skipping firewall rule"
+            print_warning "Remember to manually configure firewall!"
+        fi
+    else
+        print_warning "Skipping firewall configuration"
+        print_warning "SECURITY: Port 2375 is open to all IPs. Configure firewall manually!"
+    fi
+    
+    # Show configuration summary
+    echo ""
+    echo -e "${BLUE}Docker TCP API Configuration Summary:${NC}"
+    echo "- API Endpoint: tcp://$(hostname -I | awk '{print $1}'):2375"
+    echo "- Local Test: curl http://localhost:2375/version"
+    echo "- Remote Test: curl http://$(hostname -I | awk '{print $1}'):2375/version"
+    echo ""
+    echo -e "${YELLOW}Security Notes:${NC}"
+    echo "- This connection is UNENCRYPTED"
+    echo "- Use firewall rules to restrict access"
+    echo "- Consider using VPN for remote access"
+    echo "- Monitor access logs regularly"
+}
+
 configure_nfs_client() {
     print_header "Configuring NFS Client"
     
@@ -484,6 +597,7 @@ EOF
     install_utilities
     install_docker
     configure_docker_user
+    configure_docker_tcp_api
     configure_nfs_client
     create_app_directories
     configure_firewall
