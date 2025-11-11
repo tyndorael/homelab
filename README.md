@@ -13,6 +13,7 @@ homelab/
 │   ├── monitoring/       # Container monitoring tools
 │   ├── media-automation/ # *arr apps (Sonarr, Radarr, etc.)
 │   ├── media-players/    # Media servers (Plex, Jellyfin)
+│   ├── downloaders/      # Download clients (qBittorrent)
 │   ├── utilities/        # Utility apps & tools
 │   └── development/      # IDE & terminal tools
 └── apps/                 # Individual app configs (legacy)
@@ -119,7 +120,21 @@ Media streaming servers with NFS config and CIFS media storage.
 - Config: NFS shared storage (`/nfs/vm_shares/cyrene/apps/`)
 - Media: CIFS/SMB mount (`/mnt/media/`) - configure with `setup-cifs-media.sh`
 
-### �️ Utilities Stack
+### ⬇️ Downloaders Stack
+BitTorrent download client for media automation.
+
+**Location**: `stacks/downloaders/`
+**Setup Guide**: `stacks/downloaders/DOWNLOADERS_SETUP.md`
+**Stack File**: `downloaders-stack.yml`
+
+**Service Included**:
+- **qBittorrent** - BitTorrent client with web UI (Ports: 8080, 6881)
+
+**Storage Architecture**:
+- Config: NFS shared storage (`/nfs/vm_shares/herta/apps/qbittorrent/`)
+- Downloads: CIFS/SMB mount (`/mnt/media/downloads/`)
+
+### 🛠️ Utilities Stack
 Handy utility applications and tools for homelab management.
 
 **Location**: `stacks/utilities/`
@@ -131,11 +146,10 @@ Handy utility applications and tools for homelab management.
 - **IT-Tools** - 80+ developer tools collection (Port: 8766)
 - **CyberChef** - Data analysis and transformation (Port: 8767)
 - **Excalidraw** - Virtual whiteboard for diagrams (Port: 8768)
-- **Stirling-PDF** - PDF manipulation tool (Port: 8769)
 - **Dozzle** - Real-time Docker log viewer (Port: 8770)
 - **FileBrowser** - Web-based file manager (Port: 8771)
 
-### �💻 Development Stack
+### 💻 Development Stack
 IDE and terminal management tools for development work.
 
 **Location**: `stacks/development/`
@@ -190,11 +204,17 @@ IDE and terminal management tools for development work.
    - Requires CIFS media share configured first
    - See `stacks/media-players/MEDIA_PLAYERS_SETUP.md`
 
-7. **Utilities Stack** (Optional)
+7. **Downloaders Stack** (Optional)
+   - Deploy qBittorrent for automated downloads
+   - Integrates with *arr apps
+   - Requires CIFS media share configured first
+   - See `stacks/downloaders/DOWNLOADERS_SETUP.md`
+
+8. **Utilities Stack** (Optional)
    - Deploy helpful utility tools
    - See `stacks/utilities/UTILITIES_SETUP.md`
 
-8. **Development Stack** (Optional)
+9. **Development Stack** (Optional)
    - Deploy if you need code editing or SSH management
    - See `stacks/development/DEVELOPMENT_SETUP.md`
 
@@ -246,6 +266,10 @@ docker compose -f media-automation-stack.yml up -d
 # Media Players (optional - requires CIFS setup first)
 cd stacks/media-players
 docker compose -f media-players-stack.yml up -d
+
+# Downloaders (optional - requires CIFS setup first)
+cd stacks/downloaders
+docker compose -f downloaders-stack.yml up -d
 
 # Utilities (optional)
 cd stacks/utilities
@@ -312,6 +336,7 @@ Each stack has its own setup guide with detailed configuration and troubleshooti
 - `stacks/monitoring/MONITORING_SETUP.md`
 - `stacks/media-automation/MEDIA_AUTOMATION_SETUP.md`
 - `stacks/media-players/MEDIA_PLAYERS_SETUP.md`
+- `stacks/downloaders/DOWNLOADERS_SETUP.md`
 - `stacks/utilities/UTILITIES_SETUP.md`
 - `stacks/development/DEVELOPMENT_SETUP.md`
 

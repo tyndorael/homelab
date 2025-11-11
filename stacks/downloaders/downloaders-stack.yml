@@ -1,0 +1,83 @@
+################################################################################
+# Downloaders Stack - Docker Compose Configuration
+# 
+# Services:
+# - qBittorrent (8080) - BitTorrent client with web UI
+#
+# Network: downloaders (bridge)
+# Storage: NFS for config, CIFS for downloads
+################################################################################
+
+version: '3.8'
+
+services:
+  #############################################################################
+  # qBittorrent
+  # Web UI: http://<your-server>:8080
+  # Documentation: https://github.com/linuxserver/docker-qbittorrent
+  #############################################################################
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    hostname: qbittorrent
+    restart: unless-stopped
+    networks:
+      - downloaders
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+    volumes:
+      # Config on NFS (shared storage)
+      - /nfs/vm_shares/herta/apps/qbittorrent/config:/config
+      # Downloads on CIFS (media share)
+      - /mnt/media/downloads:/downloads
+    ports:
+      - "8080:8080"  # Web UI
+      - "6881:6881"  # BitTorrent TCP
+      - "6881:6881/udp"  # BitTorrent UDP
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "dockpeek.tags=downloaders,media"
+      - "dockpeek.description=BitTorrent Client"
+      - "dockpeek.icon=https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/qbittorrent-icon.png"
+
+################################################################################
+# Networks
+################################################################################
+networks:
+  downloaders:
+    name: downloaders
+    driver: bridge
+
+################################################################################
+# Notes:
+# 
+# qBittorrent Configuration:
+# - Default credentials: admin / adminadmin (change on first login!)
+# - Config stored on NFS for persistence and backups
+# - Downloads go directly to CIFS media share
+# - Integrates with Sonarr, Radarr, Lidarr, Readarr
+# 
+# Storage Architecture:
+# - /config: NFS shared storage (configs, torrents, logs)
+# - /downloads: CIFS media share (actual downloaded files)
+# 
+# Port Usage:
+# - 8080: Web UI (access from browser)
+# - 6881: BitTorrent protocol (TCP + UDP)
+# 
+# Security Recommendations:
+# - Change default password immediately
+# - Enable authentication bypass for 127.0.0.1 only
+# - Consider VPN integration (gluetun) for privacy
+# - Use categories to organize downloads
+# 
+# Integration with *arr Apps:
+# 1. Add qBittorrent as download client in each *arr app
+# 2. Use host: qbittorrent (if on same docker network)
+# 3. Use port: 8080
+# 4. Configure categories: tv, movies, music, books
+# 5. Set up remote path mappings if needed
+################################################################################

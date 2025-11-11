@@ -242,6 +242,7 @@ create_app_directories() {
     mkdir -p "$APPS_BASE"/{portainer,nginx-proxy-manager,homepage,dashy,dockpeek,code-server,termix,uptime-kuma}
     mkdir -p "$APPS_BASE"/{plex,jellyfin}
     mkdir -p "$APPS_BASE"/{speedtest-tracker,stirling-pdf,filebrowser}
+    mkdir -p "$APPS_BASE"/qbittorrent/config
     mkdir -p "$APPS_BASE"/portainer/data
     mkdir -p "$APPS_BASE"/homepage/config
     mkdir -p "$APPS_BASE"/dashy/config
@@ -313,6 +314,11 @@ configure_firewall() {
         ufw allow 8769/tcp comment 'Stirling-PDF'
         ufw allow 8770/tcp comment 'Dozzle'
         ufw allow 8771/tcp comment 'FileBrowser'
+        
+        # Allow downloaders
+        ufw allow 8080/tcp comment 'qBittorrent Web UI'
+        ufw allow 6881/tcp comment 'qBittorrent BT TCP'
+        ufw allow 6881/udp comment 'qBittorrent BT UDP'
         
         # Allow development tools
         ufw allow 8443/tcp comment 'Code-Server'
