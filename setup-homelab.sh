@@ -353,7 +353,7 @@ create_app_directories() {
     
     # Create directory structure
     mkdir -p "$APPS_BASE"/{portainer,nginx-proxy-manager,homepage,dashy,dockpeek,code-server,termix,uptime-kuma}
-    mkdir -p "$APPS_BASE"/{plex,jellyfin}
+    mkdir -p "$APPS_BASE"/{plex,jellyfin,navidrome}
     mkdir -p "$APPS_BASE"/{speedtest-tracker,stirling-pdf,filebrowser}
     mkdir -p "$APPS_BASE"/qbittorrent/config
     mkdir -p "$APPS_BASE"/portainer/data
@@ -418,6 +418,7 @@ configure_firewall() {
         ufw allow 32400/tcp comment 'Plex'
         ufw allow 8096/tcp comment 'Jellyfin HTTP'
         ufw allow 8920/tcp comment 'Jellyfin HTTPS'
+        ufw allow 4533/tcp comment 'Navidrome'
         
         # Allow utilities
         ufw allow 8765/tcp comment 'Speedtest Tracker'

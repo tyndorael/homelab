@@ -1,6 +1,6 @@
 # Media Players Stack Setup Guide
 
-This guide covers the deployment and configuration of Plex and Jellyfin media servers in your homelab environment.
+This guide covers the deployment and configuration of Plex, Jellyfin, and Navidrome media servers in your homelab environment.
 
 ## Table of Contents
 - [Overview](#overview)
@@ -10,6 +10,7 @@ This guide covers the deployment and configuration of Plex and Jellyfin media se
 - [Initial Setup](#initial-setup)
 - [Plex Configuration](#plex-configuration)
 - [Jellyfin Configuration](#jellyfin-configuration)
+- [Navidrome Configuration](#navidrome-configuration)
 - [Hardware Transcoding](#hardware-transcoding)
 - [Reverse Proxy Setup](#reverse-proxy-setup)
 - [Troubleshooting](#troubleshooting)
@@ -18,7 +19,7 @@ This guide covers the deployment and configuration of Plex and Jellyfin media se
 
 ## Overview
 
-This stack provides two popular media server solutions:
+This stack provides three media server solutions:
 
 ### Plex Media Server
 - **Purpose**: Commercial media streaming platform with excellent client support
@@ -31,6 +32,12 @@ This stack provides two popular media server solutions:
 - **Port**: 8096 (HTTP), 8920 (HTTPS)
 - **Network Mode**: Bridge (can be reverse proxied)
 - **Best For**: Privacy-conscious users, no premium features locked
+
+### Navidrome
+- **Purpose**: Modern music server and streamer with Subsonic API
+- **Port**: 4533
+- **Network Mode**: Bridge
+- **Best For**: Dedicated music streaming with mobile app support
 
 ### Storage Architecture
 - **Config Storage**: NFS shared storage (`/nfs/vm_shares/cyrene/apps/`)
@@ -83,6 +90,13 @@ sudo chown -R 1000:1000 /nfs/vm_shares/cyrene/apps/jellyfin
 sudo chmod -R 755 /nfs/vm_shares/cyrene/apps/jellyfin
 ```
 
+**Navidrome:**
+```bash
+sudo mkdir -p /nfs/vm_shares/cyrene/apps/navidrome
+sudo chown -R 1000:1000 /nfs/vm_shares/cyrene/apps/navidrome
+sudo chmod -R 755 /nfs/vm_shares/cyrene/apps/navidrome
+```
+
 ### 4. Firewall Configuration
 Open required ports:
 ```bash
@@ -92,6 +106,9 @@ sudo ufw allow 32400/tcp comment 'Plex Media Server'
 # Jellyfin
 sudo ufw allow 8096/tcp comment 'Jellyfin HTTP'
 sudo ufw allow 8920/tcp comment 'Jellyfin HTTPS'
+
+# Navidrome
+sudo ufw allow 4533/tcp comment 'Navidrome'
 
 # Optional: Discovery protocols
 sudo ufw allow 7359/udp comment 'Jellyfin Discovery'
@@ -116,21 +133,22 @@ sudo ufw status
           │  (Different VM)     │
           └──────────┬──────────┘
                      │
-        ┌────────────┴──────────────┐
-        │                           │
-   ┌────▼────┐              ┌──────▼─────┐
-   │  Plex   │              │  Jellyfin  │
-   │ (32400) │              │   (8096)   │
-   │ bridge  │              │   bridge   │
-   └────┬────┘              └──────┬─────┘
-        │                          │
-        └────────────┬─────────────┘
+        ┌────────────┴──────────────┬──────────────┐
+        │                           │              │
+   ┌────▼────┐              ┌──────▼─────┐  ┌─────▼──────┐
+   │  Plex   │              │  Jellyfin  │  │ Navidrome  │
+   │ (32400) │              │   (8096)   │  │   (4533)   │
+   │ bridge  │              │   bridge   │  │   bridge   │
+   └────┬────┘              └──────┬─────┘  └─────┬──────┘
+        │                          │              │
+        └────────────┬─────────────┴──────────────┘
                      │
         ┌────────────▼──────────────┐
         │     Media Storage         │
         │  /mnt/media (CIFS/SMB)    │
         │  - tv/                    │
         │  - movies/                │
+        │  - music/                 │
         │  - music/                 │
         │  - books/                 │
         └───────────────────────────┘
@@ -311,6 +329,150 @@ docker exec jellyfin ls -la /media
 
 ---
 
+## Navidrome Configuration
+
+### Initial Setup
+
+1. **Access Navidrome Web UI**
+   ```
+   http://YOUR_SERVER_IP:4533
+   ```
+
+2. **Create Admin Account**
+   - On first access, you'll be prompted to create an admin user
+   - Username: Choose your admin username
+   - Password: Set a strong password
+   - Name: Display name
+   - Click **Create Admin**
+
+### Music Library Setup
+
+**Automatic Scanning:**
+- Navidrome automatically scans `/music` directory (mounted from `/mnt/media/music`)
+- Default scan interval: 1 hour (configurable in docker-compose)
+- Initial scan happens on first startup
+
+**Manual Scan:**
+1. Click your username → **Settings**
+2. Scroll to **Advanced** section
+3. Click **Rescan Now** to force an immediate scan
+
+### Recommended Settings
+
+**User Settings** (Click username → Settings):
+
+1. **Language & Region:**
+   - Display Language: Select your preference
+   - Default Language: Select for search/metadata
+
+2. **Transcoding:**
+   - Max Bit Rate: Set based on your upload speed (for remote streaming)
+   - Default: 128 Kbps (mobile), 320 Kbps (desktop)
+
+3. **Last.fm Scrobbling:**
+   - Connect Last.fm account (optional)
+   - Username: Your Last.fm username
+   - Password: Your Last.fm password
+   - Click **Link**
+
+4. **ListenBrainz:**
+   - Alternative to Last.fm (optional)
+   - Enter ListenBrainz token
+   - Click **Save**
+
+**Admin Settings** (Settings → Advanced):
+
+1. **Library:**
+   - Music Folder: `/music` (default, should match mount)
+   - Scan Interval: `1h` (hourly)
+   - Enable Folder-based Playlists: ✓
+
+2. **Transcoding:**
+   - Enable transcoding: ✓
+   - Transcoding Cache Size: 100 MB (adjust based on disk space)
+
+### Mobile App Setup
+
+Navidrome is compatible with many Subsonic-compatible apps:
+
+**Recommended Apps:**
+- **Android**: 
+  - Symfonium (paid, best UI)
+  - DSub (free, feature-rich)
+  - Ultrasonic (free, open-source)
+  
+- **iOS**:
+  - play:Sub (paid, excellent UI)
+  - Amperfy (free, open-source)
+  - substreamer (paid)
+
+**Connection Settings:**
+```
+Server URL: http://YOUR_SERVER_IP:4533
+  or: https://navidrome.yourdomain.com (with reverse proxy)
+Username: Your Navidrome username
+Password: Your Navidrome password
+```
+
+**Legacy Authentication Token:**
+- If app requires token authentication
+- Settings → User → Generate New Token
+- Use token instead of password
+
+### Music Library Organization
+
+**Recommended Folder Structure:**
+```
+/mnt/media/music/
+├── Artist Name/
+│   ├── Album Name (Year)/
+│   │   ├── 01 - Track.mp3
+│   │   ├── 02 - Track.mp3
+│   │   └── cover.jpg
+│   └── Another Album (Year)/
+└── Various Artists/
+    └── Compilation Album (Year)/
+```
+
+**Supported Formats:**
+- FLAC (lossless, recommended)
+- MP3
+- M4A/AAC
+- OGG/Vorbis
+- OPUS
+- WMA
+
+**Metadata:**
+- Navidrome reads tags from audio files
+- Embedded album art supported
+- Separate `cover.jpg` files also work
+
+### Features
+
+**Smart Playlists:**
+1. Go to **Playlists**
+2. Click **+ New Smart Playlist**
+3. Set criteria (genre, year, rating, etc.)
+4. Auto-updates based on library changes
+
+**Radio Mode:**
+- Similar Songs: Based on current track
+- Artist Radio: Songs by similar artists
+- Available from any playing track
+
+**Sharing:**
+1. Right-click album/song
+2. Select **Share**
+3. Get public share link (optional password)
+4. Set expiration time
+
+**Podcasts:**
+- Settings → Podcasts
+- Add Podcast → Enter RSS feed URL
+- Auto-downloads new episodes
+
+---
+
 ## Hardware Transcoding
 
 Hardware transcoding significantly improves performance and reduces CPU usage.
@@ -436,6 +598,49 @@ proxy_set_header X-Plex-Version $http_x_plex_version;
 # Size limits
 client_max_body_size 0;
 ```
+
+### Navidrome
+
+**Nginx Proxy Manager Configuration:**
+
+1. **Hosts** → **Proxy Hosts** → **Add Proxy Host**
+
+**Details Tab:**
+- Domain Names: `navidrome.yourdomain.com`
+- Scheme: `http`
+- Forward Hostname/IP: `YOUR_MEDIA_VM_IP` (IP address of this VM)
+- Forward Port: `4533`
+- ✅ Cache Assets
+- ✅ Block Common Exploits
+- ✅ Websockets Support
+
+**SSL Tab:**
+- ✅ Force SSL
+- SSL Certificate: Request new Let's Encrypt certificate
+- ✅ HTTP/2 Support
+
+**Advanced Tab (Optional):**
+```nginx
+# Navidrome-specific settings
+client_max_body_size 50M;
+
+# Proxy headers
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+```
+
+**Update Navidrome Base URL:**
+
+After configuring reverse proxy, update Navidrome settings:
+
+1. Edit `media-players-stack.yml`
+2. Update Navidrome environment:
+   ```yaml
+   environment:
+     - ND_BASEURL=https://navidrome.yourdomain.com
+   ```
+3. Restart container: `docker compose restart navidrome`
 
 ---
 
@@ -595,15 +800,17 @@ docker restart plex
 docker restart jellyfin
 
 # Check resource usage
-docker stats plex jellyfin
+docker stats plex jellyfin navidrome
 
 # Access container shell
 docker exec -it plex bash
 docker exec -it jellyfin bash
+docker exec -it navidrome sh
 
 # Verify mounts inside container
 docker exec plex df -h
 docker exec jellyfin df -h
+docker exec navidrome df -h
 
 # Check network connectivity
 docker exec jellyfin ping -c 3 nginx-proxy-manager
@@ -613,6 +820,63 @@ cd stacks/media-players
 docker compose -f media-players-stack.yml down
 docker compose -f media-players-stack.yml pull
 docker compose -f media-players-stack.yml up -d
+```
+
+### Navidrome Issues
+
+**Music Not Appearing:**
+```bash
+# Check music folder exists and has content
+ls -la /mnt/media/music
+
+# Check permissions
+ls -la /nfs/vm_shares/cyrene/apps/navidrome
+
+# Force rescan
+# Via Web UI: Settings → Rescan Now
+
+# Check logs
+docker logs navidrome --tail 100
+docker logs navidrome -f
+```
+
+**Mobile App Connection Failed:**
+```bash
+# Test server accessibility
+curl http://YOUR_SERVER_IP:4533/ping
+
+# Check if behind reverse proxy
+# Make sure ND_BASEURL is set correctly in docker-compose
+
+# Verify firewall
+sudo ufw status | grep 4533
+```
+
+**Slow Library Scan:**
+```bash
+# Check I/O performance
+iostat -x 1
+
+# Check if CIFS mount is slow
+time ls -R /mnt/media/music | wc -l
+
+# Consider adjusting scan schedule
+# Edit docker-compose: ND_SCANSCHEDULE=24h
+```
+
+**Authentication Issues:**
+```bash
+# Reset admin password (requires database access)
+docker exec -it navidrome sh
+# Inside container:
+# Navigate to /data directory
+# Stop Navidrome, edit navidrome.db (requires sqlite3)
+
+# Or recreate container with fresh data
+docker compose down
+sudo rm -rf /nfs/vm_shares/cyrene/apps/navidrome/*
+docker compose up -d
+# Create new admin account
 ```
 
 ---
@@ -629,9 +893,16 @@ docker compose -f media-players-stack.yml up -d
 - Docker Hub: https://hub.docker.com/r/linuxserver/jellyfin
 - Community Forums: https://forum.jellyfin.org
 
+### Navidrome
+- Official Documentation: https://www.navidrome.org/docs
+- Docker Hub: https://hub.docker.com/r/deluan/navidrome
+- GitHub: https://github.com/navidrome/navidrome
+- Compatible Apps: https://www.navidrome.org/docs/overview/#apps
+
 ### Media Organization
 - Plex Naming Conventions: https://support.plex.tv/articles/naming-and-organizing-your-movie-media-files/
 - Jellyfin Naming: https://jellyfin.org/docs/general/server/media/movies.html
+- Music Tagging: https://picard.musicbrainz.org (MusicBrainz Picard)
 - FileBot: https://www.filebot.net (for organizing media)
 
 ---
@@ -642,8 +913,9 @@ docker compose -f media-players-stack.yml up -d
 2. **Secure Credentials**: CIFS credentials stored in `/root/.smb_credentials` with 600 permissions
 3. **Firewall Rules**: Only necessary ports opened
 4. **Reverse Proxy**: Use HTTPS with valid certificates
-5. **User Access**: Configure authentication in both Plex and Jellyfin
+5. **User Access**: Configure authentication in Plex, Jellyfin, and Navidrome
 6. **Network Isolation**: Consider using VLANs for media servers
+7. **Navidrome Sharing**: Be cautious with public share links, set expiration times
 
 ---
 

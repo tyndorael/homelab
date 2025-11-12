@@ -115,6 +115,7 @@ Media streaming servers with NFS config and CIFS media storage.
 **Services Included**:
 - **Plex** - Popular media streaming platform (Port: 32400)
 - **Jellyfin** - Open-source media server (Port: 8096)
+- **Navidrome** - Modern music server and streamer (Port: 4533)
 
 **Storage Architecture**:
 - Config: NFS shared storage (`/nfs/vm_shares/cyrene/apps/`)

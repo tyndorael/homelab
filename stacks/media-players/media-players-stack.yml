@@ -6,8 +6,9 @@ version: '3.8'
 # This stack includes:
 # - Plex Media Server: Popular media streaming platform
 # - Jellyfin: Open-source media server
+# - Navidrome: Modern music server and streamer
 #
-# Configuration storage: NFS shared storage (/nfs/vm_shares/herta)
+# Configuration storage: NFS shared storage (/nfs/vm_shares/cyrene)
 # Media files: CIFS/SMB mount (/mnt/media)
 ################################################################################
 
@@ -100,6 +101,37 @@ services:
       - "dockpeek.description=Jellyfin Media Server"
       - "dockpeek.icon=https://jellyfin.org/images/logo.svg"
 
+  #############################################################################
+  # Navidrome Music Server
+  # Web UI: http://<your-server>:4533
+  # Documentation: https://www.navidrome.org/
+  #############################################################################
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    hostname: navidrome
+    restart: unless-stopped
+    networks:
+      - media-players
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - ND_SCANSCHEDULE=1h
+      - ND_LOGLEVEL=info
+      - ND_SESSIONTIMEOUT=24h
+    volumes:
+      # Config/database on NFS share
+      - /nfs/vm_shares/cyrene/apps/navidrome:/data
+      # Music from CIFS mount
+      - /mnt/media/music:/music:ro
+    ports:
+      - "4533:4533"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "dockpeek.tags=media,music,streaming"
+      - "dockpeek.description=Modern Music Server and Streamer"
+      - "dockpeek.icon=https://raw.githubusercontent.com/navidrome/navidrome/master/resources/logo-192x192.png"
+
 ################################################################################
 # Networks
 ################################################################################
@@ -111,18 +143,25 @@ networks:
 ################################################################################
 # Notes:
 # 
-# 1. Both Plex and Jellyfin use bridge network mode for Nginx Proxy Manager compatibility
+# 1. All services use bridge network mode for Nginx Proxy Manager compatibility
 # 2. UDP port 1900 (DLNA) is used by Plex only (removed from Jellyfin to avoid conflict)
-# 3. Both services mount /mnt/media as read-only (configure with setup-cifs-media.sh)
+# 3. All services mount /mnt/media as read-only (configure with setup-cifs-media.sh)
 # 4. Config stored on NFS for easy backup and migration
-# 5. For hardware transcoding, uncomment appropriate device mappings
+# 5. For hardware transcoding (Plex/Jellyfin), uncomment appropriate device mappings
 # 6. Change timezone (TZ) to match your location
+# 
+# Navidrome Features:
+# - Subsonic API compatible (works with mobile apps like DSub, Ultrasonic, Symfonium)
+# - Modern web player with lyrics support
+# - Multi-user support with individual libraries
+# - Smart playlists and radio mode
+# - Scrobbling to Last.fm/ListenBrainz
 # 
 # Media Organization:
 # /mnt/media/
-#   ├── tv/         - TV Shows
-#   ├── movies/     - Movies
-#   ├── music/      - Music
+#   ├── tv/         - TV Shows (Plex/Jellyfin)
+#   ├── movies/     - Movies (Plex/Jellyfin)
+#   ├── music/      - Music (Plex/Jellyfin/Navidrome)
 #   ├── books/      - Audiobooks/Ebooks
 #   └── downloads/  - Downloads from *arr apps
 ################################################################################
