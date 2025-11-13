@@ -16,6 +16,23 @@ This stack contains monitoring and container management tools for your homelab.
   - Multi-host Docker management
   - Real-time container stats
 
+### DockMon
+- **Purpose**: Modern Docker container monitoring and management platform
+- **Port**: 8001 (HTTPS)
+- **Features**:
+  - Multi-host monitoring (local and remote Docker hosts)
+  - Real-time dashboard with drag-and-drop widgets
+  - Live CPU, memory, network metrics
+  - Real-time container logs from multiple containers
+  - Event viewer with comprehensive audit trail
+  - Intelligent auto-restart with configurable retry logic
+  - Advanced alerting (Discord, Slack, Telegram, Pushover, Gotify, SMTP)
+  - Container tagging and bulk operations
+  - Container deployments (Docker Run + Docker Compose)
+  - Automatic container updates on schedule
+  - HTTP/HTTPS health checks with auto-restart
+  - Session-based authentication with 2FA support
+
 ### Uptime Kuma
 - **Purpose**: Self-hosted uptime monitoring tool
 - **Port**: 3001
@@ -44,7 +61,7 @@ Before deploying, create the necessary directories:
 # Create Uptime Kuma data directory
 sudo mkdir -p /nfs/vm_shares/herta/apps/uptime-kuma/data
 
-**Note**: If you ran the setup script with the optional directory creation, these directories are already created.
+**Note**: If you ran the setup script with the optional directory creation, these directories are already created. DockMon uses Docker volumes for data storage.
 
 ## Deployment
 
@@ -190,10 +207,172 @@ When connecting to remote Docker hosts:
 - Restrict Docker API access with firewall rules
 - Use Docker context for secure connections
 
+### DockMon
+
+DockMon is automatically configured to monitor the local Docker host via Unix socket.
+
+#### Initial Setup
+
+1. **Access DockMon:**
+   ```
+   http://YOUR_SERVER_IP:8001
+   ```
+
+2. **Create Admin Account:**
+   - On first access, you'll be prompted to create an admin account
+   - Username: Choose your admin username
+   - Password: Set a strong password
+   - Email: Your email address (for notifications)
+
+3. **Dashboard Overview:**
+   - Drag-and-drop widgets to customize your view
+   - Real-time metrics update via WebSocket
+   - Color-coded container status indicators
+
+#### Adding Remote Docker Hosts
+
+DockMon can monitor multiple Docker hosts (same as Dockpeek setup):
+
+1. **Expose Docker API on remote hosts** (see Dockpeek section above)
+
+2. **Add Host in DockMon:**
+   - Navigate to **Settings** → **Hosts**
+   - Click **+ Add Host**
+   - Host Name: Descriptive name (e.g., "Herta VM")
+   - Connection Type: **TCP**
+   - Host URL: `tcp://192.168.X.X:2375`
+   - Optional: Enable mTLS for secure connections (see DockMon wiki)
+   - Click **Test Connection**
+   - Click **Save**
+
+#### Container Auto-Restart
+
+Configure intelligent auto-restart for specific containers:
+
+1. Navigate to **Containers**
+2. Click on a container
+3. Go to **Auto-Restart** tab
+4. Enable Auto-Restart
+5. Configure:
+   - Max Retries: Number of restart attempts
+   - Retry Interval: Time between retries
+   - Backoff Strategy: Linear or exponential
+6. Click **Save**
+
+#### Alerting Setup
+
+Configure multi-channel alerts for container events:
+
+1. **Add Notification Channel:**
+   - Settings → **Notifications**
+   - Click **+ Add Channel**
+   - Choose type: Discord, Slack, Telegram, Pushover, Gotify, SMTP
+   - Configure credentials/webhooks
+   - Test the connection
+   - Save
+
+2. **Create Alert Rules:**
+   - Navigate to **Alerts** → **Rules**
+   - Click **+ New Rule**
+   - Rule Name: Descriptive name
+   - Conditions: Container stopped, failed health check, resource limit, etc.
+   - Target: Specific containers or all containers with a tag
+   - Notification Channels: Select configured channels
+   - Blackout Windows: Optional maintenance schedules
+   - Save
+
+#### Container Deployments
+
+Deploy containers directly from DockMon:
+
+1. **Navigate to Deployments:**
+   - Go to **Deploy** → **New Deployment**
+
+2. **Choose Deployment Type:**
+   - **Docker Run**: Simple single-container deployment
+   - **Docker Compose**: Multi-container stack
+
+3. **Configure Deployment:**
+   - Select target host
+   - Enter configuration (run command or compose file)
+   - Save as template for reuse (optional)
+   - Click **Deploy**
+
+4. **Monitor Deployment:**
+   - Real-time deployment progress
+   - View logs during deployment
+   - Automatic health check verification
+
+#### Health Checks
+
+Configure HTTP/HTTPS endpoint monitoring:
+
+1. Navigate to container details
+2. Go to **Health Checks** tab
+3. Click **+ Add Health Check**
+4. Configure:
+   - Endpoint URL: `http://container:port/health`
+   - Method: GET, POST, etc.
+   - Expected Status Code: 200, 204, etc.
+   - Check Interval: How often to check
+   - Timeout: Request timeout
+   - Auto-Restart on Failure: Enable/disable
+5. Save
+
+#### Container Updates
+
+Configure automatic image updates:
+
+1. **Settings** → **Updates**
+2. Enable automatic updates
+3. Set update schedule (cron expression)
+4. Choose update strategy:
+   - All containers
+   - Specific tags
+   - Exclude specific containers
+5. Configure notification on updates
+6. Save
+
+#### Event Viewer
+
+Comprehensive audit trail of all container operations:
+
+1. Navigate to **Events**
+2. Filter by:
+   - Event Type (start, stop, restart, deploy, etc.)
+   - Container
+   - Host
+   - Date Range
+   - User (if multi-user enabled)
+3. Search events
+4. Export events (CSV, JSON)
+
+#### Security Best Practices
+
+1. **Enable 2FA:**
+   - User Settings → Security
+   - Enable Two-Factor Authentication
+   - Scan QR code with authenticator app
+
+2. **Use mTLS for Remote Hosts:**
+   - See [DockMon Security Guide](https://github.com/darthnorse/dockmon/wiki/Security-Guide)
+   - Generate certificates
+   - Configure both server and client
+
+3. **Regular Backups:**
+   - DockMon data is stored in Docker volume `dockmon-data`
+   - Back up regularly: `docker run --rm -v dockmon-data:/data -v /backup:/backup alpine tar czf /backup/dockmon-backup-$(date +%Y%m%d).tar.gz -C /data .`
+
+4. **Use Reverse Proxy:**
+   - Configure Nginx Proxy Manager (see below)
+   - Disable direct HTTPS access
+   - Use trusted SSL certificates
+
 ## Post-Deployment
 
 Access the monitoring tools:
 - Dockpeek: `http://your-server-ip:3420`
+- DockMon: `http://your-server-ip:8001`
 - Uptime Kuma: `http://your-server-ip:3001`
 
 ### Dockpeek Initial Login
@@ -201,6 +380,12 @@ Access the monitoring tools:
 - Password: Set via `DOCKPEEK_PASSWORD` (default: admin)
 
 **⚠️ Change the default password immediately!**
+
+### DockMon Initial Setup
+1. Access DockMon at `http://your-server-ip:8001`
+2. Create admin account on first visit
+3. Configure notification channels (optional)
+4. Set up alert rules for critical containers
 
 ### Uptime Kuma Initial Setup
 1. Access Uptime Kuma at `http://your-server-ip:3001`
@@ -225,6 +410,16 @@ Use Nginx Proxy Manager to create proxy hosts:
    - Enable SSL certificate
 4. Click **Save**
 
+### DockMon Proxy
+3. Configure:
+   - **Domain Names**: `dockmon.your-domain.com`
+   - **Forward Hostname/IP**: `dockmon`
+   - **Forward Port**: `8080`
+   - **Scheme**: `http`
+   - Enable **Websockets Support** (required for real-time updates)
+   - Enable SSL certificate
+4. Click **Save**
+
 ### Uptime Kuma Proxy
 5. Add another proxy host:
    - **Domain Names**: `uptime.your-domain.com`
@@ -245,6 +440,19 @@ Use Nginx Proxy Manager to create proxy hosts:
 - View all Docker images and check for updates
 - Manage Docker networks and volumes
 - Tag containers for better organization
+
+### DockMon - Advanced Container Monitoring
+- **Real-Time Dashboard**: Customizable widgets with live metrics
+- **Multi-Host Support**: Monitor unlimited Docker hosts
+- **Container Logs**: View logs from multiple containers simultaneously
+- **Event Viewer**: Comprehensive audit trail with filtering
+- **Auto-Restart**: Intelligent retry logic with backoff strategies
+- **Alerting**: Multi-channel notifications (Discord, Slack, Telegram, etc.)
+- **Health Checks**: HTTP/HTTPS endpoint monitoring
+- **Deployments**: Deploy containers via Docker Run or Compose
+- **Bulk Operations**: Start/stop/restart multiple containers
+- **Container Updates**: Automatic image update detection and execution
+- **Tagging**: Organize containers with custom and auto-derived tags
 
 ### Uptime Kuma - Service Monitoring
 - **Adding Monitors**: Click "+ New Monitor" to add services

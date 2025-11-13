@@ -434,6 +434,11 @@ configure_firewall() {
         ufw allow 6881/tcp comment 'qBittorrent BT TCP'
         ufw allow 6881/udp comment 'qBittorrent BT UDP'
         
+        # Allow monitoring
+        ufw allow 3001/tcp comment 'Uptime Kuma'
+        ufw allow 3420/tcp comment 'Dockpeek'
+        ufw allow 8001/tcp comment 'DockMon'
+        
         # Allow development tools
         ufw allow 8443/tcp comment 'Code-Server'
         ufw allow 8282/tcp comment 'Termix'

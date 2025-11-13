@@ -63,6 +63,45 @@ services:
     labels:
       - "dockpeek.tags=monitoring,uptime"
 
+  # DockMon - Modern Docker container monitoring
+  dockmon:
+    image: ghcr.io/darthnorse/dockmon:latest
+    container_name: dockmon
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8001:443"  # HTTPS - backend access through nginx proxy
+    environment:
+      - TZ=${TZ:-America/New_York}
+      - PYTHONPATH=/app/backend
+      - PYTHONUNBUFFERED=1
+      - DOCKMON_CORS_ORIGINS=
+    volumes:
+      - dockmon-data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
+      - nginx-proxy-manager
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "dockpeek.tags=monitoring,docker,management"
+      - "dockpeek.description=Modern Docker Container Monitor"
+      - "dockpeek.icon=https://raw.githubusercontent.com/darthnorse/dockmon/main/ui/public/favicon.png"
+
 networks:
   monitoring:
     name: monitoring
@@ -74,4 +113,7 @@ networks:
 volumes:
   uptime-kuma-data:
     name: uptime-kuma-data
+    driver: local
+  dockmon-data:
+    name: dockmon-data
     driver: local
