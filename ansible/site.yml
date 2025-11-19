@@ -1,0 +1,27 @@
+---
+# Main playbook to provision Docker hosts
+
+- name: Provision Homelab Docker Hosts
+  hosts: docker_hosts
+  become: true
+  
+  roles:
+    - role: common
+      tags: ['common', 'setup']
+    
+    - role: docker
+      tags: ['docker', 'setup']
+    
+    - role: storage
+      tags: ['storage', 'setup']
+    
+    - role: firewall
+      tags: ['firewall', 'setup']
+    
+    - role: homelab
+      tags: ['homelab', 'deploy']
+
+  tasks:
+    - name: Display completion message
+      debug:
+        msg: "Homelab provisioning complete for {{ inventory_hostname }}!"

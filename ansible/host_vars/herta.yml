@@ -1,0 +1,23 @@
+---
+# Herta-specific configuration
+
+hostname: "herta"
+
+# Additional NFS mounts specific to Herta
+nfs_mounts_extra:
+  - path: "/nfs/vm_shares/herta"
+    src: "{{ nfs_server }}:/mnt/pool/vm_shares/herta"
+    opts: "rw,sync,hard,intr"
+
+# Herta runs primary services
+docker_stacks:
+  - name: "portainer"
+    path: "/home/{{ ansible_user }}/homelab/stacks/portainer"
+  - name: "infrastructure"
+    path: "/home/{{ ansible_user }}/homelab/stacks/infrastructure"
+  - name: "dashboards"
+    path: "/home/{{ ansible_user }}/homelab/stacks/dashboards"
+  - name: "monitoring"
+    path: "/home/{{ ansible_user }}/homelab/stacks/monitoring"
+  - name: "downloaders"
+    path: "/home/{{ ansible_user }}/homelab/stacks/downloaders"

@@ -1,0 +1,90 @@
+---
+# Common variables for all Docker hosts
+
+# System Configuration
+timezone: "America/New_York"
+locale: "en_US.UTF-8"
+
+# User Configuration
+docker_users:
+  - "{{ ansible_user }}"
+
+# Docker Configuration
+docker_edition: "ce"
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+docker_compose_version: "2.23.0"
+
+# Docker daemon configuration
+docker_daemon_config:
+  log-driver: "json-file"
+  log-opts:
+    max-size: "10m"
+    max-file: "3"
+  storage-driver: "overlay2"
+  live-restore: true
+
+# NFS Configuration
+nfs_server: "192.168.1.10"  # Update with your NFS server IP
+nfs_mounts:
+  - path: "/nfs/vm_shares"
+    src: "{{ nfs_server }}:/mnt/pool/vm_shares"
+    opts: "rw,sync,hard,intr"
+
+# CIFS/SMB Configuration
+cifs_server: "192.168.1.10"  # Update with your CIFS server IP
+cifs_username: "your-cifs-user"
+cifs_password: "your-cifs-password"
+cifs_mounts:
+  - path: "/mnt/media"
+    src: "//{{ cifs_server }}/media"
+    opts: "username={{ cifs_username }},password={{ cifs_password }},iocharset=utf-8,file_mode=0777,dir_mode=0777"
+
+# Firewall Ports
+firewall_allowed_ports:
+  # Docker & Portainer
+  - { port: 9443, proto: tcp, comment: "Portainer HTTPS" }
+  - { port: 9000, proto: tcp, comment: "Portainer HTTP" }
+  - { port: 8000, proto: tcp, comment: "Portainer Edge" }
+  
+  # Nginx Proxy Manager
+  - { port: 80, proto: tcp, comment: "HTTP" }
+  - { port: 443, proto: tcp, comment: "HTTPS" }
+  - { port: 81, proto: tcp, comment: "NPM Admin" }
+  
+  # Monitoring
+  - { port: 3001, proto: tcp, comment: "Uptime Kuma" }
+  - { port: 3420, proto: tcp, comment: "Dockpeek" }
+  - { port: 8001, proto: tcp, comment: "DockMon" }
+  
+  # Dashboards
+  - { port: 3000, proto: tcp, comment: "Homepage" }
+  
+  # Media Players
+  - { port: 32400, proto: tcp, comment: "Plex" }
+  - { port: 8096, proto: tcp, comment: "Jellyfin" }
+  - { port: 4533, proto: tcp, comment: "Navidrome" }
+  
+  # Downloaders
+  - { port: 8080, proto: tcp, comment: "qBittorrent Web UI" }
+  - { port: 6881, proto: tcp, comment: "qBittorrent TCP" }
+  - { port: 6881, proto: udp, comment: "qBittorrent UDP" }
+  
+  # Development
+  - { port: 8443, proto: tcp, comment: "Code Server" }
+
+# Docker TCP API (for monitoring)
+docker_tcp_api_enabled: true
+docker_tcp_api_port: 2375
+docker_tcp_api_allowed_ips:
+  - "192.168.1.0/24"  # Adjust to your network
+
+# Package updates
+apt_update_cache: true
+apt_upgrade: false  # Set to true for full upgrade
+apt_autoremove: true

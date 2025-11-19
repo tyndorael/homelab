@@ -1,0 +1,16 @@
+# Ansible
+*.retry
+.ansible/
+__pycache__/
+*.pyc
+
+# Sensitive files
+*vault*.yml
+secrets.yml
+credentials.yml
+
+# Temporary files
+*.swp
+*.bak
+*~
+.DS_Store

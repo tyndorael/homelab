@@ -1,0 +1,69 @@
+---
+# Storage configuration role (NFS and CIFS mounts)
+
+- name: Create NFS mount points
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ nfs_mounts + (nfs_mounts_extra | default([])) }}"
+
+- name: Mount NFS shares
+  mount:
+    path: "{{ item.path }}"
+    src: "{{ item.src }}"
+    fstype: nfs
+    opts: "{{ item.opts }}"
+    state: mounted
+  loop: "{{ nfs_mounts + (nfs_mounts_extra | default([])) }}"
+
+- name: Create CIFS mount points
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ cifs_mounts }}"
+  when: cifs_mounts is defined
+
+- name: Create CIFS credentials file
+  copy:
+    content: |
+      username={{ cifs_username }}
+      password={{ cifs_password }}
+    dest: /root/.cifs_credentials
+    mode: '0600'
+  when: cifs_mounts is defined
+  no_log: true
+
+- name: Mount CIFS shares
+  mount:
+    path: "{{ item.path }}"
+    src: "{{ item.src }}"
+    fstype: cifs
+    opts: "credentials=/root/.cifs_credentials,iocharset=utf-8,file_mode=0777,dir_mode=0777"
+    state: mounted
+  loop: "{{ cifs_mounts }}"
+  when: cifs_mounts is defined
+
+- name: Verify NFS mounts
+  command: "mount | grep nfs"
+  register: nfs_check
+  changed_when: false
+  failed_when: false
+
+- name: Display NFS mounts
+  debug:
+    msg: "{{ nfs_check.stdout_lines }}"
+  when: nfs_check.stdout_lines | length > 0
+
+- name: Verify CIFS mounts
+  command: "mount | grep cifs"
+  register: cifs_check
+  changed_when: false
+  failed_when: false
+  when: cifs_mounts is defined
+
+- name: Display CIFS mounts
+  debug:
+    msg: "{{ cifs_check.stdout_lines }}"
+  when: cifs_mounts is defined and cifs_check.stdout_lines | length > 0

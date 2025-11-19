@@ -1,0 +1,17 @@
+---
+# Cyrene-specific configuration
+
+hostname: "cyrene"
+
+# Additional NFS mounts specific to Cyrene
+nfs_mounts_extra:
+  - path: "/nfs/vm_shares/cyrene"
+    src: "{{ nfs_server }}:/mnt/pool/vm_shares/cyrene"
+    opts: "rw,sync,hard,intr"
+
+# Cyrene runs media services
+docker_stacks:
+  - name: "media-players"
+    path: "/home/{{ ansible_user }}/homelab/stacks/media-players"
+  - name: "media-automation"
+    path: "/home/{{ ansible_user }}/homelab/stacks/media-automation"

@@ -1,0 +1,75 @@
+---
+# Homelab Docker stacks deployment role
+
+- name: Clone homelab repository
+  git:
+    repo: "{{ homelab_repo_url }}"
+    dest: "/home/{{ ansible_user }}/homelab"
+    version: "{{ homelab_repo_branch | default('main') }}"
+    force: yes
+  become: no
+  when: homelab_repo_url is defined
+
+- name: Create stack directories
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  loop: "{{ docker_stacks }}"
+  when: docker_stacks is defined
+
+- name: Create .env file for each stack
+  template:
+    src: stack.env.j2
+    dest: "{{ item.path }}/.env"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+  loop: "{{ docker_stacks }}"
+  when: docker_stacks is defined and item.env_vars is defined
+
+- name: Create Docker networks
+  docker_network:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - nginx-proxy-manager
+    - monitoring
+    - infrastructure
+    - media
+    - development
+  become: no
+
+- name: Deploy Docker stacks
+  command: "docker compose -f {{ item.path }}/{{ item.name }}-stack.yml up -d"
+  args:
+    chdir: "{{ item.path }}"
+  become: no
+  loop: "{{ docker_stacks }}"
+  when: docker_stacks is defined and deploy_stacks | default(true)
+  register: stack_deployment
+
+- name: Display deployment results
+  debug:
+    msg: "Stack {{ item.item.name }} deployed successfully"
+  loop: "{{ stack_deployment.results }}"
+  when: stack_deployment is defined and item.changed
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Wait for containers to start
+  wait_for:
+    timeout: 30
+  when: stack_deployment.changed
+
+- name: List running containers
+  command: docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+  register: docker_ps
+  changed_when: false
+  become: no
+
+- name: Show running containers
+  debug:
+    msg: "{{ docker_ps.stdout_lines }}"

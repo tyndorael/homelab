@@ -1,0 +1,10 @@
+---
+# Playbook to deploy Docker stacks only
+
+- name: Deploy Docker Stacks
+  hosts: docker_hosts
+  become: true
+  
+  roles:
+    - role: homelab
+      tags: ['homelab', 'deploy']

@@ -1,0 +1,11 @@
+---
+# Bronya-specific configuration
+
+hostname: "bronya"
+
+# Bronya runs utility and development services
+docker_stacks:
+  - name: "utilities"
+    path: "/home/{{ ansible_user }}/homelab/stacks/utilities"
+  - name: "development"
+    path: "/home/{{ ansible_user }}/homelab/stacks/development"

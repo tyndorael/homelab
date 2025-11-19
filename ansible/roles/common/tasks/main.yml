@@ -1,0 +1,76 @@
+---
+# Common system setup role
+
+- name: Set hostname
+  hostname:
+    name: "{{ hostname }}"
+  when: hostname is defined
+
+- name: Update /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "127.0.1.1 {{ hostname }}"
+    regexp: "^127.0.1.1"
+  when: hostname is defined
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: apt_update_cache | default(true)
+
+- name: Install common packages
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - vim
+      - htop
+      - net-tools
+      - dnsutils
+      - nfs-common
+      - cifs-utils
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - python3-pip
+      - jq
+      - unzip
+    state: present
+
+- name: Upgrade all packages
+  apt:
+    upgrade: "{{ 'dist' if apt_upgrade else 'no' }}"
+  when: apt_upgrade is defined
+
+- name: Remove unnecessary packages
+  apt:
+    autoremove: yes
+  when: apt_autoremove | default(true)
+
+- name: Configure sysctl for better performance
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { key: 'vm.swappiness', value: '10' }
+    - { key: 'net.ipv4.ip_forward', value: '1' }
+    - { key: 'fs.inotify.max_user_watches', value: '524288' }
+    - { key: 'net.core.somaxconn', value: '1024' }
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Remove swap from fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: '\sswap\s'
+    state: absent

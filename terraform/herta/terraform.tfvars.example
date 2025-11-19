@@ -1,0 +1,38 @@
+# Proxmox Connection Settings
+proxmox_api_url          = "https://192.168.1.10:8006/api2/json"
+proxmox_api_token_id     = "terraform@pam!terraform"
+proxmox_api_token_secret = "your-token-secret-here"
+proxmox_tls_insecure     = true
+proxmox_node             = "pve"
+
+# VM Configuration
+vm_name       = "herta"
+template_name = "ubuntu-cloudinit"  # Template ID: 8000
+
+# VM Resources
+vm_cores   = 4
+vm_sockets = 1
+vm_memory  = 8192  # 8GB RAM
+
+# Disk Configuration
+vm_disk_size = "50G"
+vm_storage   = "local-lvm"  # Update with your storage pool
+
+# Network Configuration
+vm_network_bridge = "vmbr0"
+vm_vlan_tag       = 0  # Set to your VLAN ID or 0 for no VLAN
+
+# Static IP configuration (recommended for homelab)
+vm_ip_config = "ip=192.168.1.100/24,gw=192.168.1.1"
+
+# Or use DHCP:
+# vm_ip_config = "ip=dhcp"
+
+# Cloud-init User Configuration
+vm_user     = "ubuntu"
+vm_password = "change-this-password"  # Consider using environment variable instead
+
+# SSH Keys (paste your public key here)
+vm_ssh_keys = <<-EOT
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC... your-ssh-key-here
+EOT
