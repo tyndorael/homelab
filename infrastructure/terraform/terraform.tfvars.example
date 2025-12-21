@@ -17,5 +17,6 @@ vm_disk_storage = "local-lvm"
 vm_bridge       = "vmbr0"
 vm_ipconfig0    = "dhcp"
 vm_ci_user      = "ubuntu"
+vm_ci_password  = "change-me"
 
 ssh_public_key_path = "../../keys/iono-proxmox.pub"

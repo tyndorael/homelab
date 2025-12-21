@@ -71,6 +71,7 @@ resource "proxmox_vm_qemu" "nami" {
   # Cloud-init
   ipconfig0 = var.vm_ipconfig0
   ciuser    = var.vm_ci_user
+  cipassword = var.vm_ci_password
   sshkeys   = file(var.ssh_public_key_path)
 
   # Optional: Proxmox pool

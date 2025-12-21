@@ -89,6 +89,13 @@ variable "vm_ci_user" {
   default     = "ubuntu"
 }
 
+variable "vm_ci_password" {
+  description = "Password for the cloud-init user (plaintext; consider using env TF_VAR_vm_ci_password)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "ssh_public_key_path" {
   description = "Path to the public key file to inject (relative to this module)"
   type        = string
