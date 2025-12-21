@@ -37,6 +37,15 @@ resource "proxmox_vm_qemu" "nami" {
   bios     = "ovmf"
   machine  = "q35"
   scsihw   = "virtio-scsi-pci"
+
+  serial {
+    id   = 0
+    type = "socket"
+  }
+
+  vga {
+    type = "serial0"
+  }
   boot     = "order=scsi0;net0"
   bootdisk = "scsi0"
 
