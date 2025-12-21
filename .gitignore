@@ -2,3 +2,19 @@
 
 iono-proxmox
 *.pub
+
+# Terraform (local state only)
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfstate.backup
+terraform.tfvars
+terraform.tfstate.d/
+*.tfvars.json
+*.tfvars
+crash.log
+*.tfplan
+*.plan
+state/
+plan/
+proxmox.log

@@ -1,0 +1,21 @@
+# Copy this file to terraform.tfvars and adjust the values
+pm_api_url          = "https://192.168.50.153:8006/api2/json"
+pm_user             = "root@pam"
+pm_api_token_id     = "root@pam!terraform"
+pm_api_token_secret = "change-me"
+pm_tls_insecure     = true
+
+pm_target_node = "iono"
+pm_pool        = null
+
+template_name = "ubuntu-cloudinit"
+
+vm_cores        = 2
+vm_memory       = 2048
+vm_disk_size    = "20G"
+vm_disk_storage = "local-lvm"
+vm_bridge       = "vmbr0"
+vm_ipconfig0    = "dhcp"
+vm_ci_user      = "ubuntu"
+
+ssh_public_key_path = "../../keys/iono-proxmox.pub"
