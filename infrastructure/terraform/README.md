@@ -41,6 +41,25 @@ cd infrastructure/terraform
 terraform destroy
 ```
 
+## Install qemu-guest-agent with Ansible
+1) Update the Ansible inventory with your VM IP/DNS (defaults to user `ubuntu` and SSH key `../../keys/iono-proxmox`). Use a group name different from the host name to avoid the Ansible warning:
+
+```ini
+cd infrastructure/ansible
+# edit inventory/hosts.ini
+[proxmox_guests]
+nami ansible_host=192.168.50.200 ansible_user=ubuntu ansible_ssh_private_key_file=../../keys/iono-proxmox
+```
+
+2) Run the playbook to install and start the guest agent:
+
+```bash
+cd infrastructure/ansible
+ansible-playbook install-guest-agent.yml
+```
+
+This will install `qemu-guest-agent` via apt and enable/start the service.
+
 ## Notes
 - State is stored locally at `state/terraform.tfstate`; the `state/` folder is ignored in git.
 - Plans are written to `plan/terraform.tfplan` by the example commands; the `plan/` folder is ignored in git.
