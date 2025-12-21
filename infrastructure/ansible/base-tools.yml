@@ -1,8 +1,13 @@
 ---
-- name: Install qemu-guest-agent on nami
+- name: Base tools for Proxmox guests
   hosts: nami
   become: true
   gather_facts: true
+
+  vars:
+    guest_packages:
+      - qemu-guest-agent
+      - vnstat
 
   tasks:
     - name: Ensure apt cache is updated
@@ -13,13 +18,19 @@
       retries: 3
       delay: 5
 
-    - name: Install qemu-guest-agent
+    - name: Install guest packages
       ansible.builtin.apt:
-        name: qemu-guest-agent
+        name: "{{ guest_packages }}"
         state: present
 
     - name: Enable and start qemu-guest-agent service
       ansible.builtin.service:
         name: qemu-guest-agent
+        state: started
+        enabled: true
+
+    - name: Enable and start vnstat service
+      ansible.builtin.service:
+        name: vnstat
         state: started
         enabled: true
