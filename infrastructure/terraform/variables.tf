@@ -70,6 +70,7 @@ variable "vm_disk_storage" {
   default     = "local-lvm"
 }
 
+
 variable "vm_bridge" {
   description = "Proxmox network bridge (e.g., vmbr0)"
   type        = string

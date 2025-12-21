@@ -54,6 +54,13 @@ resource "proxmox_vm_qemu" "nami" {
     discard  = true
   }
 
+  # Cloud-init disk
+  disk {
+    slot    = "ide2"
+    type    = "cloudinit"
+    storage = var.vm_disk_storage
+  }
+
   network {
     id     = 0
     model  = "virtio"

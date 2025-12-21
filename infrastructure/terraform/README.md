@@ -1,12 +1,12 @@
 # Terraform Proxmox: VM "nami"
 
-Terraform project to manage VMs in Proxmox using the `ubuntu-cloudinit` template and the `iono-proxmox.pub` public key. Uses the `Telmate/proxmox` provider.
+Terraform project to manage VMs in Proxmox by cloning the cloud-init template `ubuntu-cloudinit` and injecting the `iono-proxmox.pub` public key. Uses the `Telmate/proxmox` provider.
 
 ## Requirements
 - Terraform >= 1.5 installed.
 - Access to the Proxmox API (e.g., `https://192.168.50.153:8006`). Cluster/node name: `iono` (default in variables).
 - API token with permissions: VM/Clone, VM/Config, VM/Console, VM/Monitor, Datastore/AllocateSpace, SDN/Use, Sys/Modify on the target node.
-- Existing cloud-init template: `ubuntu-cloudinit` (already with the right public key or use `ssh_public_key_path`).
+- Existing cloud-init template: `ubuntu-cloudinit` (or set `template_name`).
 
 ## Quick setup
 1) Copy the sample variables and edit sensitive values:
