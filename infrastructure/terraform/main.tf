@@ -36,7 +36,7 @@ resource "proxmox_vm_qemu" "nami" {
   memory   = var.vm_memory
   bios     = "ovmf"
   machine  = "q35"
-  scsihw   = "virtio-scsi-pci"
+  scsihw   = "virtio-scsi-single"
 
   serial {
     id   = 0
@@ -52,6 +52,7 @@ resource "proxmox_vm_qemu" "nami" {
   cpu {
     cores   = var.vm_cores
     sockets = 1
+    type    = "x86-64-v2-AES"
   }
 
   disk {

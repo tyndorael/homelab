@@ -80,7 +80,7 @@ variable "vm_bridge" {
 variable "vm_ipconfig0" {
   description = "Cloud-init network config. E.g., dhcp or ip=192.168.50.200/24,gw=192.168.50.1"
   type        = string
-  default     = "dhcp"
+  default     = "ip=dhcp"
 }
 
 variable "vm_ci_user" {

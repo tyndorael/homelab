@@ -15,7 +15,7 @@ vm_memory       = 4096
 vm_disk_size    = "20G"
 vm_disk_storage = "local-lvm"
 vm_bridge       = "vmbr0"
-vm_ipconfig0    = "dhcp"
+vm_ipconfig0    = "ip=dhcp"
 vm_ci_user      = "ubuntu"
 vm_ci_password  = "change-me"
 
