@@ -15,6 +15,6 @@ terraform.tfstate.d/
 crash.log
 *.tfplan
 *.plan
-state/
-plan/
+state/*
+plan/*
 proxmox.log
