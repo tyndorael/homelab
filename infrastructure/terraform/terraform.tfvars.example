@@ -11,7 +11,7 @@ pm_pool        = null
 template_name = "ubuntu-cloudinit"
 
 vm_cores        = 2
-vm_memory       = 2048
+vm_memory       = 4096
 vm_disk_size    = "20G"
 vm_disk_storage = "local-lvm"
 vm_bridge       = "vmbr0"

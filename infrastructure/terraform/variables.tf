@@ -54,13 +54,14 @@ variable "vm_cores" {
 variable "vm_memory" {
   description = "RAM in MB"
   type        = number
-  default     = 2048
+  default     = 4096
 }
+
 
 variable "vm_disk_size" {
   description = "Disk size (e.g., 20G)"
   type        = string
-  default     = "20G"
+  default     = "32G"
 }
 
 variable "vm_disk_storage" {

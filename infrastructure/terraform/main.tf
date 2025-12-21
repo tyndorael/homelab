@@ -34,6 +34,8 @@ resource "proxmox_vm_qemu" "nami" {
   agent    = 1
   os_type  = "cloud-init"
   memory   = var.vm_memory
+  bios     = "ovmf"
+  machine  = "q35"
   scsihw   = "virtio-scsi-pci"
   boot     = "order=scsi0;net0"
   bootdisk = "scsi0"
@@ -49,12 +51,14 @@ resource "proxmox_vm_qemu" "nami" {
     type     = "disk"
     storage  = var.vm_disk_storage
     iothread = true
+    discard  = true
   }
 
   network {
     id     = 0
     model  = "virtio"
     bridge = var.vm_bridge
+    firewall = true
   }
 
   # Cloud-init
