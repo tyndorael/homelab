@@ -25,6 +25,7 @@ provider "proxmox" {
 resource "proxmox_vm_qemu" "nami" {
   name        = "nami"
   target_node = var.pm_target_node
+  tags        = "finance"
 
   # Source: existing cloud-init template in Proxmox
   clone      = var.template_name
