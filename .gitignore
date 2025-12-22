@@ -18,3 +18,5 @@ crash.log
 state/*
 plan/*
 proxmox.log
+
+/infrastructure/ansible/inventory/hosts.ini
