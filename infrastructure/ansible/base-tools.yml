@@ -37,15 +37,15 @@
       delay: 5
 
     - name: Add Docker GPG key
-      apt_key:
+      ansible.builtin.apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
     - name: Add Docker APT repository
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: >
           deb [arch=amd64] https://download.docker.com/linux/ubuntu
-          {{ ansible_lsb.codename }} stable
+          {{ ansible_facts['lsb']['codename'] }} stable
         state: present
         filename: docker
 
@@ -84,3 +84,7 @@
         path: /var/run/docker.sock
         state: present
         timeout: 30
+
+    - name: Reboot the machine and wait for connectivity
+      ansible.builtin.reboot:
+        reboot_timeout: 600
