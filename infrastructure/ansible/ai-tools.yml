@@ -27,6 +27,7 @@
     miniconda_installer: "Miniconda3-{{ miniconda_version }}-Linux-{{ miniconda_arch }}.sh"
     miniconda_url: "https://repo.anaconda.com/miniconda/{{ miniconda_installer }}"
     ai_root: "/home/ai"
+    ai_owner: "{{ ansible_user | default('ubuntu') }}"
     ai_dirs:
       - comfyui
       - models/sd
@@ -102,11 +103,21 @@
       environment:
         PATH: "{{ miniconda_root }}/bin:{{ ansible_facts['env']['PATH'] }}"
 
+    - name: Ensure AI root directory
+      ansible.builtin.file:
+        path: "{{ ai_root }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ ai_owner }}"
+        group: "{{ ai_owner }}"
+
     - name: Create AI workspace directories
       ansible.builtin.file:
         path: "{{ ai_root }}/{{ item }}"
         state: directory
         mode: '0755'
+        owner: "{{ ai_owner }}"
+        group: "{{ ai_owner }}"
       loop: "{{ ai_dirs }}"
 
     - name: Disable sleep/hibernate targets
@@ -126,9 +137,26 @@
         dest: "{{ comfyui_dir }}"
         version: "master"
         update: true
+        depth: 1
+
+    - name: Ensure ComfyUI ownership
+      ansible.builtin.file:
+        path: "{{ comfyui_dir }}"
+        state: directory
+        recurse: true
+        owner: "{{ ai_owner }}"
+        group: "{{ ai_owner }}"
 
     - name: Install ComfyUI Python requirements
       ansible.builtin.pip:
         requirements: "{{ comfyui_dir }}/requirements.txt"
         chdir: "{{ comfyui_dir }}"
         executable: pip3
+
+    - name: Ensure ComfyUI user directory ownership
+      ansible.builtin.file:
+        path: "{{ comfyui_dir }}"
+        state: directory
+        recurse: true
+        owner: "{{ ai_owner }}"
+        group: "{{ ai_owner }}"
