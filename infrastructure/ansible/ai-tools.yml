@@ -22,6 +22,14 @@
     miniconda_arch: "{{ ansible_facts['architecture'] | default('x86_64') }}"
     miniconda_installer: "Miniconda3-{{ miniconda_version }}-Linux-{{ miniconda_arch }}.sh"
     miniconda_url: "https://repo.anaconda.com/miniconda/{{ miniconda_installer }}"
+    ai_root: "/home/ai"
+    ai_dirs:
+      - comfyui
+      - models/sd
+      - models/lora
+      - models/llm
+      - docker
+      - agents
 
   tasks:
     - name: Update apt cache
@@ -78,3 +86,10 @@
           if [ -f "{{ miniconda_root }}/etc/profile.d/conda.sh" ]; then
             . "{{ miniconda_root }}/etc/profile.d/conda.sh"
           fi
+
+    - name: Create AI workspace directories
+      ansible.builtin.file:
+        path: "{{ ai_root }}/{{ item }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ ai_dirs }}"
