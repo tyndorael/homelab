@@ -59,10 +59,17 @@
         name: "{{ nvidia_driver_package }}"
         state: present
 
-    - name: Run ubuntu-drivers autoinstall
+    - name: Check existing NVIDIA driver
+      ansible.builtin.command: nvidia-smi -L
+      register: nvidia_check
+      failed_when: false
+      changed_when: false
+
+    - name: Run ubuntu-drivers autoinstall (only if missing)
       ansible.builtin.command: ubuntu-drivers autoinstall
       register: drivers_install
       changed_when: drivers_install.rc == 0
+      when: nvidia_check.rc != 0
 
     - name: Download Miniconda installer
       ansible.builtin.get_url:
