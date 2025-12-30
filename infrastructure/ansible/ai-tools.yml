@@ -109,6 +109,17 @@
         mode: '0755'
       loop: "{{ ai_dirs }}"
 
+    - name: Disable sleep/hibernate targets
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        masked: true
+        state: stopped
+      loop:
+        - sleep.target
+        - suspend.target
+        - hibernate.target
+        - hybrid-sleep.target
+
     - name: Clone ComfyUI
       ansible.builtin.git:
         repo: "{{ comfyui_repo }}"
