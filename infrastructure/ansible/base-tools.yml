@@ -1,6 +1,6 @@
 ---
 - name: Base tools for Proxmox guests
-  hosts: nami
+  hosts: proxmox_guests
   become: true
   gather_facts: true
 

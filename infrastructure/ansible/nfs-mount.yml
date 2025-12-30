@@ -10,6 +10,8 @@
     nfs_export_path: "/mnt/HDD/Infra_storage/vm_shares"
     nfs_mount_point: "/mnt/vm_shares"
     nfs_mount_opts: "rw,_netdev"
+    nfs_host_dir: "{{ nfs_mount_point }}/{{ inventory_hostname }}"
+    nfs_dir_owner: "{{ ansible_user | default('root') }}"
 
   tasks:
     - name: Ensure nfs-common is installed
@@ -31,3 +33,11 @@
         fstype: nfs
         opts: "{{ nfs_mount_opts }}"
         state: mounted
+
+    - name: Create per-VM directory on NFS share
+      ansible.builtin.file:
+        path: "{{ nfs_host_dir }}"
+        state: directory
+        owner: "{{ nfs_dir_owner }}"
+        group: "{{ nfs_dir_owner }}"
+        mode: '0755'
