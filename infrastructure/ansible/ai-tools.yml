@@ -1,0 +1,31 @@
+---
+- name: Base tools for AI Server
+  hosts: ai-server
+  become: true
+  gather_facts: true
+
+  vars:
+    base_packages:
+      - build-essential
+      - git
+      - curl
+      - wget
+      - unzip
+      - tmux
+      - htop
+      - nvtop
+      - jq
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      register: apt_update
+      until: apt_update is succeeded
+      retries: 3
+      delay: 5
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name: "{{ base_packages }}"
+        state: present
