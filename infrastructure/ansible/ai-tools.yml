@@ -15,6 +15,13 @@
       - htop
       - nvtop
       - jq
+    nvidia_driver_package: ubuntu-drivers-common
+    miniconda_version: "py310_24.9.2-0"
+    miniconda_root: "/opt/miniconda3"
+    miniconda_owner: "{{ ansible_user | default('ubuntu') }}"
+    miniconda_arch: "{{ ansible_facts['architecture'] | default('x86_64') }}"
+    miniconda_installer: "Miniconda3-{{ miniconda_version }}-Linux-{{ miniconda_arch }}.sh"
+    miniconda_url: "https://repo.anaconda.com/miniconda/{{ miniconda_installer }}"
 
   tasks:
     - name: Update apt cache
@@ -29,3 +36,45 @@
       ansible.builtin.apt:
         name: "{{ base_packages }}"
         state: present
+
+    - name: Install NVIDIA driver helper
+      ansible.builtin.apt:
+        name: "{{ nvidia_driver_package }}"
+        state: present
+
+    - name: Run ubuntu-drivers autoinstall
+      ansible.builtin.command: ubuntu-drivers autoinstall
+      register: drivers_install
+      changed_when: drivers_install.rc == 0
+
+    - name: Download Miniconda installer
+      ansible.builtin.get_url:
+        url: "{{ miniconda_url }}"
+        dest: "/tmp/{{ miniconda_installer }}"
+        mode: '0755'
+      when: not (miniconda_root is exists)
+
+    - name: Install Miniconda (non-interactive)
+      ansible.builtin.command: "/tmp/{{ miniconda_installer }} -b -u -p {{ miniconda_root }}"
+      args:
+        creates: "{{ miniconda_root }}/bin/conda"
+      when: not (miniconda_root is exists)
+
+    - name: Ensure Miniconda ownership
+      ansible.builtin.file:
+        path: "{{ miniconda_root }}"
+        state: directory
+        recurse: true
+        owner: "{{ miniconda_owner }}"
+        group: "{{ miniconda_owner }}"
+      when: miniconda_owner | length > 0
+
+    - name: Add conda init to profile
+      ansible.builtin.copy:
+        dest: /etc/profile.d/conda.sh
+        mode: '0755'
+        content: |
+          #!/bin/sh
+          if [ -f "{{ miniconda_root }}/etc/profile.d/conda.sh" ]; then
+            . "{{ miniconda_root }}/etc/profile.d/conda.sh"
+          fi
