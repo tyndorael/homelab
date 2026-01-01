@@ -21,6 +21,9 @@
       - docker-buildx-plugin
       - docker-compose-plugin
     docker_user: "{{ ansible_user | default('ubuntu') }}"
+    portainer_image: "portainer/portainer-ce:latest"
+    portainer_container_name: "portainer"
+    portainer_data_dir: "/opt/portainer/data"
 
   tasks:
     - name: Install guest packages
@@ -85,6 +88,36 @@
         path: /var/run/docker.sock
         state: present
         timeout: 30
+
+    - name: Create Portainer data directory
+      ansible.builtin.file:
+        path: "{{ portainer_data_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if Portainer container exists
+      ansible.builtin.command: docker container inspect {{ portainer_container_name }}
+      register: portainer_check
+      failed_when: false
+      changed_when: false
+
+    - name: Deploy Portainer (if missing)
+      ansible.builtin.command: >
+        docker run -d
+        --name {{ portainer_container_name }}
+        --restart=unless-stopped
+        -p 9443:9443
+        -p 8000:8000
+        -v /var/run/docker.sock:/var/run/docker.sock
+        -v {{ portainer_data_dir }}:/data
+        {{ portainer_image }}
+      when: portainer_check.rc != 0
+
+    - name: Ensure Portainer is running
+      ansible.builtin.command: docker start {{ portainer_container_name }}
+      register: portainer_start
+      changed_when: portainer_start.rc == 0
+      failed_when: portainer_start.rc != 0 and portainer_check.rc != 0
 
     - name: Reboot the machine and wait for connectivity
       ansible.builtin.reboot:
