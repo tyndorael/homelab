@@ -1,0 +1,49 @@
+---
+- name: Mount SMB share on guests
+  hosts: ai_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    smb_source: "//192.168.50.107/Media"
+    smb_mount_point: "/mnt/media"
+    smb_credentials_file: "/root/.smb_credentials"
+    smb_username: ""
+    smb_password: ""
+    smb_uid: 1000
+    smb_gid: 1000
+    smb_file_mode: "0755"
+    smb_dir_mode: "0755"
+    smb_opts_extra: "_netdev"
+
+  tasks:
+    - name: Install cifs utilities
+      ansible.builtin.apt:
+        name: cifs-utils
+        state: present
+        update_cache: true
+
+    - name: Ensure mount point exists
+      ansible.builtin.file:
+        path: "{{ smb_mount_point }}"
+        state: directory
+        mode: '0755'
+
+    - name: Write SMB credentials file (if provided)
+      ansible.builtin.copy:
+        dest: "{{ smb_credentials_file }}"
+        mode: '0600'
+        owner: root
+        group: root
+        content: |
+          username={{ smb_username }}
+          password={{ smb_password }}
+      when: smb_username | length > 0 and smb_password | length > 0
+
+    - name: Mount SMB share and persist in fstab
+      ansible.builtin.mount:
+        path: "{{ smb_mount_point }}"
+        src: "{{ smb_source }}"
+        fstype: cifs
+        opts: "credentials={{ smb_credentials_file }},uid={{ smb_uid }},gid={{ smb_gid }},file_mode={{ smb_file_mode }},dir_mode={{ smb_dir_mode }},{{ smb_opts_extra }}"
+        state: mounted
