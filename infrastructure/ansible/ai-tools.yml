@@ -37,6 +37,10 @@
       - agents
     comfyui_repo: "https://github.com/comfyanonymous/ComfyUI.git"
     comfyui_dir: "{{ ai_root }}/comfyui"
+    comfyui_plugins:
+      - name: "ComfyUI-Manager"
+        repo: "https://github.com/Comfy-Org/ComfyUI-Manager.git"
+        dest_subdir: "custom_nodes/ComfyUI-Manager"
     conda_env_name: "ai"
     conda_env_python: "3.10"
 
@@ -145,6 +149,25 @@
         version: "master"
         update: true
         depth: 1
+
+    - name: Ensure ComfyUI custom_nodes directory
+      ansible.builtin.file:
+        path: "{{ comfyui_dir }}/custom_nodes"
+        state: directory
+        mode: '0755'
+        owner: "{{ ai_owner }}"
+        group: "{{ ai_owner }}"
+
+    - name: Install ComfyUI plugins (clone if missing, update if present)
+      ansible.builtin.git:
+        repo: "{{ item.repo }}"
+        dest: "{{ comfyui_dir }}/{{ item.dest_subdir }}"
+        version: "main"
+        update: true
+        depth: 1
+      loop: "{{ comfyui_plugins }}"
+      loop_control:
+        label: "{{ item.name }}"
 
     - name: Ensure ComfyUI ownership
       ansible.builtin.file:
