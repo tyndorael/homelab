@@ -183,6 +183,12 @@
         chdir: "{{ comfyui_dir }}"
         executable: pip3
 
+    - name: Install ComfyUI plugin Python requirements (gitpython for manager)
+      ansible.builtin.pip:
+        name:
+          - gitpython
+        executable: pip3
+
     - name: Ensure ComfyUI user directory ownership
       ansible.builtin.file:
         path: "{{ comfyui_dir }}"
