@@ -93,7 +93,7 @@ resource "proxmox_vm_qemu" "herta" {
 
 resource "proxmox_vm_qemu" "nami" {
   name        = "nami"
-  vmid        = 100
+  vmid        = 101
   target_node = var.pm_target_node
   tags        = "finance"
 
