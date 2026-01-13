@@ -20,3 +20,4 @@ plan/*
 proxmox.log
 
 /infrastructure/ansible/inventory/hosts.ini
+.DS_Store

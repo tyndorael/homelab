@@ -1,0 +1,57 @@
+services:
+  # Homepage - Modern application dashboard
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    user: "1000:1000"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-America/New_York}
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
+    ports:
+      - "3000:3000"
+    volumes:
+      - /nfs/vm_shares/herta/apps/homepage/config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - dashboards
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=dashboard,startpage"
+
+  # Dashy - Highly customizable homepage
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    user: "1000:1000"
+    environment:
+      - NODE_ENV=production
+      - TZ=${TZ:-America/New_York}
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - "4000:8080"
+    volumes:
+      - /nfs/vm_shares/herta/apps/dashy/config:/app/user-data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'node', '/app/services/healthcheck']
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - dashboards
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=dashboard,homepage"
+
+networks:
+  dashboards:
+    name: dashboards
+    driver: bridge
+  nginx-proxy-manager:
+    name: nginx-proxy-manager
+    external: true

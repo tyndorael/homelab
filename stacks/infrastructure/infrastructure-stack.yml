@@ -1,0 +1,32 @@
+services:
+  # Nginx Proxy Manager - Reverse proxy with SSL management
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"       # HTTP
+      - "443:443"     # HTTPS
+      - "81:81"       # Admin Web UI
+    environment:
+      - TZ=${TZ:-America/New_York}
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - npm-data:/data
+      - npm-letsencrypt:/etc/letsencrypt
+    networks:
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=proxy,network,ssl"
+
+networks:
+  nginx-proxy-manager:
+    name: nginx-proxy-manager
+    driver: bridge
+
+volumes:
+  npm-data:
+    driver: local
+  npm-letsencrypt:
+    driver: local
