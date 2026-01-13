@@ -33,11 +33,3 @@
         fstype: nfs
         opts: "{{ nfs_mount_opts }}"
         state: mounted
-
-    - name: Create per-VM directory on NFS share
-      ansible.builtin.file:
-        path: "{{ nfs_host_dir }}"
-        state: directory
-        owner: "{{ nfs_dir_owner }}"
-        group: "{{ nfs_dir_owner }}"
-        mode: '0755'

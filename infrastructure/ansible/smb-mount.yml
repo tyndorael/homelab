@@ -1,6 +1,6 @@
 ---
 - name: Mount SMB share on guests
-  hosts: ai_servers
+  hosts: proxmox_guests:ai_servers
   become: true
   gather_facts: true
 
