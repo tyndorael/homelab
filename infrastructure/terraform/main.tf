@@ -22,8 +22,78 @@ provider "proxmox" {
   pm_parallel         = 1
 }
 
+resource "proxmox_vm_qemu" "herta" {
+  name        = "herta"
+  vmid        = 100
+  target_node = var.pm_target_node
+  tags        = "dashboard"
+
+  clone      = var.template_name
+  full_clone = true
+
+  agent    = 1
+  os_type  = "cloud-init"
+  memory   = var.vm_memory
+  bios     = "ovmf"
+  machine  = "q35"
+  scsihw   = "virtio-scsi-single"
+
+  serial {
+    id   = 0
+    type = "socket"
+  }
+
+  vga {
+    type = "serial0"
+  }
+  boot     = "order=scsi0;net0"
+  bootdisk = "scsi0"
+
+  cpu {
+    cores   = var.vm_cores
+    sockets = 1
+    type    = "x86-64-v2-AES"
+  }
+
+  disk {
+    slot     = "scsi0"
+    size     = var.vm_disk_size
+    type     = "disk"
+    storage  = var.vm_disk_storage
+    iothread = true
+    discard  = true
+  }
+
+  disk {
+    slot    = "ide2"
+    type    = "cloudinit"
+    storage = var.vm_disk_storage
+  }
+
+  network {
+    id       = 0
+    model    = "virtio"
+    bridge   = var.vm_bridge
+    firewall = true
+  }
+
+  ipconfig0  = var.vm_ipconfig0
+  ciuser     = var.vm_ci_user
+  cipassword = var.vm_ci_password
+  sshkeys    = file(var.ssh_public_key_path)
+
+  pool = var.pm_pool
+
+  lifecycle {
+    ignore_changes = [
+      clone,
+    ]
+  }
+}
+
 resource "proxmox_vm_qemu" "nami" {
   name        = "nami"
+  vmid        = 100
   target_node = var.pm_target_node
   tags        = "finance"
 
