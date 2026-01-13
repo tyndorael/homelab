@@ -19,6 +19,10 @@
       - python3-pip
       - python3-venv
       - python-is-python3
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
     nvidia_driver_package: ubuntu-drivers-common
     miniconda_version: "py310_24.9.2-0"
     miniconda_root: "/opt/miniconda3"
@@ -37,6 +41,16 @@
       - agents
     comfyui_repo: "https://github.com/comfyanonymous/ComfyUI.git"
     comfyui_dir: "{{ ai_root }}/comfyui"
+    docker_packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    docker_user: "{{ ansible_user | default('ubuntu') }}"
+    portainer_image: "portainer/portainer-ce:latest"
+    portainer_container_name: "portainer"
+    portainer_data_dir: "/opt/portainer/data"
     comfyui_plugins:
       - name: "ComfyUI-Manager"
         repo: "https://github.com/Comfy-Org/ComfyUI-Manager.git"
@@ -57,6 +71,31 @@
       ansible.builtin.apt:
         name: "{{ base_packages }}"
         state: present
+
+    - name: Add Docker GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker APT repository
+      ansible.builtin.apt_repository:
+        repo: >
+          deb [arch=amd64] https://download.docker.com/linux/ubuntu
+          {{ ansible_facts['lsb']['codename'] }} stable
+        state: present
+        filename: docker
+
+    - name: Install Docker packages
+      ansible.builtin.apt:
+        name: "{{ docker_packages }}"
+        state: present
+
+    - name: Add user to docker group for non-root usage
+      ansible.builtin.user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: true
+      when: docker_user | length > 0
 
     - name: Install NVIDIA driver helper
       ansible.builtin.apt:
@@ -196,3 +235,45 @@
         recurse: true
         owner: "{{ ai_owner }}"
         group: "{{ ai_owner }}"
+
+    - name: Enable and start Docker service
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Wait for Docker socket to become available
+      ansible.builtin.wait_for:
+        path: /var/run/docker.sock
+        state: present
+        timeout: 30
+
+    - name: Create Portainer data directory
+      ansible.builtin.file:
+        path: "{{ portainer_data_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if Portainer container exists
+      ansible.builtin.command: docker container inspect {{ portainer_container_name }}
+      register: portainer_check
+      failed_when: false
+      changed_when: false
+
+    - name: Deploy Portainer (if missing)
+      ansible.builtin.command: >
+        docker run -d
+        --name {{ portainer_container_name }}
+        --restart=unless-stopped
+        -p 9443:9443
+        -p 8000:8000
+        -v /var/run/docker.sock:/var/run/docker.sock
+        -v {{ portainer_data_dir }}:/data
+        {{ portainer_image }}
+      when: portainer_check.rc != 0
+
+    - name: Ensure Portainer is running
+      ansible.builtin.command: docker start {{ portainer_container_name }}
+      register: portainer_start
+      changed_when: portainer_start.rc == 0
+      failed_when: portainer_start.rc != 0 and portainer_check.rc != 0
