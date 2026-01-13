@@ -24,6 +24,8 @@
     portainer_image: "portainer/portainer-ce:latest"
     portainer_container_name: "portainer"
     portainer_data_dir: "/opt/portainer/data"
+    portainer_agent_image: "portainer/agent:latest"
+    portainer_agent_container_name: "portainer_agent"
 
   tasks:
     - name: Install guest packages
@@ -118,6 +120,29 @@
       register: portainer_start
       changed_when: portainer_start.rc == 0
       failed_when: portainer_start.rc != 0 and portainer_check.rc != 0
+
+    - name: Check if Portainer Agent container exists
+      ansible.builtin.command: docker container inspect {{ portainer_agent_container_name }}
+      register: portainer_agent_check
+      failed_when: false
+      changed_when: false
+
+    - name: Deploy Portainer Agent (if missing)
+      ansible.builtin.command: >
+        docker run -d
+        --name {{ portainer_agent_container_name }}
+        --restart=unless-stopped
+        -p 9001:9001
+        -v /var/run/docker.sock:/var/run/docker.sock
+        -v /var/lib/docker/volumes:/var/lib/docker/volumes
+        {{ portainer_agent_image }}
+      when: portainer_agent_check.rc != 0
+
+    - name: Ensure Portainer Agent is running
+      ansible.builtin.command: docker start {{ portainer_agent_container_name }}
+      register: portainer_agent_start
+      changed_when: portainer_agent_start.rc == 0
+      failed_when: portainer_agent_start.rc != 0 and portainer_agent_check.rc != 0
 
     - name: Reboot the machine and wait for connectivity
       ansible.builtin.reboot:
