@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: wger_db
+    environment:
+      - POSTGRES_DB=${WGER_DB_NAME:-wger}
+      - POSTGRES_USER=${WGER_DB_USER:-wger}
+      - POSTGRES_PASSWORD=${WGER_DB_PASSWORD:-change-me}
+    volumes:
+      - /nfs/vm_shares/herta/apps/wger/postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - wger
+
+  redis:
+    image: redis:7-alpine
+    container_name: wger_redis
+    restart: unless-stopped
+    networks:
+      - wger
+
+  wger:
+    image: ghcr.io/wger-project/wger:latest
+    container_name: wger
+    depends_on:
+      - db
+      - redis
+    environment:
+      - ALLOWED_HOSTS=${WGER_ALLOWED_HOSTS:-*}
+      - SECRET_KEY=${WGER_SECRET_KEY:-change-me}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${WGER_DB_NAME:-wger}
+      - DB_USER=${WGER_DB_USER:-wger}
+      - DB_PASS=${WGER_DB_PASSWORD:-change-me}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - TIME_ZONE=${TZ:-UTC}
+      - WGER_ADMIN_USER=${WGER_ADMIN_USER:-admin}
+      - WGER_ADMIN_EMAIL=${WGER_ADMIN_EMAIL:-admin@example.com}
+      - WGER_ADMIN_PASSWORD=${WGER_ADMIN_PASSWORD:-change-me}
+    ports:
+      - "8002:8000"  # HTTP UI
+    volumes:
+      - /nfs/vm_shares/herta/apps/wger/media:/app/media
+      - /nfs/vm_shares/herta/apps/wger/static:/app/static
+    restart: unless-stopped
+    networks:
+      - wger
+      - nginx-proxy-manager
+    labels:
+      - "dockpeek.tags=health,fitness"
+
+networks:
+  wger:
+    name: wger
+    driver: bridge
+  nginx-proxy-manager:
+    name: nginx-proxy-manager
+    external: true
