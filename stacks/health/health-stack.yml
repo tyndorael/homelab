@@ -7,7 +7,7 @@ services:
       - POSTGRES_USER=${WGER_DB_USER:-wger}
       - POSTGRES_PASSWORD=${WGER_DB_PASSWORD:-change-me}
     volumes:
-      - /nfs/vm_shares/herta/apps/wger/postgres:/var/lib/postgresql/data
+      - /mnt/vm_shares/hyacine/apps/wger/postgres:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
       - wger
@@ -20,7 +20,7 @@ services:
       - wger
 
   wger:
-    image: ghcr.io/wger-project/wger:latest
+    image: docker.io/wger/server:latest
     container_name: wger
     depends_on:
       - db
@@ -42,8 +42,8 @@ services:
     ports:
       - "8002:8000"  # HTTP UI
     volumes:
-      - /nfs/vm_shares/herta/apps/wger/media:/app/media
-      - /nfs/vm_shares/herta/apps/wger/static:/app/static
+      - /mnt/vm_shares/hyacine/apps/wger/media:/app/media
+      - /mnt/vm_shares/hyacine/apps/wger/static:/app/static
     restart: unless-stopped
     networks:
       - wger
