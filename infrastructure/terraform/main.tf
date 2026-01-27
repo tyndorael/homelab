@@ -23,20 +23,21 @@ provider "proxmox" {
 }
 
 resource "proxmox_vm_qemu" "herta" {
-  name        = "herta"
-  vmid        = 100
-  target_node = var.pm_target_node
-  tags        = "dashboard"
+  name               = "herta"
+  vmid               = 100
+  target_node        = var.pm_target_node
+  tags               = "dashboard"
+  start_at_node_boot = true
 
   clone      = var.template_name
   full_clone = true
 
-  agent    = 1
-  os_type  = "cloud-init"
-  memory   = var.vm_memory
-  bios     = "ovmf"
-  machine  = "q35"
-  scsihw   = "virtio-scsi-single"
+  agent   = 1
+  os_type = "cloud-init"
+  memory  = var.vm_memory
+  bios    = "ovmf"
+  machine = "q35"
+  scsihw  = "virtio-scsi-single"
 
   serial {
     id   = 0
@@ -92,22 +93,23 @@ resource "proxmox_vm_qemu" "herta" {
 }
 
 resource "proxmox_vm_qemu" "nami" {
-  name        = "nami"
-  vmid        = 101
-  target_node = var.pm_target_node
-  tags        = "finance"
+  name               = "nami"
+  vmid               = 101
+  target_node        = var.pm_target_node
+  tags               = "finance"
+  start_at_node_boot = true
 
   # Source: existing cloud-init template in Proxmox
   clone      = var.template_name
   full_clone = true
 
   # Hardware
-  agent    = 1
-  os_type  = "cloud-init"
-  memory   = var.vm_memory
-  bios     = "ovmf"
-  machine  = "q35"
-  scsihw   = "virtio-scsi-single"
+  agent   = 1
+  os_type = "cloud-init"
+  memory  = var.vm_memory
+  bios    = "ovmf"
+  machine = "q35"
+  scsihw  = "virtio-scsi-single"
 
   serial {
     id   = 0
@@ -143,17 +145,17 @@ resource "proxmox_vm_qemu" "nami" {
   }
 
   network {
-    id     = 0
-    model  = "virtio"
-    bridge = var.vm_bridge
+    id       = 0
+    model    = "virtio"
+    bridge   = var.vm_bridge
     firewall = true
   }
 
   # Cloud-init
-  ipconfig0 = var.vm_ipconfig0
-  ciuser    = var.vm_ci_user
+  ipconfig0  = var.vm_ipconfig0
+  ciuser     = var.vm_ci_user
   cipassword = var.vm_ci_password
-  sshkeys   = file(var.ssh_public_key_path)
+  sshkeys    = file(var.ssh_public_key_path)
 
   # Optional: Proxmox pool
   pool = var.pm_pool
@@ -167,20 +169,21 @@ resource "proxmox_vm_qemu" "nami" {
 }
 
 resource "proxmox_vm_qemu" "hyacine" {
-  name        = "hyacine"
-  vmid        = 102
-  target_node = var.pm_target_node
-  tags        = "healthcare"
+  name               = "hyacine"
+  vmid               = 102
+  target_node        = var.pm_target_node
+  tags               = "healthcare"
+  start_at_node_boot = true
 
   clone      = var.template_name
   full_clone = true
 
-  agent    = 1
-  os_type  = "cloud-init"
-  memory   = var.vm_memory
-  bios     = "ovmf"
-  machine  = "q35"
-  scsihw   = "virtio-scsi-single"
+  agent   = 1
+  os_type = "cloud-init"
+  memory  = var.vm_memory
+  bios    = "ovmf"
+  machine = "q35"
+  scsihw  = "virtio-scsi-single"
 
   serial {
     id   = 0
@@ -236,20 +239,21 @@ resource "proxmox_vm_qemu" "hyacine" {
 }
 
 resource "proxmox_vm_qemu" "bronya" {
-  name        = "bronya"
-  vmid        = 103
-  target_node = var.pm_target_node
-  tags        = "downloaders"
+  name               = "bronya"
+  vmid               = 103
+  target_node        = var.pm_target_node
+  tags               = "downloaders"
+  start_at_node_boot = true
 
   clone      = var.template_name
   full_clone = true
 
-  agent    = 1
-  os_type  = "cloud-init"
-  memory   = var.vm_memory
-  bios     = "ovmf"
-  machine  = "q35"
-  scsihw   = "virtio-scsi-single"
+  agent   = 1
+  os_type = "cloud-init"
+  memory  = var.vm_memory
+  bios    = "ovmf"
+  machine = "q35"
+  scsihw  = "virtio-scsi-single"
 
   serial {
     id   = 0
