@@ -2,17 +2,14 @@
 - name: Mount SMB share on guests
   hosts: proxmox_guests:ai_servers
   become: true
-  gather_facts: true
-
   vars:
     smb_credentials_file: "/root/.smb_credentials"
-    smb_username: ""
     smb_password: ""
-    smb_uid: 1000
-    smb_gid: 1000
     smb_file_mode: "0755"
     smb_dir_mode: "0755"
     smb_opts_extra: "_netdev"
+    smb_uid: "{{ ansible_facts.user_uid | default(1000) }}"
+    smb_gid: "{{ ansible_facts.user_gid | default(1000) }}"
     smb_shares:
       - name: media
         src: "//192.168.50.107/Media"
@@ -22,6 +19,21 @@
         mount: "/mnt/ai"
 
   tasks:
+    - name: Resolve UID for ansible user
+      ansible.builtin.command: "id -u {{ ansible_user }}"
+      register: smb_uid_cmd
+      changed_when: false
+
+    - name: Resolve GID for ansible user
+      ansible.builtin.command: "id -g {{ ansible_user }}"
+      register: smb_gid_cmd
+      changed_when: false
+
+    - name: Set resolved smb uid/gid
+      ansible.builtin.set_fact:
+        smb_uid: "{{ smb_uid_cmd.stdout | default('1000') }}"
+        smb_gid: "{{ smb_gid_cmd.stdout | default('1000') }}"
+
     - name: Install cifs utilities
       ansible.builtin.apt:
         name: cifs-utils
@@ -39,10 +51,12 @@
           password={{ smb_password }}
       when: smb_username | length > 0 and smb_password | length > 0
 
-    - name: Ensure mount points exist
+    - name: Ensure mount points exist (owned by ansible user)
       ansible.builtin.file:
         path: "{{ item.mount }}"
         state: directory
+        owner: "{{ ansible_user | default('root') }}"
+        group: "{{ ansible_user | default('root') }}"
         mode: '0755'
       loop: "{{ smb_shares }}"
 
@@ -51,6 +65,15 @@
         path: "{{ item.mount }}"
         src: "{{ item.src }}"
         fstype: cifs
-        opts: "credentials={{ smb_credentials_file }},uid={{ smb_uid }},gid={{ smb_gid }},file_mode={{ smb_file_mode }},dir_mode={{ smb_dir_mode }},{{ smb_opts_extra }}"
+        opts: "credentials={{ smb_credentials_file }},uid={{ smb_uid | int }},gid={{ smb_gid | int }},file_mode={{ smb_file_mode }},dir_mode={{ smb_dir_mode }},{{ smb_opts_extra }}"
         state: mounted
+      loop: "{{ smb_shares }}"
+
+    - name: Ensure mount ownership after mount
+      ansible.builtin.file:
+        path: "{{ item.mount }}"
+        state: directory
+        owner: "{{ ansible_user | default('root') }}"
+        group: "{{ ansible_user | default('root') }}"
+        mode: "{{ smb_dir_mode }}"
       loop: "{{ smb_shares }}"
