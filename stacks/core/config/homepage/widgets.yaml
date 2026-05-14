@@ -1,0 +1,14 @@
+---
+- logo:
+    icon: https://www.google.com/s2/favicons?domain=homelab&sz=64
+
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      dateStyle: long
+      hourCycle: h23
+
+- search:
+    provider: duckduckgo
+    target: _blank

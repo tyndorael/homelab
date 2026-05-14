@@ -29,6 +29,20 @@ services:
     networks:
       - homelab
 
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
+    volumes:
+      - ${HOMEPAGE_CONFIG}:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - homelab
+
   duckdns:
     image: lscr.io/linuxserver/duckdns:latest
     container_name: duckdns

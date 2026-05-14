@@ -11,6 +11,7 @@ DuckDNS (dynamic DNS)
    │
 Nginx Proxy Manager  ←── SSL termination (Let's Encrypt)
    │
+   ├── Homepage       :3000  ← start here
    ├── Portainer      :9000 / :9443
    ├── Plex           :32400
    └── Jellyfin       :8096
@@ -74,6 +75,7 @@ make core-up
 Services started:
 | Service | URL |
 |---|---|
+| Homepage dashboard | `http://localhost:3000` |
 | Nginx Proxy Manager admin | `http://localhost:81` |
 | Portainer | `http://localhost:9000` |
 
@@ -87,7 +89,21 @@ Services started:
 4. Select **DNS Challenge**, provider **DuckDNS**, paste your token
 5. Add proxy hosts for each service pointing to the container name + internal port
 
-### 6. Start the media stack
+### 6. Configure the Homepage dashboard
+
+The dashboard config lives in `stacks/core/config/homepage/` and is version-controlled. Fill in the `HOMEPAGE_VAR_*` variables in `stacks/core/.env` to enable live service widgets:
+
+| Variable | Where to find it |
+|---|---|
+| `HOMEPAGE_VAR_MAC_MINI_IP` | Your Mac Mini's local IP (`ipconfig getifaddr en0`) |
+| `HOMEPAGE_VAR_PORTAINER_API_KEY` | Portainer → your user → Access tokens |
+| `HOMEPAGE_VAR_NPM_USER` / `_PASS` | NPM admin credentials |
+| `HOMEPAGE_VAR_PLEX_TOKEN` | [How to find your Plex token](https://support.plex.tv/articles/204059436) |
+| `HOMEPAGE_VAR_JELLYFIN_API_KEY` | Jellyfin → Dashboard → API Keys |
+
+Widgets are optional — the dashboard works as a plain launcher without them.
+
+### 7. Start the media stack
 
 Get a Plex claim token from [plex.tv/claim](https://www.plex.tv/claim) (expires in 4 minutes) and set it in `stacks/media/.env`, then:
 
