@@ -11,7 +11,7 @@ services:
       - VERSION=docker
       - PLEX_CLAIM=${PLEX_CLAIM}
     volumes:
-      - ./config/plex:/config
+      - ${PLEX_CONFIG}:/config
       - ${TRUENAS_MEDIA_PATH}:/media:ro
     ports:
       # Direct access and Plex remote access — must be exposed on the host
@@ -28,8 +28,8 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
     volumes:
-      - ./config/jellyfin:/config
-      - ./cache/jellyfin:/cache
+      - ${JELLYFIN_CONFIG}:/config
+      - ${JELLYFIN_CACHE}:/cache
       - ${TRUENAS_MEDIA_PATH}:/media:ro
     ports:
       - "8096:8096"
