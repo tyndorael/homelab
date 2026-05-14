@@ -1,0 +1,11 @@
+# Environment files — copy .env.example → .env and fill in values
+.env
+stacks/**/.env
+
+# Runtime data — created automatically, never commit
+stacks/core/data/
+stacks/media/config/
+stacks/media/cache/
+
+# macOS
+.DS_Store
