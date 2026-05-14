@@ -8,7 +8,7 @@ services:
       - no-new-privileges:true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/portainer:/data
+      - ${PORTAINER_DATA}:/data
     ports:
       - "9000:9000"
       - "9443:9443"
@@ -24,8 +24,8 @@ services:
       - "81:81"
       - "443:443"
     volumes:
-      - ./data/npm/data:/data
-      - ./data/npm/letsencrypt:/etc/letsencrypt
+      - ${NPM_DATA}:/data
+      - ${NPM_LETSENCRYPT}:/etc/letsencrypt
     networks:
       - homelab
 
@@ -39,7 +39,7 @@ services:
       - TOKEN=${DUCKDNS_TOKEN}
       - LOG_FILE=false
     volumes:
-      - ./data/duckdns/config:/config
+      - ${DUCKDNS_CONFIG}:/config
     networks:
       - homelab
 
