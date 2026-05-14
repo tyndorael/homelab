@@ -1,0 +1,41 @@
+services:
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}
+    volumes:
+      - ./config/plex:/config
+      - ${TRUENAS_MEDIA_PATH}:/media:ro
+    ports:
+      # Direct access and Plex remote access — must be exposed on the host
+      - "32400:32400"
+    networks:
+      - homelab
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./config/jellyfin:/config
+      - ./cache/jellyfin:/cache
+      - ${TRUENAS_MEDIA_PATH}:/media:ro
+    ports:
+      - "8096:8096"
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
