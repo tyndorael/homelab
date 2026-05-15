@@ -1,0 +1,42 @@
+---
+- Infrastructure:
+    - Portainer:
+        icon: portainer.png
+        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:9000
+        description: Docker management
+        widget:
+          type: portainer
+          url: http://portainer:9000
+          env: 1
+          key: "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}"
+
+    - Nginx Proxy Manager:
+        icon: nginx-proxy-manager.png
+        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:81
+        description: Reverse proxy & SSL
+        widget:
+          type: npm
+          url: http://nginx-proxy-manager:81
+          username: "{{HOMEPAGE_VAR_NPM_USER}}"
+          password: "{{HOMEPAGE_VAR_NPM_PASS}}"
+
+- Media:
+    - Plex:
+        icon: plex.png
+        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:32400/web
+        description: Media server
+        widget:
+          type: plex
+          url: http://plex:32400
+          key: "{{HOMEPAGE_VAR_PLEX_TOKEN}}"
+
+    - Jellyfin:
+        icon: jellyfin.png
+        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:8096
+        description: Open-source media server
+        widget:
+          type: jellyfin
+          url: http://jellyfin:8096
+          key: "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}"
+          enableBlocks: true
+          enableNowPlaying: true

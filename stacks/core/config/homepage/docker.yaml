@@ -1,0 +1,5 @@
+---
+# Allows Homepage to read container status via the Docker socket.
+# The socket is mounted read-only in docker-compose.yml.
+my-docker:
+  socket: /var/run/docker.sock
