@@ -20,6 +20,18 @@
           username: "{{HOMEPAGE_VAR_NPM_USER}}"
           password: "{{HOMEPAGE_VAR_NPM_PASS}}"
 
+- Music:
+    - Navidrome:
+        icon: navidrome.png
+        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:4533
+        description: Music streaming server
+        widget:
+          type: navidrome
+          url: http://navidrome:4533
+          user: "{{HOMEPAGE_VAR_NAVIDROME_USER}}"
+          token: "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}"
+          salt: "{{HOMEPAGE_VAR_NAVIDROME_SALT}}"
+
 - Media:
     - Plex:
         icon: plex.png
