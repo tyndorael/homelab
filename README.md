@@ -13,8 +13,9 @@ Nginx Proxy Manager  ←── SSL termination (Let's Encrypt)
    │
    ├── Homepage       :3000  ← start here
    ├── Portainer      :9000 / :9443
-   ├── Plex           :32400
-   └── Jellyfin       :8096
+   ├── Navidrome      :4533  (music)
+   ├── Plex           :32400 (video)
+   └── Jellyfin       :8096  (video)
 ```
 
 All containers share a Docker bridge network called `homelab`. NFS shares from TrueNAS are mounted on the Mac host and passed into containers as bind mounts.
@@ -78,7 +79,6 @@ Services started:
 | Homepage dashboard | `http://localhost:3000` |
 | Nginx Proxy Manager admin | `http://localhost:81` |
 | Portainer | `http://localhost:9000` |
-
 **NPM default credentials:** `admin@example.com` / `changeme` — change these immediately.
 
 ### 5. Configure SSL in Nginx Proxy Manager
@@ -100,6 +100,7 @@ The dashboard config lives in `stacks/core/config/homepage/` and is version-cont
 | `HOMEPAGE_VAR_NPM_USER` / `_PASS` | NPM admin credentials |
 | `HOMEPAGE_VAR_PLEX_TOKEN` | [How to find your Plex token](https://support.plex.tv/articles/204059436) |
 | `HOMEPAGE_VAR_JELLYFIN_API_KEY` | Jellyfin → Dashboard → API Keys |
+| `HOMEPAGE_VAR_NAVIDROME_USER` / `_TOKEN` / `_SALT` | Navidrome Subsonic credentials (see Navidrome docs) |
 
 Widgets are optional — the dashboard works as a plain launcher without them.
 
@@ -116,6 +117,7 @@ Services started:
 |---|---|
 | Plex | `http://localhost:32400/web` |
 | Jellyfin | `http://localhost:8096` |
+| Navidrome | `http://localhost:4533` |
 
 ## Day-to-day Commands
 

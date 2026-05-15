@@ -36,6 +36,25 @@ services:
     networks:
       - homelab
 
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    restart: unless-stopped
+    user: "${PUID}:${PGID}"
+    environment:
+      - TZ=${TZ}
+      - ND_MUSICFOLDER=/music
+      - ND_DATAFOLDER=/data
+      - ND_LOGLEVEL=info
+      - ND_SESSIONTIMEOUT=24h
+    volumes:
+      - ${NAVIDROME_DATA}:/data
+      - ${TRUENAS_MUSIC_PATH}:/music:ro
+    ports:
+      - "4533:4533"
+    networks:
+      - homelab
+
 networks:
   homelab:
     external: true
