@@ -8,5 +8,8 @@ stacks/media/config/
 stacks/media/cache/
 stacks/media/data/
 
+# Homepage runtime files
+stacks/core/config/homepage/logs/
+
 # macOS
 .DS_Store
