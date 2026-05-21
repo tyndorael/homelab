@@ -11,7 +11,7 @@ DuckDNS (dynamic DNS)
    │
 Nginx Proxy Manager  ←── SSL termination (Let's Encrypt)
    │
-   ├── Homepage       :3000  ← start here
+   ├── Homepage       :3001  ← start here
    ├── Portainer      :9000 / :9443
    ├── Navidrome      :4533  (music)
    ├── Plex           :32400 (video)
@@ -76,7 +76,7 @@ make core-up
 Services started:
 | Service | URL |
 |---|---|
-| Homepage dashboard | `http://localhost:3000` |
+| Homepage dashboard | `http://localhost:3001` |
 | Nginx Proxy Manager admin | `http://localhost:81` |
 | Portainer | `http://localhost:9000` |
 **NPM default credentials:** `admin@example.com` / `changeme` — change these immediately.

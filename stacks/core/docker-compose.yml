@@ -39,7 +39,7 @@ services:
       - ${HOMEPAGE_CONFIG}:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
-      - "3000:3000"
+      - "${HOMEPAGE_PORT:-3001}:3000"
     networks:
       - homelab
 
