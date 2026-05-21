@@ -10,7 +10,6 @@ stacks/media/data/
 
 # Homepage runtime files
 stacks/core/config/homepage/logs/
-stacks/core/config/homepage/kubernetes.yaml
 
 # macOS
 .DS_Store
