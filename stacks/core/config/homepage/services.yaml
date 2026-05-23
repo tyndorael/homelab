@@ -5,6 +5,17 @@
         href: "{{HOMEPAGE_VAR_PORTAINER_URL}}"
         description: Container management
 
+- Downloads:
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: "{{HOMEPAGE_VAR_QBITTORRENT_URL}}"
+        description: Torrent client
+        widget:
+          type: qbittorrent
+          url: http://qbittorrent:8080
+          username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
+
 - Music:
     - Navidrome:
         icon: navidrome.png

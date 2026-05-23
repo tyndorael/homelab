@@ -9,6 +9,7 @@ LAN
  │
  ├── Homepage       :3001  ← start here
  ├── Portainer      :9000  (container management)
+ ├── qBittorrent    :8080  (torrents)
  ├── Navidrome      :4533  (music)
  ├── Plex           :32400 (video)
  └── Jellyfin       :8096  (video)
@@ -29,7 +30,7 @@ Install NFS client tools and create mount points:
 
 ```bash
 sudo apt install nfs-common
-sudo mkdir -p /mnt/media /mnt/music
+sudo mkdir -p /mnt/media /mnt/music /mnt/downloads
 ```
 
 Mount your TrueNAS shares:
@@ -37,19 +38,24 @@ Mount your TrueNAS shares:
 ```bash
 sudo mount -t nfs <truenas-ip>:/mnt/<pool>/media /mnt/media
 sudo mount -t nfs <truenas-ip>:/mnt/<pool>/music /mnt/music
+sudo mount -t nfs <truenas-ip>:/mnt/<pool>/downloads /mnt/downloads
 ```
 
 To make them persistent across reboots, add to `/etc/fstab`:
 
 ```
-<truenas-ip>:/mnt/<pool>/media /mnt/media nfs defaults,soft 0 0
-<truenas-ip>:/mnt/<pool>/music /mnt/music nfs defaults,soft 0 0
+<truenas-ip>:/mnt/<pool>/media     /mnt/media     nfs defaults,soft 0 0
+<truenas-ip>:/mnt/<pool>/music     /mnt/music     nfs defaults,soft 0 0
+<truenas-ip>:/mnt/<pool>/downloads /mnt/downloads nfs defaults,soft 0 0
 ```
+
+> **Note:** `/mnt/media` and `/mnt/music` are mounted **read-only** inside containers. `/mnt/downloads` is mounted **read-write** so qBittorrent can write completed torrents there. Make sure the TrueNAS dataset permissions allow writes from your host's `PUID`/`PGID`.
 
 Verify:
 
 ```bash
 ls /mnt/media
+ls /mnt/downloads
 ```
 
 ### 2. Create the shared Docker network
@@ -92,6 +98,8 @@ The dashboard config lives in `stacks/core/config/homepage/` and is version-cont
 | `HOMEPAGE_VAR_JELLYFIN_API_KEY` | Jellyfin → Dashboard → API Keys |
 | `HOMEPAGE_VAR_NAVIDROME_USER` / `_TOKEN` / `_SALT` | Navidrome Subsonic credentials (see Navidrome docs) |
 | `HOMEPAGE_VAR_PORTAINER_URL` | Portainer URL (e.g. `http://host-ip:9000`) |
+| `HOMEPAGE_VAR_QBITTORRENT_URL` | qBittorrent URL (e.g. `http://host-ip:8080`) |
+| `HOMEPAGE_VAR_QBITTORRENT_USERNAME` / `_PASSWORD` | qBittorrent web UI credentials |
 
 Widgets are optional — the dashboard works as a plain launcher without them.
 
@@ -109,6 +117,7 @@ Services started:
 | Plex | `http://localhost:32400/web` |
 | Jellyfin | `http://localhost:8096` |
 | Navidrome | `http://localhost:4533` |
+| qBittorrent | `http://localhost:8080` |
 
 ## Day-to-day Commands
 
