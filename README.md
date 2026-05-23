@@ -8,6 +8,7 @@ Docker-based homelab on an Ubuntu host, backed by TrueNAS storage over NFS.
 LAN
  │
  ├── Homepage       :3001  ← start here
+ ├── Portainer      :9000  (container management)
  ├── Navidrome      :4533  (music)
  ├── Plex           :32400 (video)
  └── Jellyfin       :8096  (video)
@@ -90,6 +91,7 @@ The dashboard config lives in `stacks/core/config/homepage/` and is version-cont
 | `HOMEPAGE_VAR_PLEX_TOKEN` | [How to find your Plex token](https://support.plex.tv/articles/204059436) |
 | `HOMEPAGE_VAR_JELLYFIN_API_KEY` | Jellyfin → Dashboard → API Keys |
 | `HOMEPAGE_VAR_NAVIDROME_USER` / `_TOKEN` / `_SALT` | Navidrome Subsonic credentials (see Navidrome docs) |
+| `HOMEPAGE_VAR_PORTAINER_URL` | Portainer URL (e.g. `http://host-ip:9000`) |
 
 Widgets are optional — the dashboard works as a plain launcher without them.
 

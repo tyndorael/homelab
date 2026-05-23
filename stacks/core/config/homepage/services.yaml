@@ -1,4 +1,10 @@
 ---
+- Infrastructure:
+    - Portainer:
+        icon: portainer.png
+        href: "{{HOMEPAGE_VAR_PORTAINER_URL}}"
+        description: Container management
+
 - Music:
     - Navidrome:
         icon: navidrome.png
