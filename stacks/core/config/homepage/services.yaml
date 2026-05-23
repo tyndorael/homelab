@@ -1,29 +1,8 @@
 ---
-- Infrastructure:
-    - Portainer:
-        icon: portainer.png
-        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:9000
-        description: Docker management
-        widget:
-          type: portainer
-          url: http://portainer:9000
-          env: 1
-          key: "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}"
-
-    - Nginx Proxy Manager:
-        icon: nginx-proxy-manager.png
-        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:81
-        description: Reverse proxy & SSL
-        widget:
-          type: npm
-          url: http://nginx-proxy-manager:81
-          username: "{{HOMEPAGE_VAR_NPM_USER}}"
-          password: "{{HOMEPAGE_VAR_NPM_PASS}}"
-
 - Music:
     - Navidrome:
         icon: navidrome.png
-        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:4533
+        href: http://{{HOMEPAGE_VAR_HOST_IP}}:4533
         description: Music streaming server
         widget:
           type: navidrome
@@ -35,7 +14,7 @@
 - Media:
     - Plex:
         icon: plex.png
-        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:32400/web
+        href: http://{{HOMEPAGE_VAR_HOST_IP}}:32400/web
         description: Media server
         widget:
           type: plex
@@ -44,7 +23,7 @@
 
     - Jellyfin:
         icon: jellyfin.png
-        href: http://{{HOMEPAGE_VAR_MAC_MINI_IP}}:8096
+        href: http://{{HOMEPAGE_VAR_HOST_IP}}:8096
         description: Open-source media server
         widget:
           type: jellyfin

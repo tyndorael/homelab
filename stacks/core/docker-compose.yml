@@ -1,44 +1,12 @@
 services:
 
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${PORTAINER_DATA}:/data
-    ports:
-      - "9000:9000"
-      - "9443:9443"
-    networks:
-      - homelab
-
-  nginx-proxy-manager:
-    image: jc21/nginx-proxy-manager:latest
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "81:81"
-      - "443:443"
-    volumes:
-      - ${NPM_DATA}:/data
-      - ${NPM_LETSENCRYPT}:/etc/letsencrypt
-    networks:
-      - homelab
-
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     restart: unless-stopped
     environment:
       - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
-      - HOMEPAGE_VAR_MAC_MINI_IP=${HOMEPAGE_VAR_MAC_MINI_IP}
-      - HOMEPAGE_VAR_PORTAINER_API_KEY=${HOMEPAGE_VAR_PORTAINER_API_KEY}
-      - HOMEPAGE_VAR_NPM_USER=${HOMEPAGE_VAR_NPM_USER}
-      - HOMEPAGE_VAR_NPM_PASS=${HOMEPAGE_VAR_NPM_PASS}
+      - HOMEPAGE_VAR_HOST_IP=${HOMEPAGE_VAR_HOST_IP}
       - HOMEPAGE_VAR_PLEX_TOKEN=${HOMEPAGE_VAR_PLEX_TOKEN}
       - HOMEPAGE_VAR_JELLYFIN_API_KEY=${HOMEPAGE_VAR_JELLYFIN_API_KEY}
       - HOMEPAGE_VAR_NAVIDROME_USER=${HOMEPAGE_VAR_NAVIDROME_USER}
@@ -49,20 +17,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "${HOMEPAGE_PORT:-3001}:3000"
-    networks:
-      - homelab
-
-  duckdns:
-    image: lscr.io/linuxserver/duckdns:latest
-    container_name: duckdns
-    restart: unless-stopped
-    environment:
-      - TZ=${TZ}
-      - SUBDOMAINS=${DUCKDNS_SUBDOMAINS}
-      - TOKEN=${DUCKDNS_TOKEN}
-      - LOG_FILE=false
-    volumes:
-      - ${DUCKDNS_CONFIG}:/config
     networks:
       - homelab
 

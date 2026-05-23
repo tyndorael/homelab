@@ -1,52 +1,54 @@
 # Homelab
 
-Docker-based homelab on a Mac Mini, backed by TrueNAS storage over NFS.
+Docker-based homelab on an Ubuntu host, backed by TrueNAS storage over NFS.
 
 ## Architecture
 
 ```
-Internet
-   │
-DuckDNS (dynamic DNS)
-   │
-Nginx Proxy Manager  ←── SSL termination (Let's Encrypt)
-   │
-   ├── Homepage       :3001  ← start here
-   ├── Portainer      :9000 / :9443
-   ├── Navidrome      :4533  (music)
-   ├── Plex           :32400 (video)
-   └── Jellyfin       :8096  (video)
+LAN
+ │
+ ├── Homepage       :3001  ← start here
+ ├── Navidrome      :4533  (music)
+ ├── Plex           :32400 (video)
+ └── Jellyfin       :8096  (video)
 ```
 
-All containers share a Docker bridge network called `homelab`. NFS shares from TrueNAS are mounted on the Mac host and passed into containers as bind mounts.
+All containers share a Docker bridge network called `homelab`. NFS shares from TrueNAS are mounted on the Ubuntu host and passed into containers as bind mounts.
 
 ## Prerequisites
 
-- [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) installed and running
-- A [DuckDNS](https://www.duckdns.org) account with a subdomain and token
+- [Docker Engine](https://docs.docker.com/engine/install/ubuntu/) installed and running on Ubuntu
 - TrueNAS reachable over the local network
 
 ## First-time Setup
 
 ### 1. Mount TrueNAS media share (NFS)
 
-Create the mount point and mount your TrueNAS share:
+Install NFS client tools and create mount points:
 
 ```bash
-sudo mkdir -p /Volumes/media
-sudo mount -t nfs -o resvport,soft <truenas-ip>:/mnt/<pool>/media /Volumes/media
+sudo apt install nfs-common
+sudo mkdir -p /mnt/media /mnt/music
 ```
 
-To make it persistent across reboots, add to `/etc/fstab`:
+Mount your TrueNAS shares:
+
+```bash
+sudo mount -t nfs <truenas-ip>:/mnt/<pool>/media /mnt/media
+sudo mount -t nfs <truenas-ip>:/mnt/<pool>/music /mnt/music
+```
+
+To make them persistent across reboots, add to `/etc/fstab`:
 
 ```
-<truenas-ip>:/mnt/<pool>/media /Volumes/media nfs resvport,soft,auto
+<truenas-ip>:/mnt/<pool>/media /mnt/media nfs defaults,soft 0 0
+<truenas-ip>:/mnt/<pool>/music /mnt/music nfs defaults,soft 0 0
 ```
 
 Verify:
 
 ```bash
-ls /Volumes/media
+ls /mnt/media
 ```
 
 ### 2. Create the shared Docker network
@@ -65,7 +67,7 @@ cp stacks/core/.env.example stacks/core/.env
 cp stacks/media/.env.example stacks/media/.env
 ```
 
-Edit each `.env` file and fill in your values (DuckDNS token, Plex claim, media path, etc.).
+Edit each `.env` file and fill in your values (host IP, Plex claim, media path, etc.).
 
 ### 4. Start the core stack
 
@@ -77,34 +79,21 @@ Services started:
 | Service | URL |
 |---|---|
 | Homepage dashboard | `http://localhost:3001` |
-| Nginx Proxy Manager admin | `http://localhost:81` |
-| Portainer | `http://localhost:9000` |
-**NPM default credentials:** `admin@example.com` / `changeme` — change these immediately.
 
-### 5. Configure SSL in Nginx Proxy Manager
-
-1. Open NPM admin at `http://localhost:81`
-2. Go to **SSL Certificates → Add SSL Certificate → Let's Encrypt**
-3. Enter your domain: `*.yourdomain.duckdns.org`
-4. Select **DNS Challenge**, provider **DuckDNS**, paste your token
-5. Add proxy hosts for each service pointing to the container name + internal port
-
-### 6. Configure the Homepage dashboard
+### 5. Configure the Homepage dashboard
 
 The dashboard config lives in `stacks/core/config/homepage/` and is version-controlled. Fill in the `HOMEPAGE_VAR_*` variables in `stacks/core/.env` to enable live service widgets:
 
 | Variable | Where to find it |
 |---|---|
-| `HOMEPAGE_VAR_MAC_MINI_IP` | Your Mac Mini's local IP (`ipconfig getifaddr en0`) |
-| `HOMEPAGE_VAR_PORTAINER_API_KEY` | Portainer → your user → Access tokens |
-| `HOMEPAGE_VAR_NPM_USER` / `_PASS` | NPM admin credentials |
+| `HOMEPAGE_VAR_HOST_IP` | Your Ubuntu host's local IP (`ip addr show`) |
 | `HOMEPAGE_VAR_PLEX_TOKEN` | [How to find your Plex token](https://support.plex.tv/articles/204059436) |
 | `HOMEPAGE_VAR_JELLYFIN_API_KEY` | Jellyfin → Dashboard → API Keys |
 | `HOMEPAGE_VAR_NAVIDROME_USER` / `_TOKEN` / `_SALT` | Navidrome Subsonic credentials (see Navidrome docs) |
 
 Widgets are optional — the dashboard works as a plain launcher without them.
 
-### 7. Start the media stack
+### 6. Start the media stack
 
 Get a Plex claim token from [plex.tv/claim](https://www.plex.tv/claim) (expires in 4 minutes) and set it in `stacks/media/.env`, then:
 
@@ -145,9 +134,6 @@ homelab/
     │   ├── docker-compose.yml
     │   ├── .env.example
     │   └── data/          # ← gitignored, created at runtime
-    │       ├── portainer/
-    │       ├── npm/
-    │       └── duckdns/
     └── media/
         ├── docker-compose.yml
         ├── .env.example
@@ -170,8 +156,8 @@ make media-up      # Recreate media containers
 
 **Containers can't reach each other:** Make sure the `homelab` network exists (`docker network ls`) and that you ran `make network`.
 
-**Permission errors on media files:** Check that `PUID`/`PGID` in `.env` match your Mac user (`id` command).
+**Permission errors on media files:** Check that `PUID`/`PGID` in `.env` match your user (`id` command).
 
-**NFS mount lost after reboot:** Add the mount to `/etc/fstab` as shown in the setup step above.
+**NFS mount lost after reboot:** Add the mounts to `/etc/fstab` as shown in the setup step above.
 
-**Plex can't find media:** Verify the NFS mount is active (`ls /Volumes/media`) and that `TRUENAS_MEDIA_PATH` in `stacks/media/.env` points to the correct path.
+**Plex can't find media:** Verify the NFS mount is active (`ls /mnt/media`) and that `TRUENAS_MEDIA_PATH` in `stacks/media/.env` points to the correct path.
