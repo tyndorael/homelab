@@ -2,7 +2,7 @@
 - Music:
     - Navidrome:
         icon: navidrome.png
-        href: http://{{HOMEPAGE_VAR_HOST_IP}}:4533
+        href: "{{HOMEPAGE_VAR_NAVIDROME_URL}}"
         description: Music streaming server
         widget:
           type: navidrome
@@ -14,7 +14,7 @@
 - Media:
     - Plex:
         icon: plex.png
-        href: http://{{HOMEPAGE_VAR_HOST_IP}}:32400/web
+        href: "{{HOMEPAGE_VAR_PLEX_URL}}"
         description: Media server
         widget:
           type: plex
@@ -23,7 +23,7 @@
 
     - Jellyfin:
         icon: jellyfin.png
-        href: http://{{HOMEPAGE_VAR_HOST_IP}}:8096
+        href: "{{HOMEPAGE_VAR_JELLYFIN_URL}}"
         description: Open-source media server
         widget:
           type: jellyfin
