@@ -9,6 +9,7 @@ LAN
  │
  ├── Homepage       :3001  ← start here
  ├── Portainer      :9000  (container management)
+ ├── NPM            :81    (reverse proxy)
  ├── qBittorrent    :8080  (torrents)
  ├── Navidrome      :4533  (music)
  ├── Plex           :32400 (video)
@@ -98,6 +99,8 @@ The dashboard config lives in `stacks/core/config/homepage/` and is version-cont
 | `HOMEPAGE_VAR_JELLYFIN_API_KEY` | Jellyfin → Dashboard → API Keys |
 | `HOMEPAGE_VAR_NAVIDROME_USER` / `_TOKEN` / `_SALT` | Navidrome Subsonic credentials (see Navidrome docs) |
 | `HOMEPAGE_VAR_PORTAINER_URL` | Portainer URL (e.g. `http://host-ip:9000`) |
+| `HOMEPAGE_VAR_NPM_URL` | NPM admin UI URL (e.g. `http://host-ip:81`) |
+| `HOMEPAGE_VAR_NPM_EMAIL` / `_PASSWORD` | NPM admin credentials |
 | `HOMEPAGE_VAR_QBITTORRENT_URL` | qBittorrent URL (e.g. `http://host-ip:8080`) |
 | `HOMEPAGE_VAR_QBITTORRENT_USERNAME` / `_PASSWORD` | qBittorrent web UI credentials |
 

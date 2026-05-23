@@ -5,6 +5,16 @@
         href: "{{HOMEPAGE_VAR_PORTAINER_URL}}"
         description: Container management
 
+    - Nginx Proxy Manager:
+        icon: nginx-proxy-manager.png
+        href: "{{HOMEPAGE_VAR_NPM_URL}}"
+        description: Reverse proxy
+        widget:
+          type: npm
+          url: "{{HOMEPAGE_VAR_NPM_URL}}"
+          username: "{{HOMEPAGE_VAR_NPM_EMAIL}}"
+          password: "{{HOMEPAGE_VAR_NPM_PASSWORD}}"
+
 - Downloads:
     - qBittorrent:
         icon: qbittorrent.png
