@@ -12,7 +12,7 @@ A Docker Compose homelab running on an Ubuntu host, backed by TrueNAS storage ov
 |---|---|---|
 | Core | `stacks/core/` | Homepage dashboard |
 | Media | `stacks/media/` | Plex, Jellyfin, Navidrome, qBittorrent |
-| Tools | `stacks/tools/` | Speedtest Tracker |
+| Tools | `stacks/tools/` | Speedtest Tracker, Beszel (hub + agent) |
 
 All stacks attach to an external Docker bridge network named `homelab`.
 
@@ -41,7 +41,7 @@ Each stack has its own `.env.example` → `.env` workflow. The root `.env.exampl
 
 - `stacks/core/.env` — Homepage port, allowed hosts, `HOMEPAGE_VAR_*` widget credentials
 - `stacks/media/.env` — `PUID`/`PGID`, NFS mount paths, Plex claim token
-- `stacks/tools/.env` — `PUID`/`PGID`, Speedtest Tracker `APP_KEY`/`APP_URL`, test schedule, port
+- `stacks/tools/.env` — `PUID`/`PGID`, Speedtest Tracker `APP_KEY`/`APP_URL`, test schedule, port; Beszel hub port/data dir and agent `BESZEL_KEY`/`BESZEL_TOKEN` (filled after the hub generates them on first run)
 
 `.env` files are gitignored. Runtime data dirs (`stacks/*/data/`, `stacks/media/config/`, etc.) are also gitignored.
 

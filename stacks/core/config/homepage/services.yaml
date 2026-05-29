@@ -25,6 +25,12 @@
           url: http://speedtest-tracker:80
           version: 1
 
+- Monitoring:
+    - Beszel:
+        icon: beszel.png
+        href: "{{HOMEPAGE_VAR_BESZEL_URL}}"
+        description: Server resource monitoring
+
 - Downloads:
     - qBittorrent:
         icon: qbittorrent.png

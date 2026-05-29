@@ -10,6 +10,8 @@ LAN
  ├── Homepage       :3001  ← start here
  ├── Portainer      :9000  (container management)
  ├── NPM            :81    (reverse proxy)
+ ├── Beszel         :8090  (server monitoring)
+ ├── Speedtest      :8765  (internet speed)
  ├── qBittorrent    :8080  (torrents)
  ├── Navidrome      :4533  (music)
  ├── Plex           :32400 (video)
@@ -103,6 +105,7 @@ The dashboard config lives in `stacks/core/config/homepage/` and is version-cont
 | `HOMEPAGE_VAR_NPM_EMAIL` / `_PASSWORD` | NPM admin credentials |
 | `HOMEPAGE_VAR_QBITTORRENT_URL` | qBittorrent URL (e.g. `http://host-ip:8080`) |
 | `HOMEPAGE_VAR_QBITTORRENT_USERNAME` / `_PASSWORD` | qBittorrent web UI credentials |
+| `HOMEPAGE_VAR_BESZEL_URL` | Beszel hub URL (e.g. `http://host-ip:8090`) |
 
 Widgets are optional — the dashboard works as a plain launcher without them.
 
@@ -122,6 +125,39 @@ Services started:
 | Navidrome | `http://localhost:4533` |
 | qBittorrent | `http://localhost:8080` |
 
+### 7. Start the tools stack
+
+```bash
+cp stacks/tools/.env.example stacks/tools/.env
+# edit stacks/tools/.env (generate the Speedtest APP_KEY as noted in the file)
+make tools-up
+```
+
+Services started:
+| Service | URL |
+|---|---|
+| Speedtest Tracker | `http://localhost:8765` |
+| Beszel (hub) | `http://localhost:8090` |
+
+#### Beszel two-step setup
+
+Beszel ships as a **hub** (the dashboard) plus an **agent** that reports this host's
+metrics. The agent needs a key and token that the hub only generates after you add a
+system, so bring it up in two passes:
+
+1. After the first `make tools-up`, open the hub at `http://<host-ip>:8090` and create
+   the admin account.
+2. Click **Add System** and fill in:
+   - **Host/IP:** `host.docker.internal`
+   - **Port:** `45876`
+3. Copy the generated **public key** and **token** into `BESZEL_KEY` and `BESZEL_TOKEN`
+   in `stacks/tools/.env`.
+4. Run `make tools-up` again to (re)start the agent. The system should turn green in the
+   hub within a few seconds.
+
+> The agent runs with `network_mode: host` so it reports the host's CPU, memory, disk,
+> and network — not the container's. The hub reaches it back over `host.docker.internal`.
+
 ## Day-to-day Commands
 
 ```bash
@@ -129,9 +165,12 @@ make core-up       # Start core stack
 make core-down     # Stop core stack
 make media-up      # Start media stack
 make media-down    # Stop media stack
+make tools-up      # Start tools stack
+make tools-down    # Stop tools stack
 make pull          # Pull latest images for all stacks
 make logs-core     # Tail logs for core stack
 make logs-media    # Tail logs for media stack
+make logs-tools    # Tail logs for tools stack
 make ps            # Show running containers
 ```
 
@@ -177,8 +216,9 @@ A roadmap of services to consider adding, ordered roughly by value for this setu
 
 ### Monitoring & observability
 - **Uptime Kuma** — uptime monitoring with a status page and alerts (has a Homepage widget).
-- **Beszel** (or Glances / Netdata) — lightweight host and container resource monitoring.
 - **Dozzle** — real-time container log viewer in the browser.
+
+> Already added: **Beszel** (host + container resource monitoring) lives in the tools stack — see [Start the tools stack](#7-start-the-tools-stack).
 
 ### Network & remote access
 - **Tailscale** — secure remote access to the whole homelab without exposing ports.
