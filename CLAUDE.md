@@ -11,9 +11,10 @@ A Docker Compose homelab running on an Ubuntu host, backed by TrueNAS storage ov
 | Stack | Directory | Services |
 |---|---|---|
 | Core | `stacks/core/` | Homepage dashboard |
-| Media | `stacks/media/` | Plex, Jellyfin, Navidrome |
+| Media | `stacks/media/` | Plex, Jellyfin, Navidrome, qBittorrent |
+| Tools | `stacks/tools/` | Speedtest Tracker |
 
-Both stacks attach to an external Docker bridge network named `homelab`.
+All stacks attach to an external Docker bridge network named `homelab`.
 
 ## Common commands
 
@@ -23,9 +24,12 @@ make core-up       # Start core stack (creates network first)
 make core-down     # Stop core stack
 make media-up      # Start media stack (creates network first)
 make media-down    # Stop media stack
-make pull          # Pull latest images for both stacks
+make tools-up      # Start tools stack (creates network first)
+make tools-down    # Stop tools stack
+make pull          # Pull latest images for all stacks
 make logs-core     # Tail core stack logs
 make logs-media    # Tail media stack logs
+make logs-tools    # Tail tools stack logs
 make ps            # Show all running containers
 ```
 
@@ -37,6 +41,7 @@ Each stack has its own `.env.example` → `.env` workflow. The root `.env.exampl
 
 - `stacks/core/.env` — Homepage port, allowed hosts, `HOMEPAGE_VAR_*` widget credentials
 - `stacks/media/.env` — `PUID`/`PGID`, NFS mount paths, Plex claim token
+- `stacks/tools/.env` — `PUID`/`PGID`, Speedtest Tracker `APP_KEY`/`APP_URL`, test schedule, port
 
 `.env` files are gitignored. Runtime data dirs (`stacks/*/data/`, `stacks/media/config/`, etc.) are also gitignored.
 

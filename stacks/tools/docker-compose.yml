@@ -1,0 +1,26 @@
+services:
+
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    container_name: speedtest-tracker
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - APP_KEY=${SPEEDTEST_APP_KEY}
+      - APP_URL=${SPEEDTEST_APP_URL}
+      - DB_CONNECTION=sqlite
+      - SPEEDTEST_SCHEDULE=${SPEEDTEST_SCHEDULE}
+      - SPEEDTEST_SERVERS=${SPEEDTEST_SERVERS}
+      - DISPLAY_TIMEZONE=${TZ}
+    volumes:
+      - ${SPEEDTEST_CONFIG}:/config
+    ports:
+      - "${SPEEDTEST_PORT:-8765}:80"
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

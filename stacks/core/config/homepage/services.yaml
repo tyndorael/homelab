@@ -15,6 +15,16 @@
           username: "{{HOMEPAGE_VAR_NPM_EMAIL}}"
           password: "{{HOMEPAGE_VAR_NPM_PASSWORD}}"
 
+- Network:
+    - Speedtest Tracker:
+        icon: speedtest-tracker.png
+        href: "{{HOMEPAGE_VAR_SPEEDTEST_URL}}"
+        description: Internet speed monitoring
+        widget:
+          type: speedtest
+          url: http://speedtest-tracker:80
+          version: 1
+
 - Downloads:
     - qBittorrent:
         icon: qbittorrent.png
