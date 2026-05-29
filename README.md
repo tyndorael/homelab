@@ -166,6 +166,30 @@ make core-up       # Recreate core containers
 make media-up      # Recreate media containers
 ```
 
+## Next Tools to Add
+
+A roadmap of services to consider adding, ordered roughly by value for this setup.
+
+### Media automation (extends the media stack)
+- **Prowlarr + Sonarr + Radarr** — indexer manager plus TV/movie automation that drives the existing qBittorrent and lands files in `/mnt/media`. Natural next step now that a torrent client is in place.
+- **Jellyseerr** — request UI for Plex/Jellyfin; integrates with the `*arr` stack.
+- **Bazarr** — automatic subtitle downloads for Sonarr/Radarr libraries.
+
+### Monitoring & observability
+- **Uptime Kuma** — uptime monitoring with a status page and alerts (has a Homepage widget).
+- **Beszel** (or Glances / Netdata) — lightweight host and container resource monitoring.
+- **Dozzle** — real-time container log viewer in the browser.
+
+### Network & remote access
+- **Tailscale** — secure remote access to the whole homelab without exposing ports.
+- **AdGuard Home** (or Pi-hole) — network-wide DNS-based ad/tracker blocking.
+
+### Security & data
+- **Vaultwarden** — self-hosted Bitwarden-compatible password manager.
+- **Immich** — self-hosted photo/video backup (Google Photos alternative), a good fit for TrueNAS storage.
+- **Watchtower** — automated container image updates (complements `make pull`).
+- **Authelia / Authentik** — SSO and 2FA in front of NPM to protect exposed services.
+
 ## Troubleshooting
 
 **Containers can't reach each other:** Make sure the `homelab` network exists (`docker network ls`) and that you ran `make network`.
