@@ -6,6 +6,8 @@ services:
     image: mmartial/comfyui-nvidia-docker:ubuntu24_cuda12.8-latest
     container_name: comfyui
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - TZ=${TZ}
       - WANTED_UID=${PUID}
@@ -19,6 +21,76 @@ services:
       - ${COMFYUI_DATA}:/comfy/mnt
     ports:
       - "${COMFYUI_PORT:-8188}:8188"
+    # GPU passthrough — requires the NVIDIA Container Toolkit on the host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - homelab
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${OLLAMA_DATA}:/root/.ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    # GPU passthrough — requires the NVIDIA Container Toolkit on the host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - homelab
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    depends_on:
+      - ollama
+    environment:
+      - TZ=${TZ}
+      # Reaches Ollama over the shared homelab network by container name
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ${OPENWEBUI_DATA}:/app/backend/data
+    ports:
+      - "${OPENWEBUI_PORT:-3080}:8080"
+    networks:
+      - homelab
+
+  faster-whisper:
+    image: lscr.io/linuxserver/faster-whisper:gpu
+    container_name: faster-whisper
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - WHISPER_LANG=${WHISPER_LANG:-en}
+    volumes:
+      - ${WHISPER_DATA}:/config
+    ports:
+      # Wyoming protocol (used by Home Assistant, Subgen, etc.)
+      - "${WHISPER_PORT:-10300}:10300"
     # GPU passthrough — requires the NVIDIA Container Toolkit on the host
     deploy:
       resources:

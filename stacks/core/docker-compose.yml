@@ -4,6 +4,8 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
       - HOMEPAGE_VAR_NAVIDROME_URL=${HOMEPAGE_VAR_NAVIDROME_URL}
@@ -24,11 +26,49 @@ services:
       - HOMEPAGE_VAR_QBITTORRENT_USERNAME=${HOMEPAGE_VAR_QBITTORRENT_USERNAME}
       - HOMEPAGE_VAR_QBITTORRENT_PASSWORD=${HOMEPAGE_VAR_QBITTORRENT_PASSWORD}
       - HOMEPAGE_VAR_COMFYUI_URL=${HOMEPAGE_VAR_COMFYUI_URL}
+      - HOMEPAGE_VAR_DOZZLE_URL=${HOMEPAGE_VAR_DOZZLE_URL}
+      - HOMEPAGE_VAR_UPTIMEKUMA_URL=${HOMEPAGE_VAR_UPTIMEKUMA_URL}
+      - HOMEPAGE_VAR_SCRUTINY_URL=${HOMEPAGE_VAR_SCRUTINY_URL}
+      - HOMEPAGE_VAR_GLANCES_URL=${HOMEPAGE_VAR_GLANCES_URL}
+      - HOMEPAGE_VAR_BAZARR_URL=${HOMEPAGE_VAR_BAZARR_URL}
+      - HOMEPAGE_VAR_BAZARR_KEY=${HOMEPAGE_VAR_BAZARR_KEY}
+      - HOMEPAGE_VAR_TAUTULLI_URL=${HOMEPAGE_VAR_TAUTULLI_URL}
+      - HOMEPAGE_VAR_TAUTULLI_KEY=${HOMEPAGE_VAR_TAUTULLI_KEY}
+      - HOMEPAGE_VAR_OPENWEBUI_URL=${HOMEPAGE_VAR_OPENWEBUI_URL}
     volumes:
       - ${HOMEPAGE_CONFIG}:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "${HOMEPAGE_PORT:-3001}:3000"
+    networks:
+      - homelab
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    environment:
+      - DOZZLE_NO_ANALYTICS=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "${DOZZLE_PORT:-8082}:8080"
+    networks:
+      - homelab
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    volumes:
+      - ${UPTIMEKUMA_DATA}:/app/data
+    ports:
+      # Container listens on 3001 internally — mapped to a free host port
+      - "${UPTIMEKUMA_PORT:-3002}:3001"
     networks:
       - homelab
 

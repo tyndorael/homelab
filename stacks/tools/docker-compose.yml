@@ -4,6 +4,8 @@ services:
     image: lscr.io/linuxserver/speedtest-tracker:latest
     container_name: speedtest-tracker
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - TZ=${TZ}
       - PUID=${PUID}
@@ -25,6 +27,8 @@ services:
     image: henrygd/beszel:latest
     container_name: beszel
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     volumes:
       - ${BESZEL_DATA}:/beszel_data
     ports:
@@ -39,6 +43,8 @@ services:
     image: henrygd/beszel-agent:latest
     container_name: beszel-agent
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     # Host networking so the agent reports the host's metrics, not the container's
     network_mode: host
     volumes:
@@ -47,6 +53,72 @@ services:
       - LISTEN=${BESZEL_AGENT_PORT:-45876}
       - KEY=${BESZEL_KEY}
       - TOKEN=${BESZEL_TOKEN}
+
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:master-omnibus
+    container_name: scrutiny
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    cap_add:
+      - SYS_RAWIO
+      # SYS_ADMIN is needed to read SMART data from NVMe drives
+      - SYS_ADMIN
+    volumes:
+      - ${SCRUTINY_CONFIG}:/opt/scrutiny/config
+      - ${SCRUTINY_DATA}:/opt/scrutiny/influxdb
+      - /run/udev:/run/udev:ro
+    ports:
+      - "${SCRUTINY_PORT:-8083}:8080"
+    # Map each physical disk you want monitored. Find them with `lsblk -d`.
+    # Every device listed here must exist on the host or the container won't start.
+    # Host has two NVMe drives (KINGSTON SFYRD2000G, Samsung 980 PRO).
+    devices:
+      - "/dev/nvme0n1:/dev/nvme0n1"
+      - "/dev/nvme1n1:/dev/nvme1n1"
+    networks:
+      - homelab
+
+  glances:
+    image: nicolargo/glances:latest
+    container_name: glances
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    # pid: host lets Glances see all host processes, not just the container's
+    pid: host
+    environment:
+      - TZ=${TZ}
+      - GLANCES_OPT=-w
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "${GLANCES_PORT:-61208}:61208"
+    networks:
+      - homelab
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    environment:
+      - TZ=${TZ}
+      # The containrrr/watchtower image ships an old Docker API client (1.25);
+      # modern Docker daemons require >= 1.40, so pin the negotiated version.
+      - DOCKER_API_VERSION=1.40
+      - WATCHTOWER_CLEANUP=true
+      # Label-enable mode: only update containers carrying the label
+      #   com.centurylinklabs.watchtower.enable=true
+      # Every service in this homelab is currently labeled, so all are updated.
+      # Remove the label from a service to exclude it from auto-updates.
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_SCHEDULE=${WATCHTOWER_SCHEDULE}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - homelab
 
 networks:
   homelab:

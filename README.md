@@ -10,13 +10,23 @@ LAN
  ├── Homepage       :3001  ← start here
  ├── Portainer      :9000  (container management)
  ├── NPM            :81    (reverse proxy)
+ ├── Dozzle         :8082  (container logs)
+ ├── Uptime Kuma    :3002  (uptime monitoring)
  ├── Beszel         :8090  (server monitoring)
- ├── ComfyUI        :8188  (AI image generation, GPU)
+ ├── Scrutiny       :8083  (disk SMART health)
+ ├── Glances        :61208 (host metrics)
  ├── Speedtest      :8765  (internet speed)
+ ├── ComfyUI        :8188  (AI image generation, GPU)
+ ├── Ollama         :11434 (local LLM serving, GPU)
+ ├── Open WebUI     :3080  (LLM chat frontend)
+ ├── faster-whisper :10300 (speech-to-text, GPU)
  ├── qBittorrent    :8080  (torrents)
+ ├── Bazarr         :6767  (subtitles)
  ├── Navidrome      :4533  (music)
  ├── Plex           :32400 (video)
- └── Jellyfin       :8096  (video)
+ ├── Jellyfin       :8096  (video)
+ ├── Tautulli       :8181  (Plex analytics)
+ └── Watchtower      —     (auto image updates, no UI)
 ```
 
 All containers share a Docker bridge network called `homelab`. NFS shares from TrueNAS are mounted on the Ubuntu host and passed into containers as bind mounts.
@@ -109,8 +119,18 @@ The dashboard config lives in `stacks/core/config/homepage/` and is version-cont
 | `HOMEPAGE_VAR_QBITTORRENT_USERNAME` / `_PASSWORD` | qBittorrent web UI credentials |
 | `HOMEPAGE_VAR_BESZEL_URL` | Beszel hub URL (e.g. `http://host-ip:8090`) |
 | `HOMEPAGE_VAR_COMFYUI_URL` | ComfyUI URL (e.g. `http://host-ip:8188`) |
+| `HOMEPAGE_VAR_DOZZLE_URL` | Dozzle URL (e.g. `http://host-ip:8082`) |
+| `HOMEPAGE_VAR_UPTIMEKUMA_URL` | Uptime Kuma URL (e.g. `http://host-ip:3002`) |
+| `HOMEPAGE_VAR_SCRUTINY_URL` | Scrutiny URL (e.g. `http://host-ip:8083`) |
+| `HOMEPAGE_VAR_GLANCES_URL` | Glances URL (e.g. `http://host-ip:61208`) |
+| `HOMEPAGE_VAR_BAZARR_URL` / `_KEY` | Bazarr URL + API key (Bazarr → Settings → General) |
+| `HOMEPAGE_VAR_TAUTULLI_URL` / `_KEY` | Tautulli URL + API key (Tautulli → Settings → Web Interface) |
+| `HOMEPAGE_VAR_OPENWEBUI_URL` | Open WebUI URL (e.g. `http://host-ip:3080`) |
 
 Widgets are optional — the dashboard works as a plain launcher without them.
+
+> The **Uptime Kuma** widget needs a public status page with the slug `homelab` (create one
+> in Uptime Kuma → Status Pages); otherwise the tile still links but shows no live data.
 
 ### 6. Start the media stack
 
@@ -127,6 +147,12 @@ Services started:
 | Jellyfin | `http://localhost:8096` |
 | Navidrome | `http://localhost:4533` |
 | qBittorrent | `http://localhost:8080` |
+| Bazarr | `http://localhost:6767` |
+| Tautulli | `http://localhost:8181` |
+
+> **Bazarr** mounts the media tree **read-write** (it writes subtitle files next to the
+> videos), unlike Plex/Jellyfin which mount it read-only. After first start, point Bazarr at
+> your Sonarr/Radarr or add paths manually, and connect Tautulli to Plex with your Plex token.
 
 ### 7. Start the tools stack
 
@@ -141,6 +167,20 @@ Services started:
 |---|---|
 | Speedtest Tracker | `http://localhost:8765` |
 | Beszel (hub) | `http://localhost:8090` |
+| Scrutiny | `http://localhost:8083` |
+| Glances | `http://localhost:61208` |
+| Watchtower | _(no UI — runs in the background)_ |
+
+> **Scrutiny** needs the physical disks mapped into the container. The compose file's
+> `devices:` list is set to this host's NVMe drives (`/dev/nvme0n1`, `/dev/nvme1n1`) — run
+> `lsblk -d` and adjust it if your drives differ. Every device listed must exist or the
+> container won't start.
+>
+> **Watchtower** runs in label-enable mode: it only updates containers carrying
+> `com.centurylinklabs.watchtower.enable=true`. Every service in this homelab is labeled, so
+> all are auto-updated on the `WATCHTOWER_SCHEDULE` cron (default: daily at 04:00). Remove the
+> label from a service to opt it out. Labels apply once you recreate the containers
+> (`make <stack>-up`).
 
 #### Beszel two-step setup
 
@@ -195,10 +235,19 @@ Services started:
 | Service | URL |
 |---|---|
 | ComfyUI | `http://localhost:8188` |
+| Ollama | `http://localhost:11434` (API only) |
+| Open WebUI | `http://localhost:3080` |
+| faster-whisper | `tcp://localhost:10300` (Wyoming protocol) |
 
 > First run pulls a large CUDA image and populates `stacks/ai/data/comfyui/` with the
 > ComfyUI base dir (`models/`, `output/`, `input/`, `custom_nodes/`). Drop model
 > checkpoints into the `models/checkpoints/` subfolder, then refresh the UI.
+>
+> **Ollama, Open WebUI, and faster-whisper all share the GPU** with ComfyUI. Ollama has no
+> web UI — pull a model with `docker exec -it ollama ollama pull llama3`, then use it from
+> **Open WebUI** (preconfigured to reach Ollama at `http://ollama:11434`). faster-whisper
+> exposes the Wyoming speech-to-text protocol on `10300` for clients like Home Assistant.
+> Set the model size and language via `WHISPER_MODEL` / `WHISPER_LANG` in `stacks/ai/.env`.
 
 ## Day-to-day Commands
 
@@ -231,20 +280,22 @@ homelab/
     ├── core/
     │   ├── docker-compose.yml
     │   ├── .env.example
-    │   └── data/          # ← gitignored, created at runtime
+    │   ├── config/homepage/   # dashboard config (version-controlled)
+    │   └── data/              # ← gitignored (uptime-kuma)
     ├── media/
     │   ├── docker-compose.yml
     │   ├── .env.example
-    │   ├── config/        # ← gitignored, created at runtime
-    │   │   ├── plex/
-    │   │   └── jellyfin/
-    │   └── cache/         # ← gitignored, created at runtime
-    │       └── jellyfin/
+    │   ├── config/            # ← gitignored (plex, jellyfin, qbittorrent, bazarr, tautulli)
+    │   └── cache/             # ← gitignored (jellyfin)
+    ├── tools/
+    │   ├── docker-compose.yml
+    │   ├── .env.example
+    │   ├── config/            # ← gitignored (speedtest, scrutiny)
+    │   └── data/              # ← gitignored (beszel, scrutiny)
     └── ai/
         ├── docker-compose.yml
         ├── .env.example
-        └── data/          # ← gitignored, created at runtime
-            └── comfyui/   # models, output, input, custom_nodes
+        └── data/              # ← gitignored (comfyui, ollama, open-webui, faster-whisper)
 ```
 
 ## Updating Services
@@ -253,8 +304,13 @@ homelab/
 make pull          # Pull new images
 make core-up       # Recreate core containers
 make media-up      # Recreate media containers
+make tools-up      # Recreate tools containers
 make ai-up         # Recreate AI containers
 ```
+
+> With **Watchtower** running (tools stack), image updates also happen automatically on a
+> schedule. `make pull` + `make <stack>-up` remains the manual path if you'd rather control
+> timing yourself.
 
 ## Next Tools to Add
 
@@ -265,28 +321,17 @@ few new stacks worth standing up. Curated picks only — one line of "why" each.
 > were added out-of-band (no tracked compose file yet). A good first cleanup is to bring them
 > under version control as their own stack before adding more.
 
-### Extending existing stacks
+### Done — added to existing stacks
 
-**Core** (`stacks/core/`) — currently Homepage
-- **Dozzle** — browser-based live container log viewer; tiny, complements Homepage as an ops landing spot (has a Homepage widget).
-- **Uptime Kuma** — uptime monitoring with alerts and a public status page; fits the "start here" dashboard role (Homepage widget).
+These roadmap picks are now implemented (compose + `.env` + Homepage widgets where supported):
 
-**Media** (`stacks/media/`) — currently Plex, Jellyfin, Navidrome, qBittorrent
-- **Bazarr** — automatic subtitle downloads for the existing libraries (works standalone or with the `*arr` stack below).
-- **Tautulli** — Plex usage analytics and notifications; well-supported Homepage widget.
-- _Heavier automation (Prowlarr/Sonarr/Radarr/Jellyseerr) is split into its own stack — see below._
+- **Core** — **Dozzle** (container logs), **Uptime Kuma** (uptime + status page)
+- **Media** — **Bazarr** (subtitles), **Tautulli** (Plex analytics)
+- **Tools** — **Scrutiny** (disk SMART), **Glances** (host metrics), **Watchtower** (auto image updates, label-enable mode), plus **Beszel** earlier
+- **AI** — **Ollama** (local LLM), **Open WebUI** (chat frontend), **faster-whisper** (speech-to-text)
 
-**Tools** (`stacks/tools/`) — currently Speedtest Tracker, Beszel
-- **Scrutiny** — SMART disk health monitoring for the host's drives; pairs naturally with Beszel.
-- **Glances** — lightweight at-a-glance host metrics to complement Beszel.
-- **Watchtower** — automated container image updates (complements `make pull`); configure carefully so it doesn't surprise-update Plex or databases.
-
-**AI** (`stacks/ai/`) — currently ComfyUI (GPU)
-- **Ollama** — local LLM serving on the same GPU; foundation for chat/RAG tooling.
-- **Open WebUI** — ChatGPT-style frontend for Ollama (and OpenAI-compatible backends).
-- **faster-whisper** _(optional)_ — local speech-to-text, reuses the GPU.
-
-> Already added: **Beszel** (host + container resource monitoring) lives in the tools stack — see [Start the tools stack](#7-start-the-tools-stack).
+> Heavier media automation (Prowlarr/Sonarr/Radarr/Jellyseerr) is intentionally left for its
+> own `stacks/arr/` stack — see below.
 
 ### Proposed new stacks
 
