@@ -25,6 +25,12 @@
           url: http://speedtest-tracker:80
           version: 1
 
+- AI:
+    - ComfyUI:
+        icon: comfyui.png
+        href: "{{HOMEPAGE_VAR_COMFYUI_URL}}"
+        description: AI image generation
+
 - Monitoring:
     - Beszel:
         icon: beszel.png

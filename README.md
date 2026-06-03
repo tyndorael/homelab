@@ -11,6 +11,7 @@ LAN
  ├── Portainer      :9000  (container management)
  ├── NPM            :81    (reverse proxy)
  ├── Beszel         :8090  (server monitoring)
+ ├── ComfyUI        :8188  (AI image generation, GPU)
  ├── Speedtest      :8765  (internet speed)
  ├── qBittorrent    :8080  (torrents)
  ├── Navidrome      :4533  (music)
@@ -24,6 +25,7 @@ All containers share a Docker bridge network called `homelab`. NFS shares from T
 
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/) installed and running on Ubuntu
 - TrueNAS reachable over the local network
+- For the AI stack only: an NVIDIA GPU with drivers installed, plus the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) (see [Start the AI stack](#8-start-the-ai-stack))
 
 ## First-time Setup
 
@@ -106,6 +108,7 @@ The dashboard config lives in `stacks/core/config/homepage/` and is version-cont
 | `HOMEPAGE_VAR_QBITTORRENT_URL` | qBittorrent URL (e.g. `http://host-ip:8080`) |
 | `HOMEPAGE_VAR_QBITTORRENT_USERNAME` / `_PASSWORD` | qBittorrent web UI credentials |
 | `HOMEPAGE_VAR_BESZEL_URL` | Beszel hub URL (e.g. `http://host-ip:8090`) |
+| `HOMEPAGE_VAR_COMFYUI_URL` | ComfyUI URL (e.g. `http://host-ip:8188`) |
 
 Widgets are optional — the dashboard works as a plain launcher without them.
 
@@ -158,6 +161,45 @@ system, so bring it up in two passes:
 > The agent runs with `network_mode: host` so it reports the host's CPU, memory, disk,
 > and network — not the container's. The hub reaches it back over `host.docker.internal`.
 
+### 8. Start the AI stack
+
+ComfyUI runs on the host NVIDIA GPU. The GPU driver alone is **not** enough — Docker
+needs the **NVIDIA Container Toolkit** to pass the GPU into the container. Install it once:
+
+```bash
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+```
+
+Verify Docker can see the GPU:
+
+```bash
+docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
+```
+
+This should print your GPU. Then bring up the stack:
+
+```bash
+cp stacks/ai/.env.example stacks/ai/.env
+# edit stacks/ai/.env if you want a different port or data path
+make ai-up
+```
+
+Services started:
+| Service | URL |
+|---|---|
+| ComfyUI | `http://localhost:8188` |
+
+> First run pulls a large CUDA image and populates `stacks/ai/data/comfyui/` with the
+> ComfyUI base dir (`models/`, `output/`, `input/`, `custom_nodes/`). Drop model
+> checkpoints into the `models/checkpoints/` subfolder, then refresh the UI.
+
 ## Day-to-day Commands
 
 ```bash
@@ -167,10 +209,13 @@ make media-up      # Start media stack
 make media-down    # Stop media stack
 make tools-up      # Start tools stack
 make tools-down    # Stop tools stack
+make ai-up         # Start AI stack
+make ai-down       # Stop AI stack
 make pull          # Pull latest images for all stacks
 make logs-core     # Tail logs for core stack
 make logs-media    # Tail logs for media stack
 make logs-tools    # Tail logs for tools stack
+make logs-ai       # Tail logs for AI stack
 make ps            # Show running containers
 ```
 
@@ -187,14 +232,19 @@ homelab/
     │   ├── docker-compose.yml
     │   ├── .env.example
     │   └── data/          # ← gitignored, created at runtime
-    └── media/
+    ├── media/
+    │   ├── docker-compose.yml
+    │   ├── .env.example
+    │   ├── config/        # ← gitignored, created at runtime
+    │   │   ├── plex/
+    │   │   └── jellyfin/
+    │   └── cache/         # ← gitignored, created at runtime
+    │       └── jellyfin/
+    └── ai/
         ├── docker-compose.yml
         ├── .env.example
-        ├── config/        # ← gitignored, created at runtime
-        │   ├── plex/
-        │   └── jellyfin/
-        └── cache/         # ← gitignored, created at runtime
-            └── jellyfin/
+        └── data/          # ← gitignored, created at runtime
+            └── comfyui/   # models, output, input, custom_nodes
 ```
 
 ## Updating Services
@@ -203,6 +253,7 @@ homelab/
 make pull          # Pull new images
 make core-up       # Recreate core containers
 make media-up      # Recreate media containers
+make ai-up         # Recreate AI containers
 ```
 
 ## Next Tools to Add

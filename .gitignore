@@ -9,6 +9,7 @@ stacks/media/cache/
 stacks/media/data/
 stacks/tools/config/
 stacks/tools/data/
+stacks/ai/data/
 
 # Homepage runtime files
 stacks/core/config/homepage/logs/

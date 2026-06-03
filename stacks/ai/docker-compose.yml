@@ -1,0 +1,35 @@
+services:
+
+  comfyui:
+    # Pinned to a CUDA-12.8 base: the floating :latest tag ships mismatched
+    # torch (cu13) + torchaudio (cu12.8) wheels and crash-loops on startup.
+    image: mmartial/comfyui-nvidia-docker:ubuntu24_cuda12.8-latest
+    container_name: comfyui
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - WANTED_UID=${PUID}
+      - WANTED_GID=${PGID}
+      # Lock the torch trio to a consistent CUDA 12.8 set. Without this the image
+      # upgrades torch to a cu13 build on every boot while torchaudio stays cu12.8,
+      # causing a CUDA-version-mismatch crash loop. TORCH_LOCK also writes a pip
+      # constraint file so the ComfyUI requirements step can't override it.
+      - TORCH_LOCK=torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0
+    volumes:
+      - ${COMFYUI_DATA}:/comfy/mnt
+    ports:
+      - "${COMFYUI_PORT:-8188}:8188"
+    # GPU passthrough — requires the NVIDIA Container Toolkit on the host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
