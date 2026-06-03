@@ -15,6 +15,11 @@
           username: "{{HOMEPAGE_VAR_NPM_EMAIL}}"
           password: "{{HOMEPAGE_VAR_NPM_PASSWORD}}"
 
+    - Dozzle:
+        icon: dozzle.png
+        href: "{{HOMEPAGE_VAR_DOZZLE_URL}}"
+        description: Container log viewer
+
 - Network:
     - Speedtest Tracker:
         icon: speedtest-tracker.png
@@ -31,11 +36,44 @@
         href: "{{HOMEPAGE_VAR_COMFYUI_URL}}"
         description: AI image generation
 
+    - Open WebUI:
+        icon: open-webui.png
+        href: "{{HOMEPAGE_VAR_OPENWEBUI_URL}}"
+        description: LLM chat frontend
+
 - Monitoring:
     - Beszel:
         icon: beszel.png
         href: "{{HOMEPAGE_VAR_BESZEL_URL}}"
         description: Server resource monitoring
+
+    - Uptime Kuma:
+        icon: uptime-kuma.png
+        href: "{{HOMEPAGE_VAR_UPTIMEKUMA_URL}}"
+        description: Uptime monitoring
+        widget:
+          type: uptimekuma
+          url: http://uptime-kuma:3001
+          # Create a status page with this slug in Uptime Kuma for the widget to populate
+          slug: homelab
+
+    - Scrutiny:
+        icon: scrutiny.png
+        href: "{{HOMEPAGE_VAR_SCRUTINY_URL}}"
+        description: SMART disk health
+        widget:
+          type: scrutiny
+          url: http://scrutiny:8080
+
+    - Glances:
+        icon: glances.png
+        href: "{{HOMEPAGE_VAR_GLANCES_URL}}"
+        description: Host metrics
+        widget:
+          type: glances
+          url: http://glances:61208
+          version: 4
+          metric: cpu
 
 - Downloads:
     - qBittorrent:
@@ -80,3 +118,21 @@
           key: "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}"
           enableBlocks: true
           enableNowPlaying: true
+
+    - Tautulli:
+        icon: tautulli.png
+        href: "{{HOMEPAGE_VAR_TAUTULLI_URL}}"
+        description: Plex usage analytics
+        widget:
+          type: tautulli
+          url: http://tautulli:8181
+          key: "{{HOMEPAGE_VAR_TAUTULLI_KEY}}"
+
+    - Bazarr:
+        icon: bazarr.png
+        href: "{{HOMEPAGE_VAR_BAZARR_URL}}"
+        description: Subtitle automation
+        widget:
+          type: bazarr
+          url: http://bazarr:6767
+          key: "{{HOMEPAGE_VAR_BAZARR_KEY}}"

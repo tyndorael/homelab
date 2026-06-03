@@ -4,6 +4,8 @@ services:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - TZ=${TZ}
       - PUID=${PUID}
@@ -23,6 +25,8 @@ services:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - TZ=${TZ}
       - PUID=${PUID}
@@ -40,6 +44,8 @@ services:
     image: deluan/navidrome:latest
     container_name: navidrome
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     user: "${PUID}:${PGID}"
     environment:
       - TZ=${TZ}
@@ -59,6 +65,8 @@ services:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     environment:
       - TZ=${TZ}
       - PUID=${PUID}
@@ -69,6 +77,43 @@ services:
       - ${DOWNLOADS_PATH}:/downloads
     ports:
       - "8080:8080"
+    networks:
+      - homelab
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${BAZARR_CONFIG}:/config
+      # Mounted read-write: Bazarr writes subtitle files next to the videos.
+      # (Plex and Jellyfin mount the same tree read-only.)
+      - ${TRUENAS_MEDIA_PATH}:/media
+    ports:
+      - "6767:6767"
+    networks:
+      - homelab
+
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${TAUTULLI_CONFIG}:/config
+    ports:
+      - "8181:8181"
     networks:
       - homelab
 
