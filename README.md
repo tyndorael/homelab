@@ -258,28 +258,52 @@ make ai-up         # Recreate AI containers
 
 ## Next Tools to Add
 
-A roadmap of services to consider adding, ordered roughly by value for this setup.
+A roadmap of services to consider adding, organized by stack. Existing stacks first, then a
+few new stacks worth standing up. Curated picks only — one line of "why" each.
 
-### Media automation (extends the media stack)
-- **Prowlarr + Sonarr + Radarr** — indexer manager plus TV/movie automation that drives the existing qBittorrent and lands files in `/mnt/media`. Natural next step now that a torrent client is in place.
-- **Jellyseerr** — request UI for Plex/Jellyfin; integrates with the `*arr` stack.
-- **Bazarr** — automatic subtitle downloads for Sonarr/Radarr libraries.
+> **Heads-up:** Portainer and NPM appear in the architecture diagram and Homepage widgets but
+> were added out-of-band (no tracked compose file yet). A good first cleanup is to bring them
+> under version control as their own stack before adding more.
 
-### Monitoring & observability
-- **Uptime Kuma** — uptime monitoring with a status page and alerts (has a Homepage widget).
-- **Dozzle** — real-time container log viewer in the browser.
+### Extending existing stacks
+
+**Core** (`stacks/core/`) — currently Homepage
+- **Dozzle** — browser-based live container log viewer; tiny, complements Homepage as an ops landing spot (has a Homepage widget).
+- **Uptime Kuma** — uptime monitoring with alerts and a public status page; fits the "start here" dashboard role (Homepage widget).
+
+**Media** (`stacks/media/`) — currently Plex, Jellyfin, Navidrome, qBittorrent
+- **Bazarr** — automatic subtitle downloads for the existing libraries (works standalone or with the `*arr` stack below).
+- **Tautulli** — Plex usage analytics and notifications; well-supported Homepage widget.
+- _Heavier automation (Prowlarr/Sonarr/Radarr/Jellyseerr) is split into its own stack — see below._
+
+**Tools** (`stacks/tools/`) — currently Speedtest Tracker, Beszel
+- **Scrutiny** — SMART disk health monitoring for the host's drives; pairs naturally with Beszel.
+- **Glances** — lightweight at-a-glance host metrics to complement Beszel.
+- **Watchtower** — automated container image updates (complements `make pull`); configure carefully so it doesn't surprise-update Plex or databases.
+
+**AI** (`stacks/ai/`) — currently ComfyUI (GPU)
+- **Ollama** — local LLM serving on the same GPU; foundation for chat/RAG tooling.
+- **Open WebUI** — ChatGPT-style frontend for Ollama (and OpenAI-compatible backends).
+- **faster-whisper** _(optional)_ — local speech-to-text, reuses the GPU.
 
 > Already added: **Beszel** (host + container resource monitoring) lives in the tools stack — see [Start the tools stack](#7-start-the-tools-stack).
 
-### Network & remote access
+### Proposed new stacks
+
+**`stacks/arr/` — media automation** (drives the existing qBittorrent, lands files in `/mnt/media`)
+- **Prowlarr** — indexer manager feeding Sonarr/Radarr.
+- **Sonarr + Radarr** — TV/movie automation; natural next step now that a torrent client is in place.
+- **Jellyseerr** — request UI for Plex/Jellyfin; integrates with the `*arr` stack.
+
+**`stacks/network/` — remote access & DNS**
 - **Tailscale** — secure remote access to the whole homelab without exposing ports.
 - **AdGuard Home** (or Pi-hole) — network-wide DNS-based ad/tracker blocking.
+- **Authelia / Authentik** _(optional)_ — SSO and 2FA in front of NPM to protect exposed services.
 
-### Security & data
+**`stacks/apps/` — personal data & utilities** (good fit for TrueNAS-backed storage)
 - **Vaultwarden** — self-hosted Bitwarden-compatible password manager.
-- **Immich** — self-hosted photo/video backup (Google Photos alternative), a good fit for TrueNAS storage.
-- **Watchtower** — automated container image updates (complements `make pull`).
-- **Authelia / Authentik** — SSO and 2FA in front of NPM to protect exposed services.
+- **Immich** — self-hosted photo/video backup (Google Photos alternative); pairs well with NFS storage.
+- **Paperless-ngx** _(optional)_ — document scanning, archive, and OCR.
 
 ## Troubleshooting
 
