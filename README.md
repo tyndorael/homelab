@@ -176,6 +176,21 @@ Services started:
 > `lsblk -d` and adjust it if your drives differ. Every device listed must exist or the
 > container won't start.
 >
+> Devices only appear after the first collector scan (default schedule: every 24 h). Trigger
+> one immediately after startup so disks show up right away:
+> ```bash
+> docker exec scrutiny /opt/scrutiny/bin/scrutiny-collector-metrics run
+> ```
+> To shorten the scan interval, create `stacks/tools/config/scrutiny/scrutiny.yaml`
+> (the directory is gitignored, so create it by hand):
+> ```yaml
+> log:
+>   level: INFO
+>
+> collector:
+>   schedule: "@every 6h"
+> ```
+>
 > **Watchtower** runs in label-enable mode: it only updates containers carrying
 > `com.centurylinklabs.watchtower.enable=true`. Every service in this homelab is labeled, so
 > all are auto-updated on the `WATCHTOWER_SCHEDULE` cron (default: daily at 04:00). Remove the
