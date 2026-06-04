@@ -19,6 +19,9 @@ services:
       - TORCH_LOCK=torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0
     volumes:
       - ${COMFYUI_DATA}:/comfy/mnt
+      # Redirect generated images onto NFS media storage. Overlays the output
+      # dir that otherwise lives inside COMFYUI_DATA at /comfy/mnt/ComfyUI/output.
+      - ${COMFYUI_OUTPUT}:/comfy/mnt/ComfyUI/output
     ports:
       - "${COMFYUI_PORT:-8188}:8188"
     # GPU passthrough — requires the NVIDIA Container Toolkit on the host

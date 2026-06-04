@@ -48,7 +48,7 @@ Each stack has its own `.env.example` → `.env` workflow. The root `.env.exampl
 - `stacks/core/.env` — Homepage port, allowed hosts, `HOMEPAGE_VAR_*` widget credentials
 - `stacks/media/.env` — `PUID`/`PGID`, NFS mount paths, Plex claim token
 - `stacks/tools/.env` — `PUID`/`PGID`, Speedtest Tracker `APP_KEY`/`APP_URL`, test schedule, port; Beszel hub port/data dir and agent `BESZEL_KEY`/`BESZEL_TOKEN` (filled after the hub generates them on first run)
-- `stacks/ai/.env` — `PUID`/`PGID`, ComfyUI port and data dir (`COMFYUI_DATA`, holds models/output/custom_nodes)
+- `stacks/ai/.env` — `PUID`/`PGID`, ComfyUI port and data dir (`COMFYUI_DATA`, holds models/input/custom_nodes), and `COMFYUI_OUTPUT` (host path bind-mounted over the in-tree output folder so generated images land on NFS media storage); Ollama/Open WebUI/faster-whisper ports and data dirs
 
 `.env` files are gitignored. Runtime data dirs (`stacks/*/data/`, `stacks/media/config/`, etc.) are also gitignored.
 
@@ -67,3 +67,5 @@ TrueNAS shares are mounted on the Ubuntu host before starting the media stack:
 - `/mnt/music` → mounted read-only into Navidrome at `/music`
 
 Paths are configured via `TRUENAS_MEDIA_PATH` and `TRUENAS_MUSIC_PATH` in `stacks/media/.env`.
+
+The AI stack also writes to `/mnt/media` (ComfyUI output → `/mnt/media/Images/AI`, via `COMFYUI_OUTPUT`). The ComfyUI container runs as its own internal user **uid 1025**, not `PUID`, so the output dir must be world-writable (`chmod 777`) for renders to save — a dir owned by `1000` will give "Permission denied".
