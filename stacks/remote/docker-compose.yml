@@ -1,0 +1,62 @@
+services:
+
+  # PostgreSQL — stores Guacamole users, connections, and history.
+  # On first run, every .sql file in init/ is loaded automatically to
+  # create the Guacamole schema (init/initdb.sql).
+  guac-postgres:
+    image: postgres:16-alpine
+    container_name: guac-postgres
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    environment:
+      - TZ=${TZ}
+      - POSTGRES_DB=${GUAC_DB_NAME:-guacamole_db}
+      - POSTGRES_USER=${GUAC_DB_USER:-guacamole}
+      - POSTGRES_PASSWORD=${GUAC_DB_PASSWORD}
+    volumes:
+      - ${GUAC_DB_DATA}:/var/lib/postgresql/data
+      # Schema is applied only when the data dir is empty (first run)
+      - ./init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - homelab
+
+  # guacd — the native proxy daemon that actually speaks RDP/VNC/SSH
+  # to your target machines. No host port; only the web app talks to it.
+  guacd:
+    image: guacamole/guacd:latest
+    container_name: guacd
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    networks:
+      - homelab
+
+  # Guacamole web app — the browser UI. WEBAPP_CONTEXT=ROOT serves it at
+  # "/" instead of "/guacamole/", which keeps the NPM proxy host clean.
+  guacamole:
+    image: guacamole/guacamole:latest
+    container_name: guacamole
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    depends_on:
+      - guacd
+      - guac-postgres
+    environment:
+      - TZ=${TZ}
+      - GUACD_HOSTNAME=guacd
+      - POSTGRESQL_HOSTNAME=guac-postgres
+      - POSTGRESQL_DATABASE=${GUAC_DB_NAME:-guacamole_db}
+      - POSTGRESQL_USER=${GUAC_DB_USER:-guacamole}
+      - POSTGRESQL_PASSWORD=${GUAC_DB_PASSWORD}
+      - POSTGRESQL_AUTO_CREATE_ACCOUNTS=true
+      - WEBAPP_CONTEXT=ROOT
+    ports:
+      - "${GUAC_PORT:-8088}:8080"
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

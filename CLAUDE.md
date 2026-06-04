@@ -14,8 +14,11 @@ A Docker Compose homelab running on an Ubuntu host, backed by TrueNAS storage ov
 | Media | `stacks/media/` | Plex, Jellyfin, Navidrome, qBittorrent |
 | Tools | `stacks/tools/` | Speedtest Tracker, Beszel (hub + agent) |
 | AI | `stacks/ai/` | ComfyUI (GPU image generation) |
+| Remote | `stacks/remote/` | Apache Guacamole (guacd + Postgres + web app) |
 
 All stacks attach to an external Docker bridge network named `homelab`.
+
+**Cockpit** is the host web-admin panel but is **not** a stack — it manages the host itself (systemd, packages, host-user login via PAM) so it is installed on the host with `make cockpit-install` (apt), not run as a container. It listens on `https://<host>:9090`.
 
 The `ai` stack uses the host NVIDIA GPU, which requires the **NVIDIA Container Toolkit** installed on the host (`nvidia-ctk runtime configure --runtime=docker`, then restart Docker) — the GPU driver alone is not enough for containers to see the GPU.
 
@@ -31,11 +34,15 @@ make tools-up      # Start tools stack (creates network first)
 make tools-down    # Stop tools stack
 make ai-up         # Start AI stack (creates network first)
 make ai-down       # Stop AI stack
+make remote-up     # Start remote stack / Guacamole (creates network first)
+make remote-down   # Stop remote stack
+make cockpit-install  # Install Cockpit on the host (apt) — runs sudo
 make pull          # Pull latest images for all stacks
 make logs-core     # Tail core stack logs
 make logs-media    # Tail media stack logs
 make logs-tools    # Tail tools stack logs
 make logs-ai       # Tail AI stack logs
+make logs-remote   # Tail remote stack logs
 make ps            # Show all running containers
 ```
 
@@ -49,6 +56,7 @@ Each stack has its own `.env.example` → `.env` workflow. The root `.env.exampl
 - `stacks/media/.env` — `PUID`/`PGID`, NFS mount paths, Plex claim token
 - `stacks/tools/.env` — `PUID`/`PGID`, Speedtest Tracker `APP_KEY`/`APP_URL`, test schedule, port; Beszel hub port/data dir and agent `BESZEL_KEY`/`BESZEL_TOKEN` (filled after the hub generates them on first run)
 - `stacks/ai/.env` — `PUID`/`PGID`, ComfyUI port and data dir (`COMFYUI_DATA`, holds models/input/custom_nodes), and `COMFYUI_OUTPUT` (host path bind-mounted over the in-tree output folder so generated images land on NFS media storage); Ollama/Open WebUI/faster-whisper ports and data dirs
+- `stacks/remote/.env` — `TZ`, Guacamole web port (`GUAC_PORT`, default 8088), and the Postgres `GUAC_DB_NAME`/`GUAC_DB_USER`/`GUAC_DB_PASSWORD`/`GUAC_DB_DATA`. The Guacamole schema in `stacks/remote/init/initdb.sql` (committed, generated via `docker run --rm guacamole/guacamole /opt/guacamole/bin/initdb.sh --postgresql`) is auto-loaded by Postgres only on first run (empty data dir). Default login is `guacadmin`/`guacadmin` — change it immediately. `WEBAPP_CONTEXT=ROOT` serves the app at `/`.
 
 `.env` files are gitignored. Runtime data dirs (`stacks/*/data/`, `stacks/media/config/`, etc.) are also gitignored.
 

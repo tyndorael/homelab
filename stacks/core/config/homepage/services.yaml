@@ -20,6 +20,22 @@
         href: "{{HOMEPAGE_VAR_DOZZLE_URL}}"
         description: Container log viewer
 
+- Remote Access:
+    - Guacamole:
+        icon: guacamole.png
+        href: "{{HOMEPAGE_VAR_GUACAMOLE_URL}}"
+        description: Clientless remote desktop gateway
+        widget:
+          type: guacamole
+          url: http://guacamole:8080
+          username: "{{HOMEPAGE_VAR_GUACAMOLE_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_GUACAMOLE_PASSWORD}}"
+
+    - Cockpit:
+        icon: cockpit.png
+        href: "{{HOMEPAGE_VAR_COCKPIT_URL}}"
+        description: Host web administration
+
 - Network:
     - Speedtest Tracker:
         icon: speedtest-tracker.png

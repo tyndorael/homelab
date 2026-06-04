@@ -10,6 +10,7 @@ stacks/media/data/
 stacks/tools/config/
 stacks/tools/data/
 stacks/ai/data/
+stacks/remote/data/
 
 # Homepage runtime files
 stacks/core/config/homepage/logs/
