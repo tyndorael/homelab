@@ -1,0 +1,27 @@
+services:
+
+  excalidraw:
+    image: excalidraw/excalidraw:latest
+    container_name: excalidraw
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    ports:
+      - "${EXCALIDRAW_PORT:-8200}:80"
+    networks:
+      - homelab
+
+  drawio:
+    image: jgraph/drawio:latest
+    container_name: drawio
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    ports:
+      - "${DRAWIO_PORT:-8201}:8080"
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

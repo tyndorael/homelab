@@ -1,10 +1,11 @@
-.PHONY: network core-up core-down media-up media-down tools-up tools-down ai-up ai-down remote-up remote-down cockpit-install pull logs-core logs-media logs-tools logs-ai logs-remote ps
+.PHONY: network core-up core-down media-up media-down tools-up tools-down ai-up ai-down remote-up remote-down diagrams-up diagrams-down cockpit-install pull logs-core logs-media logs-tools logs-ai logs-remote logs-diagrams ps
 
-CORE_DIR   := stacks/core
-MEDIA_DIR  := stacks/media
-TOOLS_DIR  := stacks/tools
-AI_DIR     := stacks/ai
-REMOTE_DIR := stacks/remote
+CORE_DIR     := stacks/core
+MEDIA_DIR    := stacks/media
+TOOLS_DIR    := stacks/tools
+AI_DIR       := stacks/ai
+REMOTE_DIR   := stacks/remote
+DIAGRAMS_DIR := stacks/diagrams
 
 network:
 	docker network create homelab 2>/dev/null || true
@@ -39,6 +40,12 @@ remote-up: network
 remote-down:
 	docker compose -f $(REMOTE_DIR)/docker-compose.yml --env-file $(REMOTE_DIR)/.env down
 
+diagrams-up: network
+	docker compose -f $(DIAGRAMS_DIR)/docker-compose.yml --env-file $(DIAGRAMS_DIR)/.env up -d
+
+diagrams-down:
+	docker compose -f $(DIAGRAMS_DIR)/docker-compose.yml --env-file $(DIAGRAMS_DIR)/.env down
+
 # Cockpit manages the host directly (systemd, packages, host-user login),
 # so it is installed on the host rather than run as a container.
 cockpit-install:
@@ -52,6 +59,7 @@ pull:
 	docker compose -f $(TOOLS_DIR)/docker-compose.yml pull
 	docker compose -f $(AI_DIR)/docker-compose.yml pull
 	docker compose -f $(REMOTE_DIR)/docker-compose.yml pull
+	docker compose -f $(DIAGRAMS_DIR)/docker-compose.yml pull
 
 logs-core:
 	docker compose -f $(CORE_DIR)/docker-compose.yml --env-file $(CORE_DIR)/.env logs -f
@@ -67,6 +75,9 @@ logs-ai:
 
 logs-remote:
 	docker compose -f $(REMOTE_DIR)/docker-compose.yml --env-file $(REMOTE_DIR)/.env logs -f
+
+logs-diagrams:
+	docker compose -f $(DIAGRAMS_DIR)/docker-compose.yml --env-file $(DIAGRAMS_DIR)/.env logs -f
 
 ps:
 	docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"

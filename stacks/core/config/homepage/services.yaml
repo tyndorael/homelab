@@ -1,4 +1,15 @@
 ---
+- Diagrams:
+    - Excalidraw:
+        icon: https://excalidraw.com/favicon.ico
+        href: "{{HOMEPAGE_VAR_EXCALIDRAW_URL}}"
+        description: Whiteboard and freehand sketching
+
+    - draw.io:
+        icon: https://app.diagrams.net/favicon.ico
+        href: "{{HOMEPAGE_VAR_DRAWIO_URL}}"
+        description: Flowcharts, UML, and network diagrams
+
 - Infrastructure:
     - Portainer:
         icon: portainer.png
