@@ -1,13 +1,13 @@
 # Network
 
-Replace the placeholders with your real values (keep this file free of secrets).
+LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this file free of secrets).
 
 ## Hosts
 | Host | Role | IP (DHCP reservation) | Hostname |
 |---|---|---|---|
-| Raspberry Pi | Proxy, Portainer, dashboard | `192.168.1.10` | `pi` |
-| Unraid | NAS, media | `192.168.1.20` | `unraid` |
-| Mac mini | Development, apps | `192.168.1.30` | `mac-mini` |
+| Raspberry Pi 4 (8 GB, microSD) | Proxy, Portainer, dashboard | `192.168.50.106` | `cyrene` |
+| Unraid | NAS, media | `192.168.50.x` (TBD) | `unraid` |
+| Mac mini | Development, apps | `192.168.50.x` (TBD) | `mac-mini` |
 
 ## Ports
 | Host | Port | Service | Exposure |
@@ -24,10 +24,10 @@ Replace the placeholders with your real values (keep this file free of secrets).
 | Mac mini | 9001 | Portainer Agent | LAN (Pi only, ideally) |
 
 ## DNS & TLS
-1. Pick a domain you own, e.g. `home.example.com`.
-2. In your local DNS (router, Pi-hole or AdGuard Home) add a wildcard: `*.home.example.com → 192.168.1.10` (the Pi).
-3. In NPM, request one wildcard Let's Encrypt certificate for `*.home.example.com` using the **DNS challenge** (e.g. Cloudflare API token). No ports need to be opened to the internet.
-4. Create a proxy host per service (`portainer.home.example.com → portainer:9443 https`, `jellyfin.home.example.com → 192.168.1.20:8096`, …) with the wildcard cert, *Force SSL* and *HTTP/2* enabled. Turn on *Websockets support* for Portainer, Jellyfin and Homepage.
+1. Domain: a DuckDNS subdomain today (`<name>.duckdns.org`, set as `DOMAIN` in `homepage/.env`); any domain you own works.
+2. In your local DNS (router, Pi-hole or AdGuard Home) add a wildcard: `*.<domain> → 192.168.50.106` (the Pi).
+3. In NPM, request one wildcard Let's Encrypt certificate for `*.<domain>` using the **DNS challenge** (DuckDNS token today; Cloudflare etc. also work). No ports need to be opened to the internet.
+4. Create a proxy host per service (`portainer.<domain> → portainer:9443 https`, `jellyfin.<domain> → <unraid-ip>:8096`, …) with the wildcard cert, *Force SSL* and *HTTP/2* enabled. Turn on *Websockets support* for Portainer, Jellyfin and Homepage.
 
 ## Remote access
 Don't port-forward 80/443. Use Tailscale (subnet router on the Pi) or WireGuard to reach the LAN from outside.

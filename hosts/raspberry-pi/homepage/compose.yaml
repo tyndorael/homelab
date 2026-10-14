@@ -30,6 +30,16 @@ services:
       - socket
     depends_on:
       - socket-proxy
+    # The image ships a page pre-rendered from the default config; it is only rebuilt via
+    # /api/revalidate. Calling it from the healthcheck keeps the page current after every
+    # (re)start — the endpoint returns 200 once the server is up, so it doubles as a health probe.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null -Y off http://127.0.0.1:3000/api/revalidate || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
     security_opt:
       - no-new-privileges:true
     logging: *logging
