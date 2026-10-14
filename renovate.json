@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "schedule": ["before 6am on saturday"],
+  "packageRules": [
+    {
+      "description": "linuxserver.io tags: <app version>-ls<build>",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["lscr.io/linuxserver/**"],
+      "versioning": "loose"
+    },
+    {
+      "description": "Portainer server and agents must move together",
+      "matchPackageNames": ["portainer/portainer-ce", "portainer/agent"],
+      "groupName": "portainer"
+    },
+    {
+      "description": "Major updates need a manual read of the release notes",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}

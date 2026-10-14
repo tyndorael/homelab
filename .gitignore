@@ -1,23 +1,27 @@
-# Keys
+# Secrets
+.env
+*.env
+!.env.example
+*.pem
+*.key
+id_*
 
-iono-proxmox
-*.pub
+# Runtime state (bind mounts next to each compose.yaml)
+hosts/**/data/
+hosts/**/config/
+hosts/**/letsencrypt/
+!hosts/raspberry-pi/homepage/config/
+hosts/raspberry-pi/homepage/config/logs/
 
-# Terraform (local state only)
-.terraform/
-*.tfstate
-*.tfstate.*
-terraform.tfstate.backup
-terraform.tfvars
-terraform.tfstate.d/
-*.tfvars.json
-*.tfvars
-crash.log
-*.tfplan
-*.plan
-state/*
-plan/*
-proxmox.log
+# Backups
+backups/
+*.tar.gz
 
-/infrastructure/ansible/inventory/hosts.ini
+# Leftovers from v1 (Proxmox) that may still exist locally
+infrastructure/
+keys/
+
+# OS / editors
 .DS_Store
+.vscode/
+.idea/

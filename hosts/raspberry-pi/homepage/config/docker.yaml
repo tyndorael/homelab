@@ -1,0 +1,5 @@
+# https://gethomepage.dev/configs/docker/
+# Read-only access via the socket-proxy sidecar defined in compose.yaml.
+pi:
+  host: homepage-socket-proxy
+  port: 2375

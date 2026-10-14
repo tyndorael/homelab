@@ -1,0 +1,32 @@
+# Portainer CE (LTS) — manages the Pi locally and Unraid / Mac mini through their agents.
+name: portainer
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  portainer:
+    image: portainer/portainer-ce:2.45.2
+    container_name: portainer
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      # Shared secret the agents must present (same value on every agent).
+      AGENT_SECRET: ${AGENT_SECRET:?set AGENT_SECRET in .env}
+    ports:
+      - "${PORTAINER_BIND:-0.0.0.0}:9443:9443"   # HTTPS UI — drop/restrict once proxied by NPM
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+networks:
+  proxy:
+    external: true

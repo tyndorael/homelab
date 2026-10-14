@@ -1,0 +1,60 @@
+# Homepage — dashboard. Docker access goes through a read-only socket proxy, never the raw socket.
+name: homepage
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:v2.5.0
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_ALLOWED_HOSTS:?set HOMEPAGE_ALLOWED_HOSTS in .env}
+      HOMEPAGE_VAR_DOMAIN: ${DOMAIN}
+      HOMEPAGE_VAR_PI_IP: ${PI_IP}
+      HOMEPAGE_VAR_UNRAID_IP: ${UNRAID_IP}
+      HOMEPAGE_VAR_MAC_IP: ${MAC_IP}
+    ports:
+      - "${HOMEPAGE_BIND:-0.0.0.0}:3000:3000"   # drop/restrict once proxied by NPM
+    volumes:
+      - ./config:/app/config   # tracked in git (except logs/)
+    networks:
+      - proxy
+      - socket
+    depends_on:
+      - socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+  socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:3.4.6-r0-ls102
+    container_name: homepage-socket-proxy
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1   # read-only container listing for Homepage
+      INFO: 1
+      POST: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket
+    read_only: true
+    tmpfs:
+      - /run
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+networks:
+  proxy:
+    external: true
+  socket:
+    internal: true   # not reachable from outside the stack

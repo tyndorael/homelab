@@ -1,0 +1,40 @@
+# Nginx Proxy Manager — reverse proxy + Let's Encrypt for every service in the homelab.
+# Requires the shared network: `make network HOST=raspberry-pi` (or `docker network create proxy`).
+name: nginx-proxy-manager
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:2.16.0
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      DISABLE_IPV6: ${DISABLE_IPV6:-true}
+    ports:
+      - "80:80"     # HTTP
+      - "443:443"   # HTTPS
+      - "${ADMIN_BIND:-0.0.0.0}:81:81"   # Admin UI — proxy it through NPM, then restrict (see README)
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "/usr/bin/check-health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging: *logging
+
+networks:
+  proxy:
+    external: true

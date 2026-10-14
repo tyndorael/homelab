@@ -1,0 +1,25 @@
+# Portainer Agent — lets the Pi's Portainer manage this host's Docker.
+name: portainer-agent
+# macOS (Docker Desktop / OrbStack): /var/lib/docker/volumes is inside the VM, so only the socket is mounted.
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  portainer-agent:
+    image: portainer/agent:2.45.2   # keep in sync with portainer-ce on the Pi
+    container_name: portainer-agent
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      AGENT_SECRET: ${AGENT_SECRET:?set AGENT_SECRET in .env}
+    ports:
+      - "9001:9001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging

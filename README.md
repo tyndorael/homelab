@@ -1,27 +1,43 @@
-# Homelab Infrastructure
+# Homelab
 
-IaC and automation for a Proxmox-based homelab. Terraform handles VM lifecycle; Ansible configures guests, Pi nodes, and service stacks.
+Docker Compose definitions for a small homelab, one folder per stack, all state in local bind mounts.
+
+> v1 (Proxmox + Terraform + Ansible) is preserved under the git tag `v1-proxmox`.
+
+## Hosts (phase 1)
+| Host | Role | Stacks |
+|---|---|---|
+| [Raspberry Pi](hosts/raspberry-pi/README.md) | Edge / control | `nginx-proxy-manager`, `portainer`, `homepage` |
+| [Unraid](hosts/unraid/README.md) | Storage / media | `portainer-agent`, `media` (Jellyfin, Sonarr, Radarr, Prowlarr, qBittorrent) |
+| [Mac mini](hosts/mac-mini/README.md) | Development / apps | `portainer-agent`, `apps/*` |
+
+```
+LAN ──► Pi :443 Nginx Proxy Manager ──► Pi containers (proxy network)
+                                     ├─► Unraid  <ip>:<port>
+                                     └─► Mac mini <ip>:<port>
+         Pi Portainer ──agent :9001──► Unraid, Mac mini
+```
 
 ## Layout
-- infrastructure/terraform: Proxmox VM definitions and variables
-- infrastructure/ansible: Playbooks for guests, AI server, Pi, mounts
-- stacks/: Docker Compose stacks and setup guides
-- keys/: Local SSH keys (should stay untracked)
+```
+hosts/<host>/<stack>/   compose.yaml, .env.example, local data/ + config/ (gitignored)
+templates/service/      starting point for new stacks
+docs/                   conventions, network/DNS, backups
+scripts/backup.sh       cold backup of a stack folder
+Makefile                docker compose wrapper
+```
 
 ## Quick start
-1) Terraform
-   - From infrastructure/terraform: `terraform init` then `terraform plan -out plan/terraform.tfplan` and `terraform apply plan/terraform.tfplan`.
-   - Use environment vars (recommended) instead of committing secrets:
-     - `TF_VAR_pm_api_url`, `TF_VAR_pm_api_token_id`, `TF_VAR_pm_api_token_secret`, `TF_VAR_vm_ci_password`, etc.
-   - Keep terraform.tfvars local and gitignored if you use one.
+On each host, after cloning the repo:
+```bash
+cp hosts/<host>/<stack>/.env.example hosts/<host>/<stack>/.env   # fill it in
+make up HOST=<host> STACK=<stack>
+```
+Start order: **Pi** (`make network`, NPM → Portainer → Homepage) → **Unraid** → **Mac mini**. Use the same `AGENT_SECRET` in Portainer and every agent.
 
-2) Ansible
-   - Inventory: infrastructure/ansible/inventory/hosts.ini
-   - Examples:
-     - Base tools on Proxmox guests: `ansible-playbook base-tools.yml -i inventory/hosts.ini -e docker_user=<user>`
-     - SMB mounts: `ansible-playbook smb-mount.yml -i inventory/hosts.ini -e "smb_username=<user> smb_password=<pass>"`
-     - Pi Docker/Portainer: `ansible-playbook pi-tools.yml -i inventory/hosts.ini`
+Other targets: `down`, `restart`, `pull`, `update`, `logs`, `ps`, `config`, `validate`.
 
-## Secrets hygiene
-- Do not commit terraform.tfvars or private keys. Use terraform.tfvars.example as a template.
-- Store SSH keys outside git (keys/ is local-only) and rotate any exposed credentials.
+## Docs
+- [Conventions & good practices](docs/conventions.md)
+- [Network, DNS & TLS](docs/network.md)
+- [Backups](docs/backups.md)
