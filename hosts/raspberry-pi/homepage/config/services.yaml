@@ -15,6 +15,18 @@
         description: Docker management (Pi, Unraid, Mac mini)
         server: pi
         container: portainer
+    - AdGuard Home:
+        icon: adguard-home.png
+        href: https://adguard.{{HOMEPAGE_VAR_DOMAIN}}
+        description: DNS & ad blocking
+        server: pi
+        container: adguard-home
+    - Tailscale:
+        icon: tailscale.png
+        href: https://login.tailscale.com/admin/machines
+        description: Remote access (subnet router)
+        server: pi
+        container: tailscale
     - Unraid:
         icon: unraid.png
         href: http://{{HOMEPAGE_VAR_UNRAID_IP}}

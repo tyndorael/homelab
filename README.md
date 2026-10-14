@@ -7,7 +7,7 @@ Docker Compose definitions for a small homelab, one folder per stack, all state 
 ## Hosts (phase 1)
 | Host | Role | Stacks |
 |---|---|---|
-| [Raspberry Pi 4 · 8 GB · microSD](hosts/raspberry-pi/README.md) | Edge / control | `nginx-proxy-manager`, `portainer`, `homepage` |
+| [Raspberry Pi 4 · 8 GB · microSD](hosts/raspberry-pi/README.md) | Edge / control | `nginx-proxy-manager`, `portainer`, `homepage`, `adguard-home`, `tailscale` |
 | [Unraid](hosts/unraid/README.md) | Storage / media | `portainer-agent`, `media` (Jellyfin, Sonarr, Radarr, Prowlarr, qBittorrent) |
 | [Mac mini](hosts/mac-mini/README.md) | Development / apps | `portainer-agent`, `apps/*` |
 

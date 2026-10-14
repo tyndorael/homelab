@@ -1,0 +1,36 @@
+# AdGuard Home — LAN DNS: ad/tracker blocking + local records (*.<domain> -> Pi for NPM).
+# First run: open http://<pi-ip>:3001 for the setup wizard; keep the default ports it offers
+# (admin UI 80, DNS 53 — both inside the container). Afterwards the UI is on http://<pi-ip>:8083
+# or https://adguard.<domain> via NPM (forward to adguard-home:80).
+name: adguard-home
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  adguard-home:
+    image: adguard/adguardhome:v0.107.79
+    container_name: adguard-home
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "${ADGUARD_SETUP_BIND:-0.0.0.0}:3001:3000/tcp"   # first-run setup wizard only
+      - "${ADGUARD_UI_BIND:-0.0.0.0}:8083:80/tcp"        # admin UI after setup
+    volumes:
+      - ./data/work:/opt/adguardhome/work   # query log + stats (keep retention short on the SD card)
+      - ./data/conf:/opt/adguardhome/conf   # AdGuardHome.yaml
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+networks:
+  proxy:
+    external: true

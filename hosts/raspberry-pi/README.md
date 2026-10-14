@@ -19,6 +19,8 @@ Runs the always-on, lightweight services: reverse proxy, Docker management and t
 | `nginx-proxy-manager` | 80, 443, 81 (admin) | `https://npm.<domain>` |
 | `portainer` | 9443 | `https://portainer.<domain>` |
 | `homepage` | 3000 | `https://home.<domain>` |
+| `adguard-home` | 53 tcp/udp, 3001 (setup), 8083 (UI) | `https://adguard.<domain>` |
+| `tailscale` | host network (41641/udp) | tailnet node `cyrene`, subnet router for `192.168.50.0/24` |
 
 ## Running from an SD card
 The Pi boots and runs everything from the microSD card, so the setup minimises writes and keeps the card replaceable:
@@ -33,6 +35,7 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
 - **journald size cap**: `SystemMaxUse=50M` in `/etc/systemd/journald.conf` (or `Storage=volatile` to keep logs in RAM only).
 - **Only light, low-write services here.** Databases, media, downloads and anything chatty belong on Unraid.
 - **Backups matter more than on an SSD**: run `scripts/backup.sh raspberry-pi <stack> <unraid-share>` regularly (see [docs/backups.md](../../docs/backups.md)); after any big change, also image the whole card (e.g. `rpi-clone` or Raspberry Pi Imager's backup) so a dead card is a 10-minute swap.
+- **Wi-Fi**: the Pi is also on Wi-Fi (`192.168.50.108`) besides Ethernet; consider `dtoverlay=disable-wifi` in `/boot/firmware/config.txt` so DNS/NPM always answer on one address.
 - Watch for wear: `dmesg | grep -i mmc` errors or a read-only remount mean the card is failing.
 
 ## Host preparation (fresh card)
@@ -49,18 +52,40 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
 ## First start
 ```bash
 make network HOST=raspberry-pi                 # creates the shared `proxy` network (once)
-for s in nginx-proxy-manager portainer homepage; do
+for s in nginx-proxy-manager portainer homepage adguard-home tailscale; do
   cp hosts/raspberry-pi/$s/.env.example hosts/raspberry-pi/$s/.env   # then edit each .env
 done
 make up HOST=raspberry-pi STACK=nginx-proxy-manager
 make up HOST=raspberry-pi STACK=portainer
 make up HOST=raspberry-pi STACK=homepage
+make up HOST=raspberry-pi STACK=adguard-home
+make up HOST=raspberry-pi STACK=tailscale
 ```
 
 Then:
 - **NPM** (`http://<pi-ip>:81`): wildcard certificate `*.<domain>` via DNS challenge (DuckDNS today), one proxy host per service. Pi services are reachable by container name over the `proxy` network (`portainer:9443` https, `homepage:3000`) or by `192.168.50.106:<port>`; Unraid/Mac services by `LAN_IP:port`.
 - **Portainer** (`https://<pi-ip>:9443`): *Environments → Add → Agent* for Unraid and the Mac mini (`<ip>:9001`), using the same `AGENT_SECRET`.
+- **AdGuard Home**: see [AdGuard Home](#adguard-home) below.
+- **Tailscale**: see [Tailscale](#tailscale) below.
 - Once everything is proxied by container name, set `ADMIN_BIND` / `PORTAINER_BIND` / `HOMEPAGE_BIND=127.0.0.1` so the raw ports are no longer exposed on the LAN.
+
+## AdGuard Home
+1. Open `http://192.168.50.106:3001` and run the wizard. Keep its defaults: admin UI on port **80** and DNS on **53** (container ports, published as 8083 and 53). Create the admin user.
+2. The UI is then at `http://192.168.50.106:8083`. In NPM add `adguard.<domain>` → `adguard-home:80` (http).
+3. *Filters → DNS rewrites*: add `*.<domain>` → `192.168.50.106` and `<domain>` → `192.168.50.106`. Every service name now resolves to NPM on the LAN.
+4. *Settings → DNS settings*: upstreams e.g. `https://dns.cloudflare.com/dns-query` and `https://dns.quad9.net/dns-query`, enable *parallel requests* and the cache.
+5. SD card: *Settings → General* → query log retention **24 h** (or keep it in memory only via *Query logs → Disable log* / anonymise), statistics **24 h–7 days**.
+6. Router DHCP: primary DNS `192.168.50.106`, **secondary a public resolver** (e.g. `1.1.1.1`) so the internet keeps working if the Pi is down. (The secondary bypasses blocking when used; accept that trade-off or add a second AdGuard instance on Unraid later.)
+
+The Pi itself keeps the router (`192.168.50.1`) as its resolver so Docker pulls and Tailscale never depend on a container that might be down.
+
+## Tailscale
+1. `make up HOST=raspberry-pi STACK=tailscale`, then `make logs HOST=raspberry-pi STACK=tailscale` and open the `https://login.tailscale.com/a/...` link to add `cyrene` to your tailnet (or put a pre-auth key in `TS_AUTHKEY`).
+2. Admin console → *Machines → cyrene → Edit route settings* → approve `192.168.50.0/24`. Optionally *Disable key expiry* for this always-on node.
+3. Remote DNS (optional): *DNS → Nameservers → Add → Custom* `192.168.50.106` with *Restrict to domain* `<domain>` (split DNS) — remote devices then resolve `*.<domain>` through AdGuard and reach NPM over the subnet route.
+4. Clients on the LAN itself don't need routes: on Linux clients use `--accept-routes` only when away from home.
+
+State lives in `tailscale/data` (node key); back it up with the other stacks. IPv4 forwarding is already enabled on the Pi (Docker does it); IPv6 forwarding is off, so only IPv4 LAN routes are advertised.
 
 ## Migration log (2026-10-14)
 NPM (2.16.0, 18 proxy hosts + DuckDNS wildcard cert) and Portainer (2.33.6 → 2.45.2) were moved from Docker volumes / `/opt/portainer/data` into `./data` and `./letsencrypt` of these stacks. The old volumes `npm_npm-data`, `npm_npm-letsencrypt` and `/opt/portainer/data` were left in place as a backup — remove them once you're happy:
