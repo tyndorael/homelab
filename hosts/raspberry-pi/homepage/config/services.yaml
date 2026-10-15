@@ -58,6 +58,17 @@
         description: Container logs
         server: pi
         container: dozzle
+    - Cockpit:
+        icon: cockpit.png
+        href: https://cockpit.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Pi host admin (services, storage, network, updates)
+        siteMonitor: https://cockpit.{{HOMEPAGE_VAR_DOMAIN}}
+    - Termix:
+        icon: termix.png
+        href: https://termix.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Browser SSH to all hosts
+        server: pi
+        container: termix
     - Tailscale:
         icon: tailscale.png
         href: https://login.tailscale.com/admin/machines

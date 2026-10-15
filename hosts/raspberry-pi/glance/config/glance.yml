@@ -99,6 +99,13 @@ pages:
                 url: https://logs.${DOMAIN}
                 check-url: http://dozzle:8080/healthcheck
                 icon: di:dozzle
+              - title: Termix
+                url: https://termix.${DOMAIN}
+                check-url: http://termix:8080/
+                icon: di:termix
+              - title: Cockpit
+                url: https://cockpit.${DOMAIN}
+                icon: di:cockpit
 
           - type: bookmarks
             groups:

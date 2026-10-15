@@ -1,0 +1,9 @@
+# /etc/systemd/system/cockpit.socket.d/listen.conf — rendered by install.sh.
+# Cockpit is NOT exposed on the LAN: it listens on loopback (SSH tunnel fallback) and on the
+# Docker `proxy` network gateway, which is how the NPM container reaches the host.
+# FreeBind lets the socket start at boot before Docker has created that bridge.
+[Socket]
+ListenStream=
+ListenStream=127.0.0.1:9090
+ListenStream=__GATEWAY__:9090
+FreeBind=yes

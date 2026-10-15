@@ -1,5 +1,5 @@
 # https://github.com/TwiN/gatus#configuration
-# Environment placeholders (DOMAIN, PI_IP, PI_TAILSCALE_IP, ROUTER_IP) come from gatus/.env via compose.yaml.
+# Environment placeholders (DOMAIN, PI_IP, PI_TAILSCALE_IP, ROUTER_IP, PROXY_GATEWAY) come from gatus/.env via compose.yaml.
 # Alerting is not configured yet: add an `alerting:` block (Telegram, ntfy, Discord…) and
 # `alerts:` per endpoint when you want notifications.
 
@@ -59,6 +59,14 @@ endpoints:
     group: 1. Web (via NPM)
     url: "https://status.${DOMAIN}/"
     <<: *https
+  - name: Cockpit
+    group: 1. Web (via NPM)
+    url: "https://cockpit.${DOMAIN}/"
+    <<: *https
+  - name: Termix
+    group: 1. Web (via NPM)
+    url: "https://termix.${DOMAIN}/"
+    <<: *https
 
   # --- Containers directly over the proxy network (tells NPM problems apart from app problems) ---
   - name: homepage
@@ -90,6 +98,19 @@ endpoints:
     group: 2. Containers
     url: "http://dozzle:8080/healthcheck"
     <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: termix
+    group: 2. Containers
+    url: "http://termix:8080/"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: cockpit (host, via proxy gateway)
+    group: 2. Containers
+    url: "https://${PROXY_GATEWAY}:9090/"
+    interval: 1m
+    client:
+      timeout: 5s
+      insecure: true   # Cockpit's own self-signed cert; the public one is checked via NPM above
     conditions: ["[STATUS] == 200"]
 
   # --- DNS ---

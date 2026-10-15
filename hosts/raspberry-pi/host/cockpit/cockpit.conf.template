@@ -1,0 +1,6 @@
+# /etc/cockpit/cockpit.conf — rendered by install.sh (__DOMAIN__ is replaced).
+# Cockpit sits behind Nginx Proxy Manager at https://cockpit.__DOMAIN__
+[WebService]
+Origins = https://cockpit.__DOMAIN__ wss://cockpit.__DOMAIN__
+ProtocolHeader = X-Forwarded-Proto
+LoginTitle = cyrene

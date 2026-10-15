@@ -23,6 +23,8 @@ Runs the always-on, lightweight services: reverse proxy, Docker management and t
 | `glance` | 8084 | `https://glance.<domain>` |
 | `gatus` | 8085 | `https://status.<domain>` |
 | `dozzle` | 8086 | `https://logs.<domain>` |
+| `termix` | 8087 | `https://termix.<domain>` |
+| Cockpit (host, not a container) | 9090 | `https://cockpit.<domain>` |
 | `tailscale` | host network (41641/udp) | tailnet node `cyrene`, subnet router for `192.168.50.0/24` |
 
 ## Running from an SD card
@@ -55,7 +57,7 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
 ## First start
 ```bash
 make network HOST=raspberry-pi                 # creates the shared `proxy` network (once)
-for s in nginx-proxy-manager portainer homepage glance gatus dozzle adguard-home tailscale; do
+for s in nginx-proxy-manager portainer homepage glance gatus dozzle termix adguard-home tailscale; do
   cp hosts/raspberry-pi/$s/.env.example hosts/raspberry-pi/$s/.env   # then edit each .env
 done
 make up HOST=raspberry-pi STACK=nginx-proxy-manager
@@ -64,6 +66,8 @@ make up HOST=raspberry-pi STACK=homepage
 make up HOST=raspberry-pi STACK=glance
 make up HOST=raspberry-pi STACK=gatus
 make up HOST=raspberry-pi STACK=dozzle      # after creating dozzle/data/users.yml (see Monitoring & logs)
+make up HOST=raspberry-pi STACK=termix
+hosts/raspberry-pi/host/cockpit/install.sh <domain>   # Cockpit on the host (see Server admin)
 make up HOST=raspberry-pi STACK=adguard-home
 make up HOST=raspberry-pi STACK=tailscale
 ```
@@ -103,6 +107,10 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
   ```
   Later, Dozzle agents on Unraid and the Mac mini can stream their logs into the same UI.
 - NPM proxy hosts: `status.<domain>` → `gatus:8080`, `logs.<domain>` → `dozzle:8080` (enable **Websockets** for Dozzle).
+
+## Server admin
+- **Cockpit** (`cockpit.<domain>`) runs on the Pi **host** (Debian package, socket-activated: no RAM used until you open it). Log in with your Linux user. Installed and configured by [`host/cockpit/install.sh`](host/cockpit/install.sh): packages `cockpit`, `cockpit-networkmanager`, `cockpit-storaged` (no `cockpit-packagekit` — updates stay with apt/unattended-upgrades). It listens only on `127.0.0.1:9090` and the `proxy` network gateway (`172.19.0.1:9090`), never on the LAN. NPM proxy host: `cockpit.<domain>` → **https** `172.19.0.1:9090`, websockets on. If the `proxy` network is ever recreated, re-run the script (the gateway may change) and update NPM + `PROXY_GATEWAY` in `gatus/.env`.
+- **Termix** (`termix.<domain>`) is browser SSH for every host. **Register immediately after the first start** — the first account becomes admin. Then add hosts: the Pi as `192.168.50.106:22` (user `tyndorael`, your SSH key), later Unraid and the Mac mini. NPM proxy host: `termix.<domain>` → `termix:8080`, websockets on.
 
 ## AdGuard Home
 1. Open `http://192.168.50.106:3001` and run the wizard. Keep its defaults: admin UI on port **80** and DNS on **53** (container ports, published as 8083 and 53). Create the admin user.

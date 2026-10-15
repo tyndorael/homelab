@@ -1,0 +1,32 @@
+# Termix — browser SSH for all hosts (terminal, file manager, saved connections) at termix.<domain>.
+# Has its own accounts: the first user to register becomes admin — register right after the first start.
+# Saved hosts/keys are stored encrypted in ./data (SQLite).
+name: termix
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  termix:
+    image: ghcr.io/termix-ssh/termix:26.10.1
+    container_name: termix
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      PORT: "8080"
+    ports:
+      - "${TERMIX_BIND:-0.0.0.0}:8087:8080"   # drop/restrict once proxied by NPM
+    volumes:
+      - ./data:/app/data
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+networks:
+  proxy:
+    external: true
