@@ -2,7 +2,7 @@
 
 Docker Compose definitions for a small homelab, one folder per stack, all state in local bind mounts.
 
-> v1 (Proxmox + Terraform + Ansible) is preserved under the git tag `v1-proxmox`.
+> Earlier setups are preserved as git tags: `v1-proxmox` (Proxmox + Terraform + Ansible) and `v1-ubuntu` (single-host Docker stacks, the previous `main`).
 
 ## Hosts (phase 1)
 | Host | Role | Stacks |

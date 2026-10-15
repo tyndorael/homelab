@@ -48,7 +48,7 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
    curl -fsSL https://get.docker.com | sh
    sudo usermod -aG docker $USER   # log out/in afterwards
    ```
-5. Clone the repo: `git clone -b v2 https://github.com/tyndorael/homelab.git ~/homelab && cd ~/homelab`.
+5. Clone the repo: `git clone https://github.com/tyndorael/homelab.git ~/homelab && cd ~/homelab`.
 
 ## First start
 ```bash
