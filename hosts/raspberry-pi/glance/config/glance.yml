@@ -1,5 +1,5 @@
 # https://github.com/glanceapp/glance/blob/main/docs/configuration.md
-# Environment placeholders (DOMAIN, WEATHER_LOCATION) come from glance/.env via compose.yaml. Saving this file reloads Glance.
+# Environment placeholders (DOMAIN, WEATHER_LOCATION, MAC_IP) come from glance/.env via compose.yaml. Saving this file reloads Glance.
 server:
   port: 8080
 
@@ -106,6 +106,10 @@ pages:
               - title: Cockpit
                 url: https://cockpit.${DOMAIN}
                 icon: di:cockpit
+              - title: Open WebUI
+                url: https://ai.${DOMAIN}
+                check-url: http://${MAC_IP}:8088/health
+                icon: di:open-webui
 
           - type: bookmarks
             groups:

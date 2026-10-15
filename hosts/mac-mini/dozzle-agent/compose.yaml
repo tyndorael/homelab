@@ -1,0 +1,37 @@
+# Dozzle agent — streams this host's container logs to the Pi's Dozzle (logs.<domain>).
+# Mutual TLS with a private certificate pair (./data/certs, gitignored): only the Pi's Dozzle,
+# which holds the same pair, can connect. Generate/rotate it: hosts/raspberry-pi/README.md → Monitoring & logs.
+name: dozzle-agent
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  dozzle-agent:
+    image: amir20/dozzle:v11.3.2
+    container_name: dozzle-agent
+    command: agent
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      DOZZLE_HOSTNAME: ${HOST_LABEL:-silverwolf}
+      DOZZLE_CERT: /certs/dozzle_cert.pem
+      DOZZLE_KEY: /certs/dozzle_key.pem
+      DOZZLE_NO_ANALYTICS: "true"
+    ports:
+      - "7007:7007"   # LAN only; the Pi's Dozzle connects here
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # agents can't sit behind a socket proxy (upstream limitation)
+      - ./data/certs:/certs:ro
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 1m
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+    logging: *logging

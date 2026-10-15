@@ -67,6 +67,10 @@ endpoints:
     group: 1. Web (via NPM)
     url: "https://termix.${DOMAIN}/"
     <<: *https
+  - name: Open WebUI (AI)
+    group: 1. Web (via NPM)
+    url: "https://ai.${DOMAIN}/health"
+    <<: *https
 
   # --- Containers directly over the proxy network (tells NPM problems apart from app problems) ---
   - name: homepage
@@ -196,6 +200,18 @@ endpoints:
     url: "tcp://${MAC_IP}:5900"
     interval: 2m
     conditions: ["[CONNECTED] == true"]
+  - name: Mac mini Dozzle agent
+    group: 5. Hosts
+    url: "tcp://${MAC_IP}:7007"
+    interval: 2m
+    conditions: ["[CONNECTED] == true"]
+  - name: Mac mini Open WebUI (direct)
+    group: 5. Hosts
+    url: "http://${MAC_IP}:8088/health"
+    interval: 1m
+    client:
+      timeout: 5s
+    conditions: ["[STATUS] == 200"]
 
   # --- Remote desktop ---
   - name: RustDesk ID server (hbbs)

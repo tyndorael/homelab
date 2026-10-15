@@ -19,6 +19,7 @@ services:
       # Referenced from config/glance.yml; Glance refuses to start if one is missing.
       DOMAIN: ${DOMAIN:?set DOMAIN in .env}
       WEATHER_LOCATION: ${WEATHER_LOCATION:-Santiago, Chile}
+      MAC_IP: ${MAC_IP:?set MAC_IP in .env}
     ports:
       - "${GLANCE_BIND:-0.0.0.0}:8084:8080"   # drop/restrict once proxied by NPM
     volumes:

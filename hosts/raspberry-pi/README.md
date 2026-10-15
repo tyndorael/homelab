@@ -107,7 +107,13 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
     > ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml; unset PW
   head -3 ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml   # should start with "users:"
   ```
-  Later, Dozzle agents on Unraid and the Mac mini can stream their logs into the same UI.
+  **Other hosts** run a Dozzle agent (`hosts/<host>/dozzle-agent`) and are listed in `REMOTE_AGENTS` in `dozzle/.env` (today: the Mac mini, `192.168.50.206:7007|mac-mini`). Hub and agents share a **private certificate pair** so agents accept only this Dozzle (the image's built-in cert is the same for everyone). Create/rotate it on the Pi and copy it to each agent:
+  ```bash
+  mkdir -p ~/homelab/hosts/raspberry-pi/dozzle/data/certs
+  docker run --rm -v ~/homelab/hosts/raspberry-pi/dozzle/data/certs:/out amir20/dozzle:v11.3.2 \
+    generate-certs --cert-out /out/dozzle_cert.pem --key-out /out/dozzle_key.pem
+  # copy both files to hosts/<host>/dozzle-agent/data/certs/ on each agent, then restart hub and agents
+  ```
 - NPM proxy hosts: `status.<domain>` → `gatus:8080`, `logs.<domain>` → `dozzle:8080` (enable **Websockets** for Dozzle).
 
 ## Server admin

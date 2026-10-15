@@ -108,3 +108,8 @@
         icon: mdi-apple
         description: silverwolf · M2 · dev box (OrbStack)
         siteMonitor: https://{{HOMEPAGE_VAR_MAC_IP}}:9001/ping
+    - Open WebUI:
+        icon: open-webui.png
+        href: https://ai.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Local AI chat (Ollama on the M2 GPU)
+        siteMonitor: http://{{HOMEPAGE_VAR_MAC_IP}}:8088/health

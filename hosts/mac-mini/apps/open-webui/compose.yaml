@@ -1,0 +1,36 @@
+# Open WebUI — ChatGPT-style UI for local models (ai.<domain> via NPM on the Pi).
+# Models run in Ollama installed NATIVELY on macOS (brew), so they use the M2 GPU through Metal —
+# Docker on macOS can't. Ollama stays bound to localhost; OrbStack exposes the Mac host to
+# containers as host.docker.internal.
+# First account to sign up becomes admin: register right after the first start, then disable sign-ups.
+name: open-webui
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.12.2
+    container_name: open-webui
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      WEBUI_URL: https://ai.${DOMAIN:?set DOMAIN in .env}
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?set WEBUI_SECRET_KEY in .env}   # keeps sessions valid across restarts
+      DEFAULT_USER_ROLE: pending        # any later sign-up waits for admin approval
+      ANONYMIZED_TELEMETRY: "false"
+      DO_NOT_TRACK: "true"
+      SCARF_NO_ANALYTICS: "true"
+    ports:
+      - "${WEBUI_BIND:-0.0.0.0}:8088:8080"   # LAN, so NPM on the Pi can reach it
+    volumes:
+      - ./data:/app/backend/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging

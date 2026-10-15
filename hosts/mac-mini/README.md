@@ -23,6 +23,19 @@ The Mac must come back on its own after a power cut, with Docker running, and no
 - **OrbStack** starts at login: `orb config set app.start_at_login true`. Containers use `restart: unless-stopped`.
 - Homebrew in `/opt/homebrew` (shellenv in `~/.zprofile`).
 
+## Stacks
+| Stack | Port(s) | Notes |
+|---|---|---|
+| `portainer-agent` | 9001 | managed from Portainer on the Pi |
+| `dozzle-agent` | 7007 | logs show in `logs.<domain>`; cert pair in `dozzle-agent/data/certs` (copied from the Pi) |
+| `apps/open-webui` | 8088 | `ai.<domain>` via NPM |
+
+## Local AI (Ollama + Open WebUI)
+- **Ollama runs natively** (`brew install ollama`, `brew services start ollama`): only native macOS processes can use the M2 GPU (Metal), Docker can't. It listens on `127.0.0.1:11434` only; Open WebUI reaches it as `host.docker.internal:11434` (OrbStack).
+- **Models**: 8 GB of unified memory is shared with macOS and OrbStack, so stay with small models. Installed: `llama3.2:3b` (2 GB, ~48 tokens/s, 100% GPU). Reasonable additions: `qwen2.5:3b`, `gemma3:4b`; 7–8B models (`qwen2.5:7b`, `llama3.1:8b`, ~4.7 GB) fit only with little else running. Manage with `ollama pull <model>`, `ollama list`, `ollama rm <model>`, `ollama ps`.
+- **Open WebUI** (`apps/open-webui`): the first account to sign up becomes **admin** — register immediately after the first start, then *Admin Panel → Settings → General → disable "Enable New Sign Ups"*. Later sign-ups (if re-enabled) wait as `pending`. NPM proxy host: `ai.<domain>` → `http://192.168.50.206:8088`, websockets on.
+- Update Ollama with `brew upgrade ollama && brew services restart ollama`.
+
 ## Remote desktop
 Screen Sharing (VNC) is enabled; RustDesk and browser access via Termix are also set up. Running headless needs an HDMI dummy plug or a virtual display. See [docs/remote-desktop.md](../../docs/remote-desktop.md).
 

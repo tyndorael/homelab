@@ -1,6 +1,7 @@
 # Dozzle — live container logs in the browser (logs.<domain>). Nothing is stored; it streams.
 # Docker access goes through a read-only socket proxy (Dozzle never touches docker.sock directly).
 # Login: simple auth from ./data/users.yml — generate it once (see README), it is gitignored.
+# Agents on other hosts (REMOTE_AGENTS) authenticate with the cert pair in ./data/certs.
 name: dozzle
 
 x-logging: &logging
@@ -17,6 +18,11 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       DOZZLE_REMOTE_HOST: tcp://dozzle-socket-proxy:2375|${HOST_LABEL:-cyrene}
+      # Other hosts' Dozzle agents, comma-separated host:7007|label (e.g. the Mac mini).
+      DOZZLE_REMOTE_AGENT: ${REMOTE_AGENTS:-}
+      # Private cert pair shared with the agents (./data/certs, gitignored) — agents reject anyone else.
+      DOZZLE_CERT: /data/certs/dozzle_cert.pem
+      DOZZLE_KEY: /data/certs/dozzle_key.pem
       DOZZLE_AUTH_PROVIDER: ${DOZZLE_AUTH_PROVIDER:-simple}
       DOZZLE_NO_ANALYTICS: "true"
       DOZZLE_ENABLE_ACTIONS: "false"   # view only: no start/stop/restart from the UI

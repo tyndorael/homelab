@@ -33,6 +33,9 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Mac mini | 9001 | Portainer Agent | LAN (Pi only, ideally) |
 | Mac mini | 22 | SSH (key only) | LAN |
 | Mac mini | 5900 | Screen Sharing (VNC) | LAN / tailnet — see [remote-desktop.md](remote-desktop.md) |
+| Mac mini | 7007 | Dozzle agent (mTLS, private cert) | LAN (Pi's Dozzle) |
+| Mac mini | 8088 | Open WebUI | LAN (via `ai.<domain>`) |
+| Mac mini | 11434 | Ollama (native) | `127.0.0.1` only |
 
 ## DNS & TLS
 1. Domain: a DuckDNS subdomain today (`<name>.duckdns.org`, set as `DOMAIN` in `homepage/.env`); any domain you own works.
