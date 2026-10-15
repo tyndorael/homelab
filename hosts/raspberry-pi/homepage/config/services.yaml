@@ -106,5 +106,5 @@
 - Development:
     - Mac mini:
         icon: mdi-apple
-        description: Dev box (Docker)
-        siteMonitor: http://{{HOMEPAGE_VAR_MAC_IP}}:9001
+        description: silverwolf · M2 · dev box (OrbStack)
+        siteMonitor: https://{{HOMEPAGE_VAR_MAC_IP}}:9001/ping

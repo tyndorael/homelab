@@ -7,7 +7,7 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 |---|---|---|---|
 | Raspberry Pi 4 (8 GB, microSD) | Proxy, Portainer, dashboard | `192.168.50.106` | `cyrene` |
 | Unraid | NAS, media | `192.168.50.x` (TBD) | `unraid` |
-| Mac mini | Development, apps | `192.168.50.x` (TBD) | `mac-mini` |
+| Mac mini M2 (8 GB) | Development, apps | `192.168.50.206` (Ethernet) | `silverwolf` |
 
 ## Ports
 | Host | Port | Service | Exposure |

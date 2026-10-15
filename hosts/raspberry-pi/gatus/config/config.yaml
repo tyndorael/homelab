@@ -1,5 +1,5 @@
 # https://github.com/TwiN/gatus#configuration
-# Environment placeholders (DOMAIN, PI_IP, PI_TAILSCALE_IP, ROUTER_IP, PROXY_GATEWAY) come from gatus/.env via compose.yaml.
+# Environment placeholders (DOMAIN, PI_IP, PI_TAILSCALE_IP, ROUTER_IP, PROXY_GATEWAY, MAC_IP) come from gatus/.env via compose.yaml.
 # Alerting is not configured yet: add an `alerting:` block (Telegram, ntfy, Discord…) and
 # `alerts:` per endpoint when you want notifications.
 
@@ -7,7 +7,7 @@ ui:
   title: Homelab status
   header: Homelab
   dashboard-heading: Homelab status
-  dashboard-subheading: Raspberry Pi (cyrene) — Unraid and Mac mini to come
+  dashboard-subheading: Raspberry Pi (cyrene) and Mac mini (silverwolf) — Unraid to come
   default-sort-by: group
 
 storage:
@@ -178,7 +178,16 @@ endpoints:
   #   group: 5. Hosts
   #   url: "tcp://<unraid-ip>:9001"
   #   conditions: ["[CONNECTED] == true"]
-  # - name: Mac mini Portainer agent
-  #   group: 5. Hosts
-  #   url: "tcp://<mac-ip>:9001"
-  #   conditions: ["[CONNECTED] == true"]
+  - name: Mac mini Portainer agent
+    group: 5. Hosts
+    url: "https://${MAC_IP}:9001/ping"
+    interval: 1m
+    client:
+      timeout: 5s
+      insecure: true   # the agent's self-signed TLS cert
+    conditions: ["[STATUS] == 204"]
+  - name: Mac mini SSH
+    group: 5. Hosts
+    url: "tcp://${MAC_IP}:22"
+    interval: 2m
+    conditions: ["[CONNECTED] == true"]
