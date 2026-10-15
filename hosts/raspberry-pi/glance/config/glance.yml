@@ -40,32 +40,25 @@ pages:
             search-engine: duckduckgo
             autofocus: true
 
-          # Reddit's JSON API (used by the `reddit` widget) answers 403 without an app key, so the
-          # subreddits come in through their public RSS feeds instead. Reddit also rejects Go's default
-          # User-Agent, hence the header; the 1h cache keeps us well under its rate limit.
+          # Reddit blocks Glance's HTTP client (403 on both its JSON API and RSS, even with a browser
+          # User-Agent), so homelab news comes from feeds that allow automated readers.
           - type: group
             widgets:
               - type: rss
-                title: r/selfhosted
+                title: Homelab blogs
                 style: detailed-list
-                cache: 1h
+                cache: 6h
                 limit: 15
                 collapse-after: 6
                 feeds:
-                  - url: https://www.reddit.com/r/selfhosted/.rss
-                    headers:
-                      User-Agent: Mozilla/5.0 (X11; Linux aarch64) Glance/0.8.6
-              - type: rss
-                title: r/homelab
-                style: detailed-list
-                cache: 1h
-                limit: 15
-                collapse-after: 6
-                feeds:
-                  - url: https://www.reddit.com/r/homelab/.rss
-                    headers:
-                      User-Agent: Mozilla/5.0 (X11; Linux aarch64) Glance/0.8.6
+                  - url: https://noted.lol/rss/
+                    title: noted.lol
+                  - url: https://www.jeffgeerling.com/blog.xml
+                    title: Jeff Geerling
+                  - url: https://www.servethehome.com/feed/
+                    title: ServeTheHome
               - type: hacker-news
+              - type: lobsters
 
           - type: rss
             title: Self-hosting news
