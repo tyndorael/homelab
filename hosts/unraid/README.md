@@ -35,3 +35,21 @@ Without `make`, run `docker compose up -d` inside each stack folder.
 - In Sonarr/Radarr use `/data/media/...` as root folders and qBittorrent saves to `/data/torrents/...` — identical paths in every container, no remote path mappings needed.
 - Consider routing qBittorrent through a VPN container (e.g. gluetun) before using public trackers.
 - Back up `appdata` with the **Appdata Backup** plugin, or `scripts/backup.sh` (see [docs/backups.md](../../docs/backups.md)).
+
+## Planned: Home Assistant OS VM
+Decided 2026-10-15: Home Assistant runs here as a **Home Assistant OS VM**, not on the Pi. HAOS keeps add-ons (Mosquitto, Zigbee2MQTT, ESPHome…), and its constant database writes stay off the Pi's SD card. Home Assistant Container on the Pi was the alternative (it meets the requirements, but has no add-ons and would wear the card).
+
+When Unraid is up:
+1. **Settings → VM Manager**: enable VMs (libvirt image on the cache pool).
+2. Download the HAOS **`generic-x86-64` KVM image** (`haos_ova-<version>.qcow2.xz`) from the Home Assistant releases, extract it into the `domains` share, e.g. `/mnt/user/domains/homeassistant/haos.qcow2`.
+3. New VM, template **Linux**: BIOS **OVMF (UEFI)**, machine Q35, 2 vCPU, 4 GB RAM, primary vDisk = the qcow2 above (bus **VirtIO** or SATA), network **br0** so it gets its own LAN IP (DHCP reservation on the router).
+4. Autostart the VM. Then `ha.<domain>` in NPM → `http://<ha-ip>:8123` (websockets on), and in Home Assistant `configuration.yaml`:
+   ```yaml
+   http:
+     use_x_forwarded_for: true
+     trusted_proxies:
+       - 192.168.50.106   # the Pi (NPM)
+   ```
+5. **Bluetooth**: the Pi's onboard chip can't be used by a VM on another machine. Use either a **USB Bluetooth adapter** passed through to the VM (VM settings → USB devices), or **ESPHome Bluetooth proxies** (cheap ESP32 boards placed around the house; best range). Same for Zigbee/Thread: pass a USB coordinator through to the VM.
+6. Add checks/entries: Gatus (`https://ha.<domain>/`), Homepage (`homeassistant` widget with a long-lived token), Glance monitor.
+7. Backups: HAOS's own backups to a Samba/NFS share on Unraid (Settings → System → Backups → network storage), plus the VM vdisk in the regular Unraid backup.
