@@ -31,7 +31,7 @@ The Pi runs the RustDesk ID + relay server (`hosts/raspberry-pi/rustdesk`), so n
 
 In RustDesk → *Settings → Security*: **set a permanent password** (you set this yourself) and enable **Start RustDesk on login** / service so it runs after reboots.
 
-**Every client and host** — *Settings → Network → ID/Relay server*:
+**Every client and host** (step-by-step for Windows and Mac clients in the [README](../README.md#remote-desktop-to-the-mac-mini); the Mac mini's ID is `80340206`) — *Settings → Network → ID/Relay server*:
 | Field | Value |
 |---|---|
 | ID server | `192.168.50.106` |

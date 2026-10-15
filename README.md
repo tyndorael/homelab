@@ -37,6 +37,32 @@ Start order: **Pi** (`make network`, NPM → Portainer → Homepage) → **Unrai
 
 Other targets: `down`, `restart`, `pull`, `update`, `logs`, `ps`, `config`, `validate`.
 
+## Remote desktop to the Mac mini
+The Mac mini (`silverwolf`, RustDesk ID **`80340206`**) is reachable with RustDesk through our own server on the Pi; no RustDesk public servers are involved. Works at home and, through Tailscale, away from home. More options (built-in Screen Sharing, browser via Termix) in [docs/remote-desktop.md](docs/remote-desktop.md).
+
+**1. Install the RustDesk client**
+
+| Windows | Mac |
+|---|---|
+| `winget install --id RustDesk.RustDesk -e` (or the installer from [rustdesk.com](https://rustdesk.com/download)) | `brew install --cask rustdesk` (or the `.dmg` from [rustdesk.com](https://rustdesk.com/download)) |
+
+**2. Point it at our server**, in RustDesk: **⋮ (next to your ID) → Network → ID/Relay server** (Windows), or **Settings → Network → ID/Relay server** (Mac). Unlock network settings if asked.
+
+| Field | Value |
+|---|---|
+| ID server | `192.168.50.106` |
+| Relay server | `192.168.50.106` |
+| API server | *(leave empty)* |
+| Key | output of `ssh tyndorael@192.168.50.106 cat ~/homelab/hosts/raspberry-pi/rustdesk/data/id_ed25519.pub` |
+
+Click OK. The status at the bottom should read **Ready**.
+
+**3. Connect**: type `80340206` in *Control Remote Desktop* → **Connect** → enter the Mac mini's RustDesk permanent password.
+
+**Away from home**: connect Tailscale on the client first, then use RustDesk as usual. The Pi routes `192.168.50.0/24`; on Windows/Mac the Tailscale app accepts subnet routes by default (Linux: `tailscale up --accept-routes`).
+
+**Mac-only alternative**: Finder → *Go → Connect to Server…* → `vnc://192.168.50.206` (built-in Screen Sharing, choose *High Performance*). **Windows alternative**: RealVNC Viewer → `192.168.50.206` with the Mac's macOS login.
+
 ## Docs
 - [Conventions & good practices](docs/conventions.md)
 - [Network, DNS & TLS](docs/network.md)
