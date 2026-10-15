@@ -41,7 +41,8 @@ pages:
             autofocus: true
 
           # Reddit's JSON API (used by the `reddit` widget) answers 403 without an app key, so the
-          # subreddits come in through their public RSS feeds instead.
+          # subreddits come in through their public RSS feeds instead. Reddit also rejects Go's default
+          # User-Agent, hence the header; the 1h cache keeps us well under its rate limit.
           - type: group
             widgets:
               - type: rss
@@ -52,6 +53,8 @@ pages:
                 collapse-after: 6
                 feeds:
                   - url: https://www.reddit.com/r/selfhosted/.rss
+                    headers:
+                      User-Agent: Mozilla/5.0 (X11; Linux aarch64) Glance/0.8.6
               - type: rss
                 title: r/homelab
                 style: detailed-list
@@ -60,6 +63,8 @@ pages:
                 collapse-after: 6
                 feeds:
                   - url: https://www.reddit.com/r/homelab/.rss
+                    headers:
+                      User-Agent: Mozilla/5.0 (X11; Linux aarch64) Glance/0.8.6
               - type: hacker-news
 
           - type: rss
