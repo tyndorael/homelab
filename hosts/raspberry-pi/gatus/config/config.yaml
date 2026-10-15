@@ -1,0 +1,163 @@
+# https://github.com/TwiN/gatus#configuration
+# Environment placeholders (DOMAIN, PI_IP, PI_TAILSCALE_IP, ROUTER_IP) come from gatus/.env via compose.yaml.
+# Alerting is not configured yet: add an `alerting:` block (Telegram, ntfy, Discord…) and
+# `alerts:` per endpoint when you want notifications.
+
+ui:
+  title: Homelab status
+  header: Homelab
+  dashboard-heading: Homelab status
+  dashboard-subheading: Raspberry Pi (cyrene) — Unraid and Mac mini to come
+  default-sort-by: group
+
+storage:
+  type: memory   # no writes to the SD card; history resets on restart
+
+# Shared check settings, reused with YAML anchors.
+x-https: &https
+  interval: 2m
+  client:
+    dns-resolver: "udp://${PI_IP}:53"   # resolve *.DOMAIN through AdGuard, like LAN clients do
+    timeout: 10s
+  conditions:
+    - "[STATUS] == 200"
+    - "[RESPONSE_TIME] < 2000"
+    - "[CERTIFICATE_EXPIRATION] > 480h"   # NPM renews at 30 days; < 20 days left means renewal is failing
+
+x-internal: &internal
+  interval: 1m
+  client:
+    timeout: 5s
+
+endpoints:
+  # --- What users hit: DNS (AdGuard) -> NPM -> container, over HTTPS with the wildcard cert ---
+  - name: Homepage
+    group: 1. Web (via NPM)
+    url: "https://home.${DOMAIN}/"
+    <<: *https
+  - name: Glance
+    group: 1. Web (via NPM)
+    url: "https://glance.${DOMAIN}/"
+    <<: *https
+  - name: Nginx Proxy Manager
+    group: 1. Web (via NPM)
+    url: "https://npm.${DOMAIN}/"
+    <<: *https
+  - name: Portainer
+    group: 1. Web (via NPM)
+    url: "https://portainer.${DOMAIN}/"
+    <<: *https
+  - name: AdGuard Home
+    group: 1. Web (via NPM)
+    url: "https://adguard.${DOMAIN}/"
+    <<: *https
+  - name: Dozzle
+    group: 1. Web (via NPM)
+    url: "https://logs.${DOMAIN}/"
+    <<: *https
+  - name: Gatus
+    group: 1. Web (via NPM)
+    url: "https://status.${DOMAIN}/"
+    <<: *https
+
+  # --- Containers directly over the proxy network (tells NPM problems apart from app problems) ---
+  - name: homepage
+    group: 2. Containers
+    url: "http://homepage:3000/api/healthcheck"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: glance
+    group: 2. Containers
+    url: "http://glance:8080/api/healthz"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: nginx-proxy-manager
+    group: 2. Containers
+    url: "http://nginx-proxy-manager:81/"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: portainer
+    group: 2. Containers
+    url: "http://portainer:9000/api/system/status"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: adguard-home
+    group: 2. Containers
+    url: "http://adguard-home:80/login.html"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: dozzle
+    group: 2. Containers
+    url: "http://dozzle:8080/healthcheck"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+
+  # --- DNS ---
+  - name: Local records (*.DOMAIN -> Pi)
+    group: 3. DNS (AdGuard)
+    url: "${PI_IP}"
+    interval: 1m
+    dns:
+      query-name: "home.${DOMAIN}"
+      query-type: "A"
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+      - "[BODY] == ${PI_IP}"
+  - name: Ad blocking
+    group: 3. DNS (AdGuard)
+    url: "${PI_IP}"
+    interval: 5m
+    dns:
+      query-name: "doubleclick.net"
+      query-type: "A"
+    conditions:
+      - "[BODY] == 0.0.0.0"
+  - name: Upstream resolution
+    group: 3. DNS (AdGuard)
+    url: "${PI_IP}"
+    interval: 1m
+    dns:
+      query-name: "example.com"
+      query-type: "A"
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+
+  # --- Network ---
+  - name: Router DNS
+    group: 4. Network
+    url: "${ROUTER_IP}"
+    interval: 2m
+    dns:
+      query-name: "example.com"
+      query-type: "A"
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+  - name: Internet (Cloudflare DNS)
+    group: 4. Network
+    url: "1.1.1.1"
+    interval: 2m
+    dns:
+      query-name: "example.com"
+      query-type: "A"
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+  - name: Tailscale (Pi reachable on tailnet IP)
+    group: 4. Network
+    url: "tcp://${PI_TAILSCALE_IP}:22"
+    interval: 2m
+    conditions:
+      - "[CONNECTED] == true"
+
+  # --- Next hosts (uncomment when they are online) ---
+  # - name: Unraid web UI
+  #   group: 5. Hosts
+  #   url: "http://<unraid-ip>/"
+  #   conditions: ["[STATUS] < 400"]
+  # - name: Unraid Portainer agent
+  #   group: 5. Hosts
+  #   url: "tcp://<unraid-ip>:9001"
+  #   conditions: ["[CONNECTED] == true"]
+  # - name: Mac mini Portainer agent
+  #   group: 5. Hosts
+  #   url: "tcp://<mac-ip>:9001"
+  #   conditions: ["[CONNECTED] == true"]

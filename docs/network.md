@@ -17,6 +17,8 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Pi | 9443 | Portainer | `127.0.0.1` only (via `portainer.<domain>`) |
 | Pi | 3000 | Homepage | `127.0.0.1` only (via `home.<domain>`) |
 | Pi | 8084 | Glance | `127.0.0.1` only (via `glance.<domain>`) |
+| Pi | 8085 | Gatus | `127.0.0.1` only (via `status.<domain>`) |
+| Pi | 8086 | Dozzle | `127.0.0.1` only (via `logs.<domain>`) |
 | Pi | 53 tcp/udp | AdGuard Home DNS | LAN |
 | Pi | 3001 / 8083 | AdGuard Home setup / UI | `127.0.0.1` only (via `adguard.<domain>`) |
 | Pi | 41641/udp | Tailscale (host network) | WAN outbound/UDP, no port forward needed |

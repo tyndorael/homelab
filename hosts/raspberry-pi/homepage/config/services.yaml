@@ -43,6 +43,21 @@
         description: Start page — feeds, weather, releases
         server: pi
         container: glance
+    - Gatus:
+        icon: gatus.png
+        href: https://status.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Health checks & status page
+        server: pi
+        container: gatus
+        widget:
+          type: gatus
+          url: http://gatus:8080
+    - Dozzle:
+        icon: dozzle.png
+        href: https://logs.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Container logs
+        server: pi
+        container: dozzle
     - Tailscale:
         icon: tailscale.png
         href: https://login.tailscale.com/admin/machines

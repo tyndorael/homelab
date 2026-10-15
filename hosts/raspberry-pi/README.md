@@ -21,6 +21,8 @@ Runs the always-on, lightweight services: reverse proxy, Docker management and t
 | `homepage` | 3000 | `https://home.<domain>` |
 | `adguard-home` | 53 tcp/udp, 3001 (setup), 8083 (UI) | `https://adguard.<domain>` |
 | `glance` | 8084 | `https://glance.<domain>` |
+| `gatus` | 8085 | `https://status.<domain>` |
+| `dozzle` | 8086 | `https://logs.<domain>` |
 | `tailscale` | host network (41641/udp) | tailnet node `cyrene`, subnet router for `192.168.50.0/24` |
 
 ## Running from an SD card
@@ -53,13 +55,15 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
 ## First start
 ```bash
 make network HOST=raspberry-pi                 # creates the shared `proxy` network (once)
-for s in nginx-proxy-manager portainer homepage glance adguard-home tailscale; do
+for s in nginx-proxy-manager portainer homepage glance gatus dozzle adguard-home tailscale; do
   cp hosts/raspberry-pi/$s/.env.example hosts/raspberry-pi/$s/.env   # then edit each .env
 done
 make up HOST=raspberry-pi STACK=nginx-proxy-manager
 make up HOST=raspberry-pi STACK=portainer
 make up HOST=raspberry-pi STACK=homepage
 make up HOST=raspberry-pi STACK=glance
+make up HOST=raspberry-pi STACK=gatus
+make up HOST=raspberry-pi STACK=dozzle      # after creating dozzle/data/users.yml (see Monitoring & logs)
 make up HOST=raspberry-pi STACK=adguard-home
 make up HOST=raspberry-pi STACK=tailscale
 ```
@@ -86,6 +90,17 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
   - AdGuard Home: `ADGUARD_USERNAME` / `ADGUARD_PASSWORD`.
   Then `make up HOST=raspberry-pi STACK=homepage`.
 - **Glance** (`glance.<domain>`) is the personal start page: search, weather, calendar, homelab blogs (noted.lol, Jeff Geerling, ServeTheHome), Hacker News, Lobsters, selfh.st, release notes for the homelab apps and a service monitor. Edit `glance/config/glance.yml` — it reloads on save, no restart needed. It's stateless and runs read-only, so it never writes to the SD card.
+
+## Monitoring & logs
+- **Gatus** (`status.<domain>`) checks every service three ways: through NPM over HTTPS (also alerting on certificates with < 20 days left), directly on the `proxy` network, and DNS (local records, ad blocking, upstream), plus router, internet and Tailscale reachability. Checks live in `gatus/config/config.yaml` — edit, commit, `make up HOST=raspberry-pi STACK=gatus`. History is kept **in memory** (no SD writes) and resets on restart. Alerting is not configured yet; add an `alerting:` block (Telegram/ntfy/Discord) when wanted. Unraid/Mac checks are pre-written as comments.
+- **Dozzle** (`logs.<domain>`) streams container logs, read-only (actions and shell disabled), through its own socket proxy. Logs can contain secrets, so it requires a login. Create the user file once on the Pi — the password is prompted for and never stored in shell history:
+  ```bash
+  mkdir -p ~/homelab/hosts/raspberry-pi/dozzle/data
+  docker run -it --rm amir20/dozzle:v11.3.2 generate <username> --name "<Your Name>" --email <you@example.com> \
+    > ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml
+  ```
+  Later, Dozzle agents on Unraid and the Mac mini can stream their logs into the same UI.
+- NPM proxy hosts: `status.<domain>` → `gatus:8080`, `logs.<domain>` → `dozzle:8080` (enable **Websockets** for Dozzle).
 
 ## AdGuard Home
 1. Open `http://192.168.50.106:3001` and run the wizard. Keep its defaults: admin UI on port **80** and DNS on **53** (container ports, published as 8083 and 53). Create the admin user.

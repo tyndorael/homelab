@@ -1,0 +1,67 @@
+# Dozzle — live container logs in the browser (logs.<domain>). Nothing is stored; it streams.
+# Docker access goes through a read-only socket proxy (Dozzle never touches docker.sock directly).
+# Login: simple auth from ./data/users.yml — generate it once (see README), it is gitignored.
+name: dozzle
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  dozzle:
+    image: amir20/dozzle:v11.3.2
+    container_name: dozzle
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      DOZZLE_REMOTE_HOST: tcp://dozzle-socket-proxy:2375|${HOST_LABEL:-cyrene}
+      DOZZLE_AUTH_PROVIDER: ${DOZZLE_AUTH_PROVIDER:-simple}
+      DOZZLE_NO_ANALYTICS: "true"
+      DOZZLE_ENABLE_ACTIONS: "false"   # view only: no start/stop/restart from the UI
+      DOZZLE_ENABLE_SHELL: "false"
+    ports:
+      - "${DOZZLE_BIND:-0.0.0.0}:8086:8080"   # drop/restrict once proxied by NPM
+    volumes:
+      - ./data:/data   # users.yml lives here
+    networks:
+      - proxy
+      - socket
+    depends_on:
+      - socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 1m
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+    logging: *logging
+
+  socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:3.4.6-r0-ls102
+    container_name: dozzle-socket-proxy
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1   # list containers + read their logs
+      INFO: 1
+      EVENTS: 1
+      POST: 0         # read-only
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket
+    read_only: true
+    tmpfs:
+      - /run
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+networks:
+  proxy:
+    external: true
+  socket:
+    internal: true

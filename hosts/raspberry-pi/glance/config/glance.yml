@@ -91,6 +91,14 @@ pages:
                 url: https://adguard.${DOMAIN}
                 check-url: http://adguard-home:80/login.html
                 icon: di:adguard-home
+              - title: Gatus
+                url: https://status.${DOMAIN}
+                check-url: http://gatus:8080/health
+                icon: di:gatus
+              - title: Dozzle
+                url: https://logs.${DOMAIN}
+                check-url: http://dozzle:8080/healthcheck
+                icon: di:dozzle
 
           - type: bookmarks
             groups:

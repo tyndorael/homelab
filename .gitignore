@@ -12,6 +12,7 @@ hosts/**/config/
 hosts/**/letsencrypt/
 !hosts/raspberry-pi/homepage/config/
 !hosts/raspberry-pi/glance/config/
+!hosts/raspberry-pi/gatus/config/
 hosts/raspberry-pi/homepage/config/logs/
 
 # Backups
