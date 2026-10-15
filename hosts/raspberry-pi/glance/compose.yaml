@@ -1,0 +1,41 @@
+# Glance — personal start page (feeds, weather, releases, service checks). Stateless: nothing is
+# written to disk, so it's ideal for the SD card. Config is tracked in ./config and hot-reloads on save.
+name: glance
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  glance:
+    image: glanceapp/glance:v0.8.6
+    container_name: glance
+    restart: unless-stopped
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      TZ: ${TZ:-UTC}
+      # Referenced from config/glance.yml as ${VAR}; Glance refuses to start if one is missing.
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      WEATHER_LOCATION: ${WEATHER_LOCATION:-Santiago, Chile}
+    ports:
+      - "${GLANCE_BIND:-0.0.0.0}:8084:8080"   # drop/restrict once proxied by NPM
+    volumes:
+      - ./config:/app/config:ro
+    networks:
+      - proxy
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1:8080/api/healthz"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging: *logging
+
+networks:
+  proxy:
+    external: true

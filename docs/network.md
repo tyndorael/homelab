@@ -16,6 +16,7 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Pi | 81 | NPM admin | LAN → `127.0.0.1` after setup |
 | Pi | 9443 | Portainer | LAN → `127.0.0.1` after setup |
 | Pi | 3000 | Homepage | LAN → `127.0.0.1` after setup |
+| Pi | 8084 | Glance | LAN → `127.0.0.1` after setup |
 | Pi | 53 tcp/udp | AdGuard Home DNS | LAN |
 | Pi | 3001 / 8083 | AdGuard Home setup / UI | LAN → `127.0.0.1` after setup |
 | Pi | 41641/udp | Tailscale (host network) | WAN outbound/UDP, no port forward needed |

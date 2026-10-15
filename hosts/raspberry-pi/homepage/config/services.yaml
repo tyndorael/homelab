@@ -1,6 +1,7 @@
 # https://gethomepage.dev/configs/services/
 # {{HOMEPAGE_VAR_*}} values come from homepage/.env (see compose.yaml).
-# Add API-key widgets later; keep keys in .env as HOMEPAGE_VAR_* and pass them through compose.yaml.
+# Widget credentials live in .env and are passed through compose.yaml as HOMEPAGE_VAR_*.
+# Widgets reach Pi services by container name over the `proxy` network.
 
 - Infrastructure:
     - Nginx Proxy Manager:
@@ -9,18 +10,39 @@
         description: Reverse proxy & certificates
         server: pi
         container: nginx-proxy-manager
+        widget:
+          type: npm
+          url: http://nginx-proxy-manager:81
+          username: "{{HOMEPAGE_VAR_NPM_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_NPM_PASSWORD}}"
     - Portainer:
         icon: portainer.png
         href: https://portainer.{{HOMEPAGE_VAR_DOMAIN}}
         description: Docker management (Pi, Unraid, Mac mini)
         server: pi
         container: portainer
+        widget:
+          type: portainer
+          url: http://portainer:9000
+          env: "{{HOMEPAGE_VAR_PORTAINER_ENV}}"
+          key: "{{HOMEPAGE_VAR_PORTAINER_KEY}}"
     - AdGuard Home:
         icon: adguard-home.png
         href: https://adguard.{{HOMEPAGE_VAR_DOMAIN}}
         description: DNS & ad blocking
         server: pi
         container: adguard-home
+        widget:
+          type: adguard
+          url: http://adguard-home:80
+          username: "{{HOMEPAGE_VAR_ADGUARD_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_ADGUARD_PASSWORD}}"
+    - Glance:
+        icon: glance.png
+        href: https://glance.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Start page — feeds, weather, releases
+        server: pi
+        container: glance
     - Tailscale:
         icon: tailscale.png
         href: https://login.tailscale.com/admin/machines

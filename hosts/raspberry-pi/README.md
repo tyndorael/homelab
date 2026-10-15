@@ -20,6 +20,7 @@ Runs the always-on, lightweight services: reverse proxy, Docker management and t
 | `portainer` | 9443 | `https://portainer.<domain>` |
 | `homepage` | 3000 | `https://home.<domain>` |
 | `adguard-home` | 53 tcp/udp, 3001 (setup), 8083 (UI) | `https://adguard.<domain>` |
+| `glance` | 8084 | `https://glance.<domain>` |
 | `tailscale` | host network (41641/udp) | tailnet node `cyrene`, subnet router for `192.168.50.0/24` |
 
 ## Running from an SD card
@@ -52,12 +53,13 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
 ## First start
 ```bash
 make network HOST=raspberry-pi                 # creates the shared `proxy` network (once)
-for s in nginx-proxy-manager portainer homepage adguard-home tailscale; do
+for s in nginx-proxy-manager portainer homepage glance adguard-home tailscale; do
   cp hosts/raspberry-pi/$s/.env.example hosts/raspberry-pi/$s/.env   # then edit each .env
 done
 make up HOST=raspberry-pi STACK=nginx-proxy-manager
 make up HOST=raspberry-pi STACK=portainer
 make up HOST=raspberry-pi STACK=homepage
+make up HOST=raspberry-pi STACK=glance
 make up HOST=raspberry-pi STACK=adguard-home
 make up HOST=raspberry-pi STACK=tailscale
 ```
@@ -68,6 +70,15 @@ Then:
 - **AdGuard Home**: see [AdGuard Home](#adguard-home) below.
 - **Tailscale**: see [Tailscale](#tailscale) below.
 - Once everything is proxied by container name, set `ADMIN_BIND` / `PORTAINER_BIND` / `HOMEPAGE_BIND=127.0.0.1` so the raw ports are no longer exposed on the LAN.
+
+## Dashboards
+- **Homepage** (`home.<domain>`) is the services panel: status, container stats and service widgets.
+  Widget credentials go in `homepage/.env` (see `.env.example`) — use low-privilege accounts:
+  - NPM: *Users → Add user* with **View Only** permissions → `NPM_USERNAME` / `NPM_PASSWORD`.
+  - Portainer: *My account → Access tokens → Add* → `PORTAINER_KEY`; `PORTAINER_ENV` is the number in the local environment's URL.
+  - AdGuard Home: `ADGUARD_USERNAME` / `ADGUARD_PASSWORD`.
+  Then `make up HOST=raspberry-pi STACK=homepage`.
+- **Glance** (`glance.<domain>`) is the personal start page: search, weather, calendar, r/selfhosted, r/homelab, Hacker News, selfh.st, release notes for the homelab apps and a service monitor. Edit `glance/config/glance.yml` — it reloads on save, no restart needed. It's stateless and runs read-only, so it never writes to the SD card.
 
 ## AdGuard Home
 1. Open `http://192.168.50.106:3001` and run the wizard. Keep its defaults: admin UI on port **80** and DNS on **53** (container ports, published as 8083 and 53). Create the admin user.
