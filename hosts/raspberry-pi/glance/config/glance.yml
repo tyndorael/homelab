@@ -1,0 +1,104 @@
+# https://github.com/glanceapp/glance/blob/main/docs/configuration.md
+# Environment placeholders (DOMAIN, WEATHER_LOCATION) come from glance/.env via compose.yaml. Saving this file reloads Glance.
+server:
+  port: 8080
+
+pages:
+  - name: Home
+    hide-desktop-navigation: true
+    columns:
+      - size: small
+        widgets:
+          - type: clock
+            hour-format: 24h
+
+          - type: calendar
+            first-day-of-week: monday
+
+          - type: weather
+            location: ${WEATHER_LOCATION}
+            units: metric
+            hour-format: 24h
+
+          - type: releases
+            title: Homelab releases
+            cache: 12h
+            show-source-icon: true
+            collapse-after: 6
+            repositories:
+              - NginxProxyManager/nginx-proxy-manager
+              - portainer/portainer
+              - gethomepage/homepage
+              - glanceapp/glance
+              - AdguardTeam/AdGuardHome
+              - tailscale/tailscale
+              - jellyfin/jellyfin
+
+      - size: full
+        widgets:
+          - type: search
+            search-engine: duckduckgo
+            autofocus: true
+
+          # Reddit blocks Glance's HTTP client (403 on both its JSON API and RSS, even with a browser
+          # User-Agent), so homelab news comes from feeds that allow automated readers.
+          - type: group
+            widgets:
+              - type: rss
+                title: Homelab blogs
+                style: detailed-list
+                cache: 6h
+                limit: 15
+                collapse-after: 6
+                feeds:
+                  - url: https://noted.lol/rss/
+                    title: noted.lol
+                  - url: https://www.jeffgeerling.com/blog.xml
+                    title: Jeff Geerling
+                  - url: https://www.servethehome.com/feed/
+                    title: ServeTheHome
+              - type: hacker-news
+              - type: lobsters
+
+          - type: rss
+            title: Self-hosting news
+            style: horizontal-cards
+            cache: 12h
+            limit: 12
+            feeds:
+              - url: https://selfh.st/rss/
+                title: selfh.st
+
+      - size: small
+        widgets:
+          - type: monitor
+            title: Services
+            cache: 1m
+            sites:
+              - title: Homepage
+                url: https://home.${DOMAIN}
+                check-url: http://homepage:3000/api/healthcheck
+                icon: di:homepage
+              - title: Nginx Proxy Manager
+                url: https://npm.${DOMAIN}
+                check-url: http://nginx-proxy-manager:81
+                icon: di:nginx-proxy-manager
+              - title: Portainer
+                url: https://portainer.${DOMAIN}
+                check-url: http://portainer:9000/api/system/status
+                icon: di:portainer
+              - title: AdGuard Home
+                url: https://adguard.${DOMAIN}
+                check-url: http://adguard-home:80/login.html
+                icon: di:adguard-home
+
+          - type: bookmarks
+            groups:
+              - title: Admin
+                links:
+                  - title: Tailscale console
+                    url: https://login.tailscale.com/admin/machines
+                  - title: DuckDNS
+                    url: https://www.duckdns.org/
+                  - title: Homelab repo
+                    url: https://github.com/tyndorael/homelab

@@ -1,0 +1,77 @@
+# Homepage — dashboard. Docker access goes through a read-only socket proxy, never the raw socket.
+name: homepage
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:v2.5.0
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_ALLOWED_HOSTS:?set HOMEPAGE_ALLOWED_HOSTS in .env}
+      HOMEPAGE_VAR_DOMAIN: ${DOMAIN}
+      HOMEPAGE_VAR_PI_IP: ${PI_IP}
+      HOMEPAGE_VAR_UNRAID_IP: ${UNRAID_IP}
+      HOMEPAGE_VAR_MAC_IP: ${MAC_IP}
+      # Widget credentials (empty = the widget shows an error until filled in .env)
+      HOMEPAGE_VAR_NPM_USERNAME: ${NPM_USERNAME:-}
+      HOMEPAGE_VAR_NPM_PASSWORD: ${NPM_PASSWORD:-}
+      HOMEPAGE_VAR_PORTAINER_ENV: ${PORTAINER_ENV:-3}
+      HOMEPAGE_VAR_PORTAINER_KEY: ${PORTAINER_KEY:-}
+      HOMEPAGE_VAR_ADGUARD_USERNAME: ${ADGUARD_USERNAME:-}
+      HOMEPAGE_VAR_ADGUARD_PASSWORD: ${ADGUARD_PASSWORD:-}
+    ports:
+      - "${HOMEPAGE_BIND:-0.0.0.0}:3000:3000"   # drop/restrict once proxied by NPM
+    volumes:
+      - ./config:/app/config   # tracked in git (except logs/)
+    networks:
+      - proxy
+      - socket
+    depends_on:
+      - socket-proxy
+    # The image ships a page pre-rendered from the default config; it is only rebuilt via
+    # /api/revalidate. Calling it from the healthcheck keeps the page current after every
+    # (re)start — the endpoint returns 200 once the server is up, so it doubles as a health probe.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null -Y off http://127.0.0.1:3000/api/revalidate || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+  socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:3.4.6-r0-ls102
+    container_name: homepage-socket-proxy
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1   # read-only container listing for Homepage
+      INFO: 1
+      POST: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket
+    read_only: true
+    tmpfs:
+      - /run
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+networks:
+  proxy:
+    external: true
+  socket:
+    internal: true   # not reachable from outside the stack

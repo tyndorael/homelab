@@ -1,83 +1,53 @@
-.PHONY: network core-up core-down media-up media-down tools-up tools-down ai-up ai-down remote-up remote-down diagrams-up diagrams-down cockpit-install pull logs-core logs-media logs-tools logs-ai logs-remote logs-diagrams ps
+# Usage: make <target> HOST=<raspberry-pi|unraid|mac-mini> STACK=<stack folder>
+#   make up HOST=raspberry-pi STACK=portainer
+#   make validate            # check every compose.yaml in the repo
 
-CORE_DIR     := stacks/core
-MEDIA_DIR    := stacks/media
-TOOLS_DIR    := stacks/tools
-AI_DIR       := stacks/ai
-REMOTE_DIR   := stacks/remote
-DIAGRAMS_DIR := stacks/diagrams
+HOST  ?=
+STACK ?=
+DIR   := hosts/$(HOST)/$(STACK)
+COMPOSE = docker compose --project-directory $(DIR) -f $(DIR)/compose.yaml
 
-network:
-	docker network create homelab 2>/dev/null || true
+.PHONY: help up down restart pull update logs ps config network validate check-args
 
-core-up: network
-	docker compose -f $(CORE_DIR)/docker-compose.yml --env-file $(CORE_DIR)/.env up -d
+help:
+	@grep -E '^#' Makefile | sed 's/^# \{0,1\}//'
+	@echo "Targets: up down restart pull update logs ps config network validate"
 
-core-down:
-	docker compose -f $(CORE_DIR)/docker-compose.yml --env-file $(CORE_DIR)/.env down
+check-args:
+	@test -n "$(HOST)" -a -n "$(STACK)" || { echo "HOST and STACK are required"; exit 1; }
+	@test -f $(DIR)/compose.yaml || { echo "$(DIR)/compose.yaml not found"; exit 1; }
+	@test -f $(DIR)/.env -o ! -f $(DIR)/.env.example || { echo "Missing $(DIR)/.env (copy from .env.example)"; exit 1; }
 
-media-up: network
-	docker compose -f $(MEDIA_DIR)/docker-compose.yml --env-file $(MEDIA_DIR)/.env up -d
+up: check-args
+	$(COMPOSE) up -d --remove-orphans
 
-media-down:
-	docker compose -f $(MEDIA_DIR)/docker-compose.yml --env-file $(MEDIA_DIR)/.env down
+down: check-args
+	$(COMPOSE) down
 
-tools-up: network
-	docker compose -f $(TOOLS_DIR)/docker-compose.yml --env-file $(TOOLS_DIR)/.env up -d
+restart: check-args
+	$(COMPOSE) restart
 
-tools-down:
-	docker compose -f $(TOOLS_DIR)/docker-compose.yml --env-file $(TOOLS_DIR)/.env down
+pull: check-args
+	$(COMPOSE) pull
 
-ai-up: network
-	docker compose -f $(AI_DIR)/docker-compose.yml --env-file $(AI_DIR)/.env up -d
+update: pull up   ## pull new images, recreate changed containers
+	docker image prune -f
 
-ai-down:
-	docker compose -f $(AI_DIR)/docker-compose.yml --env-file $(AI_DIR)/.env down
+logs: check-args
+	$(COMPOSE) logs -f --tail=100
 
-remote-up: network
-	docker compose -f $(REMOTE_DIR)/docker-compose.yml --env-file $(REMOTE_DIR)/.env up -d
+ps: check-args
+	$(COMPOSE) ps
 
-remote-down:
-	docker compose -f $(REMOTE_DIR)/docker-compose.yml --env-file $(REMOTE_DIR)/.env down
+config: check-args
+	$(COMPOSE) config
 
-diagrams-up: network
-	docker compose -f $(DIAGRAMS_DIR)/docker-compose.yml --env-file $(DIAGRAMS_DIR)/.env up -d
+network:   ## shared reverse-proxy network on the Pi
+	docker network inspect proxy >/dev/null 2>&1 || docker network create proxy
 
-diagrams-down:
-	docker compose -f $(DIAGRAMS_DIR)/docker-compose.yml --env-file $(DIAGRAMS_DIR)/.env down
-
-# Cockpit manages the host directly (systemd, packages, host-user login),
-# so it is installed on the host rather than run as a container.
-cockpit-install:
-	sudo apt update && sudo apt install -y cockpit cockpit-networkmanager cockpit-storaged cockpit-packagekit
-	sudo systemctl enable --now cockpit.socket
-	@echo "Cockpit is up on https://$$(hostname -I | awk '{print $$1}'):9090"
-
-pull:
-	docker compose -f $(CORE_DIR)/docker-compose.yml pull
-	docker compose -f $(MEDIA_DIR)/docker-compose.yml pull
-	docker compose -f $(TOOLS_DIR)/docker-compose.yml pull
-	docker compose -f $(AI_DIR)/docker-compose.yml pull
-	docker compose -f $(REMOTE_DIR)/docker-compose.yml pull
-	docker compose -f $(DIAGRAMS_DIR)/docker-compose.yml pull
-
-logs-core:
-	docker compose -f $(CORE_DIR)/docker-compose.yml --env-file $(CORE_DIR)/.env logs -f
-
-logs-media:
-	docker compose -f $(MEDIA_DIR)/docker-compose.yml --env-file $(MEDIA_DIR)/.env logs -f
-
-logs-tools:
-	docker compose -f $(TOOLS_DIR)/docker-compose.yml --env-file $(TOOLS_DIR)/.env logs -f
-
-logs-ai:
-	docker compose -f $(AI_DIR)/docker-compose.yml --env-file $(AI_DIR)/.env logs -f
-
-logs-remote:
-	docker compose -f $(REMOTE_DIR)/docker-compose.yml --env-file $(REMOTE_DIR)/.env logs -f
-
-logs-diagrams:
-	docker compose -f $(DIAGRAMS_DIR)/docker-compose.yml --env-file $(DIAGRAMS_DIR)/.env logs -f
-
-ps:
-	docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+validate:
+	@set -e; for f in $$(find hosts templates -name compose.yaml | sort); do \
+		d=$$(dirname $$f); env=$$d/.env; [ -f $$env ] || env=$$d/.env.example; \
+		ef=""; [ -f $$env ] && ef="--env-file $$env"; \
+		docker compose --project-directory $$d -f $$f $$ef config -q && echo "ok  $$f"; \
+	done

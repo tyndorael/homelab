@@ -1,16 +1,28 @@
-# Environment files — copy .env.example → .env and fill in values
+# Secrets
 .env
-stacks/**/.env
+*.env
+!.env.example
+*.pem
+*.key
+id_*
 
-# Runtime data — created automatically, never commit
-stacks/core/data/
-stacks/media/config/
-stacks/media/cache/
-stacks/media/data/
-stacks/tools/config/
-stacks/tools/data/
-stacks/ai/data/
-stacks/remote/data/
+# Runtime state (bind mounts next to each compose.yaml)
+hosts/**/data/
+hosts/**/config/
+hosts/**/letsencrypt/
+!hosts/raspberry-pi/homepage/config/
+!hosts/raspberry-pi/glance/config/
+hosts/raspberry-pi/homepage/config/logs/
 
-# Homepage runtime files
-stacks/core/config/homepage/logs/
+# Backups
+backups/
+*.tar.gz
+
+# Leftovers from v1 (Proxmox) that may still exist locally
+infrastructure/
+keys/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
