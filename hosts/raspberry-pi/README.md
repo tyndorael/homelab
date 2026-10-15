@@ -69,7 +69,14 @@ Then:
 - **Portainer** (`https://<pi-ip>:9443`): *Environments → Add → Agent* for Unraid and the Mac mini (`<ip>:9001`), using the same `AGENT_SECRET`.
 - **AdGuard Home**: see [AdGuard Home](#adguard-home) below.
 - **Tailscale**: see [Tailscale](#tailscale) below.
-- Once everything is proxied by container name, set `ADMIN_BIND` / `PORTAINER_BIND` / `HOMEPAGE_BIND=127.0.0.1` so the raw ports are no longer exposed on the LAN.
+- Once everything is proxied by container name, set `ADMIN_BIND`, `PORTAINER_BIND`, `HOMEPAGE_BIND`, `GLANCE_BIND`, `ADGUARD_SETUP_BIND` and `ADGUARD_UI_BIND` to `127.0.0.1` and `make up` each stack, so the raw ports are no longer exposed on the LAN. **Done on cyrene (2026-10-14)**: from the LAN only 22 (SSH), 53 (DNS) and 80/443 (NPM) answer.
+
+### Reaching an admin UI when NPM is down
+The UIs still listen on the Pi's loopback, so tunnel them over SSH, e.g. NPM's admin:
+```bash
+ssh -L 8081:127.0.0.1:81 tyndorael@192.168.50.106    # then open http://localhost:8081
+```
+Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:9443`), Homepage (`3000`), Glance (`8084`) and AdGuard (`8083`).
 
 ## Dashboards
 - **Homepage** (`home.<domain>`) is the services panel: status, container stats and service widgets.

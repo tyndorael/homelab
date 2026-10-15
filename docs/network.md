@@ -13,12 +13,12 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Host | Port | Service | Exposure |
 |---|---|---|---|
 | Pi | 80 / 443 | Nginx Proxy Manager | LAN |
-| Pi | 81 | NPM admin | LAN → `127.0.0.1` after setup |
-| Pi | 9443 | Portainer | LAN → `127.0.0.1` after setup |
-| Pi | 3000 | Homepage | LAN → `127.0.0.1` after setup |
-| Pi | 8084 | Glance | LAN → `127.0.0.1` after setup |
+| Pi | 81 | NPM admin | `127.0.0.1` only (via `npm.<domain>`) |
+| Pi | 9443 | Portainer | `127.0.0.1` only (via `portainer.<domain>`) |
+| Pi | 3000 | Homepage | `127.0.0.1` only (via `home.<domain>`) |
+| Pi | 8084 | Glance | `127.0.0.1` only (via `glance.<domain>`) |
 | Pi | 53 tcp/udp | AdGuard Home DNS | LAN |
-| Pi | 3001 / 8083 | AdGuard Home setup / UI | LAN → `127.0.0.1` after setup |
+| Pi | 3001 / 8083 | AdGuard Home setup / UI | `127.0.0.1` only (via `adguard.<domain>`) |
 | Pi | 41641/udp | Tailscale (host network) | WAN outbound/UDP, no port forward needed |
 | Unraid | 80/443 | Unraid web UI | LAN |
 | Unraid | 9001 | Portainer Agent | LAN (Pi only, ideally) |
