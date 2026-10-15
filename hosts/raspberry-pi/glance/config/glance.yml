@@ -1,5 +1,5 @@
 # https://github.com/glanceapp/glance/blob/main/docs/configuration.md
-# ${VAR} values come from glance/.env via compose.yaml. Saving this file reloads Glance.
+# Environment placeholders (DOMAIN, WEATHER_LOCATION) come from glance/.env via compose.yaml. Saving this file reloads Glance.
 server:
   port: 8080
 

@@ -16,7 +16,7 @@ services:
     user: "${PUID:-1000}:${PGID:-1000}"
     environment:
       TZ: ${TZ:-UTC}
-      # Referenced from config/glance.yml as ${VAR}; Glance refuses to start if one is missing.
+      # Referenced from config/glance.yml; Glance refuses to start if one is missing.
       DOMAIN: ${DOMAIN:?set DOMAIN in .env}
       WEATHER_LOCATION: ${WEATHER_LOCATION:-Santiago, Chile}
     ports:
