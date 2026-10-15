@@ -24,12 +24,15 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Pi | 53 tcp/udp | AdGuard Home DNS | LAN |
 | Pi | 3001 / 8083 | AdGuard Home setup / UI | `127.0.0.1` only (via `adguard.<domain>`) |
 | Pi | 41641/udp | Tailscale (host network) | WAN outbound/UDP, no port forward needed |
+| Pi | 21115–21117 tcp, 21116 udp | RustDesk ID + relay (host network) | LAN / tailnet, never forwarded |
 | Unraid | 80/443 | Unraid web UI | LAN |
 | Unraid | 9001 | Portainer Agent | LAN (Pi only, ideally) |
 | Unraid | 8096 | Jellyfin | LAN |
 | Unraid | 8989 / 7878 / 9696 | Sonarr / Radarr / Prowlarr | LAN |
 | Unraid | 8080, 6881 tcp/udp | qBittorrent | LAN |
 | Mac mini | 9001 | Portainer Agent | LAN (Pi only, ideally) |
+| Mac mini | 22 | SSH (key only) | LAN |
+| Mac mini | 5900 | Screen Sharing (VNC) | LAN / tailnet — see [remote-desktop.md](remote-desktop.md) |
 
 ## DNS & TLS
 1. Domain: a DuckDNS subdomain today (`<name>.duckdns.org`, set as `DOMAIN` in `homepage/.env`); any domain you own works.

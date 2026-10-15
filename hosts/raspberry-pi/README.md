@@ -23,7 +23,8 @@ Runs the always-on, lightweight services: reverse proxy, Docker management and t
 | `glance` | 8084 | `https://glance.<domain>` |
 | `gatus` | 8085 | `https://status.<domain>` |
 | `dozzle` | 8086 | `https://logs.<domain>` |
-| `termix` | 8087 | `https://termix.<domain>` |
+| `termix` (+ `guacd`) | 8087 | `https://termix.<domain>` |
+| `rustdesk` | 21115–21117 (host network) | RustDesk clients → `192.168.50.106` |
 | Cockpit (host, not a container) | 9090 | `https://cockpit.<domain>` |
 | `tailscale` | host network (41641/udp) | tailnet node `cyrene`, subnet router for `192.168.50.0/24` |
 
@@ -57,7 +58,7 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
 ## First start
 ```bash
 make network HOST=raspberry-pi                 # creates the shared `proxy` network (once)
-for s in nginx-proxy-manager portainer homepage glance gatus dozzle termix adguard-home tailscale; do
+for s in nginx-proxy-manager portainer homepage glance gatus dozzle termix rustdesk adguard-home tailscale; do
   cp hosts/raspberry-pi/$s/.env.example hosts/raspberry-pi/$s/.env   # then edit each .env
 done
 make up HOST=raspberry-pi STACK=nginx-proxy-manager
@@ -67,6 +68,7 @@ make up HOST=raspberry-pi STACK=glance
 make up HOST=raspberry-pi STACK=gatus
 make up HOST=raspberry-pi STACK=dozzle      # after creating dozzle/data/users.yml (see Monitoring & logs)
 make up HOST=raspberry-pi STACK=termix
+make up HOST=raspberry-pi STACK=rustdesk
 hosts/raspberry-pi/host/cockpit/install.sh <domain>   # Cockpit on the host (see Server admin)
 make up HOST=raspberry-pi STACK=adguard-home
 make up HOST=raspberry-pi STACK=tailscale

@@ -191,3 +191,20 @@ endpoints:
     url: "tcp://${MAC_IP}:22"
     interval: 2m
     conditions: ["[CONNECTED] == true"]
+  - name: Mac mini Screen Sharing (VNC)
+    group: 5. Hosts
+    url: "tcp://${MAC_IP}:5900"
+    interval: 2m
+    conditions: ["[CONNECTED] == true"]
+
+  # --- Remote desktop ---
+  - name: RustDesk ID server (hbbs)
+    group: 6. Remote desktop
+    url: "tcp://${PI_IP}:21116"
+    interval: 2m
+    conditions: ["[CONNECTED] == true"]
+  - name: RustDesk relay (hbbr)
+    group: 6. Remote desktop
+    url: "tcp://${PI_IP}:21117"
+    interval: 2m
+    conditions: ["[CONNECTED] == true"]

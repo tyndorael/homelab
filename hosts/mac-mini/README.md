@@ -23,6 +23,9 @@ The Mac must come back on its own after a power cut, with Docker running, and no
 - **OrbStack** starts at login: `orb config set app.start_at_login true`. Containers use `restart: unless-stopped`.
 - Homebrew in `/opt/homebrew` (shellenv in `~/.zprofile`).
 
+## Remote desktop
+Screen Sharing (VNC) is enabled; RustDesk and browser access via Termix are also set up. Running headless needs an HDMI dummy plug or a virtual display. See [docs/remote-desktop.md](../../docs/remote-desktop.md).
+
 ## Host preparation (fresh Mac)
 1. Steps above, then `brew install --cask orbstack`, open it once and pick Docker.
 2. Clone the repo: `git clone https://github.com/tyndorael/homelab.git ~/homelab`.

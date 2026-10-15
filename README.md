@@ -7,7 +7,7 @@ Docker Compose definitions for a small homelab, one folder per stack, all state 
 ## Hosts (phase 1)
 | Host | Role | Stacks |
 |---|---|---|
-| [Raspberry Pi 4 · 8 GB · microSD](hosts/raspberry-pi/README.md) | Edge / control | `nginx-proxy-manager`, `portainer`, `homepage`, `glance`, `gatus`, `dozzle`, `termix`, `adguard-home`, `tailscale` + Cockpit on the host |
+| [Raspberry Pi 4 · 8 GB · microSD](hosts/raspberry-pi/README.md) | Edge / control | `nginx-proxy-manager`, `portainer`, `homepage`, `glance`, `gatus`, `dozzle`, `termix`, `rustdesk`, `adguard-home`, `tailscale` + Cockpit on the host |
 | [Unraid](hosts/unraid/README.md) | Storage / media / VMs | `portainer-agent`, `media` (Jellyfin, Sonarr, Radarr, Prowlarr, qBittorrent); planned: Home Assistant OS VM |
 | [Mac mini M2 · silverwolf](hosts/mac-mini/README.md) | Development / apps | `portainer-agent`, `apps/*` |
 
@@ -41,3 +41,4 @@ Other targets: `down`, `restart`, `pull`, `update`, `logs`, `ps`, `config`, `val
 - [Conventions & good practices](docs/conventions.md)
 - [Network, DNS & TLS](docs/network.md)
 - [Backups](docs/backups.md)
+- [Remote desktop](docs/remote-desktop.md)

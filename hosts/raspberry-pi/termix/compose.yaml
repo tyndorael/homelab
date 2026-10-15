@@ -1,6 +1,8 @@
 # Termix — browser SSH for all hosts (terminal, file manager, saved connections) at termix.<domain>.
 # Has its own accounts: the first user to register becomes admin — register right after the first start.
 # Saved hosts/keys are stored encrypted in ./data (SQLite).
+# guacd powers Termix's Remote Desktop plugin: VNC/RDP sessions in the browser (e.g. the Mac mini's
+# built-in Screen Sharing on :5900). It is only reachable by Termix, on an internal network.
 name: termix
 
 x-logging: &logging
@@ -17,12 +19,34 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       PORT: "8080"
+      GUACD_HOST: guacd
+      GUACD_TUNNEL_HOST: termix
+      # Paths as seen by guacd (it mounts ./data at /termix-data)
+      GUACD_RECORDING_PATH: /termix-data/session_recordings/guacamole
+      GUACD_DRIVE_PATH: /termix-data/rdp-drive
     ports:
       - "${TERMIX_BIND:-0.0.0.0}:8087:8080"   # drop/restrict once proxied by NPM
     volumes:
       - ./data:/app/data
     networks:
       - proxy
+      - guacd
+    depends_on:
+      - guacd
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+  guacd:
+    image: guacamole/guacd:1.6.0
+    container_name: termix-guacd
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ./data:/termix-data
+    networks:
+      - guacd   # outbound VNC/RDP to LAN hosts works through the bridge; nothing reaches guacd but Termix
     security_opt:
       - no-new-privileges:true
     logging: *logging
@@ -30,3 +54,4 @@ services:
 networks:
   proxy:
     external: true
+  guacd: {}
