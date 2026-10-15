@@ -1,6 +1,7 @@
 # Tailscale — remote access to the whole LAN without opening ports (subnet router).
-# Without TS_AUTHKEY the first start prints a login URL: `make logs HOST=raspberry-pi STACK=tailscale`.
-# Then approve the advertised route in the Tailscale admin console (Machines -> cyrene -> Edit route settings).
+# First login needs a one-time auth key in .env (TS_AUTHKEY): the container only waits ~60 s for an
+# interactive browser login before restarting with a new URL. After the first login the node key in
+# ./data is reused and the auth key is no longer needed (TS_AUTH_ONCE). Then approve the advertised route in the Tailscale admin console (Machines -> cyrene -> Edit route settings).
 name: tailscale
 
 x-logging: &logging
@@ -22,7 +23,8 @@ services:
       - /dev/net/tun:/dev/net/tun
     environment:
       TZ: ${TZ:-UTC}
-      TS_AUTHKEY: ${TS_AUTHKEY:-}            # optional; leave empty to log in via URL
+      TS_AUTHKEY: ${TS_AUTHKEY:-}            # tskey-auth-... (one-off, only for the first login)
+      TS_AUTH_ONCE: "true"                    # don't re-login on restart when ./data already has a node key
       TS_HOSTNAME: ${TS_HOSTNAME:-cyrene}
       TS_STATE_DIR: /var/lib/tailscale        # node identity survives recreation
       TS_USERSPACE: "false"

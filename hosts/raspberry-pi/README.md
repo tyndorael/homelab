@@ -6,7 +6,7 @@ Runs the always-on, lightweight services: reverse proxy, Docker management and t
 | | |
 |---|---|
 | Hostname | `cyrene` |
-| IP | `192.168.50.106` (DHCP reservation) |
+| IP | `192.168.50.106` (DHCP reservation, Ethernet only — Wi-Fi disabled) |
 | Board | Raspberry Pi 4 Model B Rev 1.5 |
 | CPU | 4 × Cortex-A72 (`aarch64`) |
 | RAM | 8 GB (7.6 GiB usable) + 2 GB zram swap |
@@ -35,7 +35,7 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
 - **journald size cap**: `SystemMaxUse=50M` in `/etc/systemd/journald.conf` (or `Storage=volatile` to keep logs in RAM only).
 - **Only light, low-write services here.** Databases, media, downloads and anything chatty belong on Unraid.
 - **Backups matter more than on an SSD**: run `scripts/backup.sh raspberry-pi <stack> <unraid-share>` regularly (see [docs/backups.md](../../docs/backups.md)); after any big change, also image the whole card (e.g. `rpi-clone` or Raspberry Pi Imager's backup) so a dead card is a 10-minute swap.
-- **Wi-Fi**: the Pi is also on Wi-Fi (`192.168.50.108`) besides Ethernet; consider `dtoverlay=disable-wifi` in `/boot/firmware/config.txt` so DNS/NPM always answer on one address.
+- **Ethernet only**: Wi-Fi is disabled (`dtoverlay=disable-wifi` in `/boot/firmware/config.txt`, plus `nmcli radio wifi off`) so DNS/NPM always answer on `192.168.50.106`. The original config is kept as `config.txt.bak-20261014`.
 - Watch for wear: `dmesg | grep -i mmc` errors or a read-only remount mean the card is failing.
 
 ## Host preparation (fresh card)
@@ -80,7 +80,7 @@ Then:
 The Pi itself keeps the router (`192.168.50.1`) as its resolver so Docker pulls and Tailscale never depend on a container that might be down.
 
 ## Tailscale
-1. `make up HOST=raspberry-pi STACK=tailscale`, then `make logs HOST=raspberry-pi STACK=tailscale` and open the `https://login.tailscale.com/a/...` link to add `cyrene` to your tailnet (or put a pre-auth key in `TS_AUTHKEY`).
+1. Admin console → *Settings → Keys → Generate auth key* (one-off, not reusable). Put it in `tailscale/.env` as `TS_AUTHKEY`, then `make up HOST=raspberry-pi STACK=tailscale`. (The browser-login link printed without a key is only valid for ~60 s before the container restarts with a new one, so the key is the reliable path.) After the node shows up, the key can be deleted from `.env`; the node key in `./data` is reused.
 2. Admin console → *Machines → cyrene → Edit route settings* → approve `192.168.50.0/24`. Optionally *Disable key expiry* for this always-on node.
 3. Remote DNS (optional): *DNS → Nameservers → Add → Custom* `192.168.50.106` with *Restrict to domain* `<domain>` (split DNS) — remote devices then resolve `*.<domain>` through AdGuard and reach NPM over the subnet route.
 4. Clients on the LAN itself don't need routes: on Linux clients use `--accept-routes` only when away from home.
