@@ -78,7 +78,7 @@ Then:
   - Portainer: *My account → Access tokens → Add* → `PORTAINER_KEY`; `PORTAINER_ENV` is the number in the local environment's URL.
   - AdGuard Home: `ADGUARD_USERNAME` / `ADGUARD_PASSWORD`.
   Then `make up HOST=raspberry-pi STACK=homepage`.
-- **Glance** (`glance.<domain>`) is the personal start page: search, weather, calendar, r/selfhosted, r/homelab, Hacker News, selfh.st, release notes for the homelab apps and a service monitor. Edit `glance/config/glance.yml` — it reloads on save, no restart needed. It's stateless and runs read-only, so it never writes to the SD card.
+- **Glance** (`glance.<domain>`) is the personal start page: search, weather, calendar, r/selfhosted and r/homelab (via RSS), Hacker News, selfh.st, release notes for the homelab apps and a service monitor. Edit `glance/config/glance.yml` — it reloads on save, no restart needed. It's stateless and runs read-only, so it never writes to the SD card.
 
 ## AdGuard Home
 1. Open `http://192.168.50.106:3001` and run the wizard. Keep its defaults: admin UI on port **80** and DNS on **53** (container ports, published as 8083 and 53). Create the admin user.
