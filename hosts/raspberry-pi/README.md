@@ -93,11 +93,13 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
 
 ## Monitoring & logs
 - **Gatus** (`status.<domain>`) checks every service three ways: through NPM over HTTPS (also alerting on certificates with < 20 days left), directly on the `proxy` network, and DNS (local records, ad blocking, upstream), plus router, internet and Tailscale reachability. Checks live in `gatus/config/config.yaml` — edit, commit, `make up HOST=raspberry-pi STACK=gatus`. History is kept **in memory** (no SD writes) and resets on restart. Alerting is not configured yet; add an `alerting:` block (Telegram/ntfy/Discord) when wanted. Unraid/Mac checks are pre-written as comments.
-- **Dozzle** (`logs.<domain>`) streams container logs, read-only (actions and shell disabled), through its own socket proxy. Logs can contain secrets, so it requires a login. Create the user file once on the Pi — the password is prompted for and never stored in shell history:
+- **Dozzle** (`logs.<domain>`) streams container logs, read-only (actions and shell disabled), through its own socket proxy. Logs can contain secrets, so it requires a login. Create the user file once on the Pi. The password is read silently and piped in, so it never lands in shell history (don't use `docker run -it … > users.yml`: with a TTY the prompt and errors end up inside the file):
   ```bash
   mkdir -p ~/homelab/hosts/raspberry-pi/dozzle/data
-  docker run -it --rm amir20/dozzle:v11.3.2 generate <username> --name "<Your Name>" --email <you@example.com> \
-    > ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml
+  read -rs -p "Dozzle password: " PW; echo
+  printf '%s\n' "$PW" | docker run -i --rm amir20/dozzle:v11.3.2 generate <username> --name "<Your Name>" --email <you@example.com> \
+    > ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml; unset PW
+  head -3 ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml   # should start with "users:"
   ```
   Later, Dozzle agents on Unraid and the Mac mini can stream their logs into the same UI.
 - NPM proxy hosts: `status.<domain>` → `gatus:8080`, `logs.<domain>` → `dozzle:8080` (enable **Websockets** for Dozzle).
