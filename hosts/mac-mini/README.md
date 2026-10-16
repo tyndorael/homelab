@@ -22,6 +22,16 @@ The Mac must come back on its own after a power cut, with Docker running, and no
 - **Power**: `sudo pmset -a sleep 0 disksleep 0 womp 1 autorestart 1 powernap 0` (never sleep, wake on LAN, power on after power failure).
 - **OrbStack** starts at login: `orb config set app.start_at_login true`. Containers use `restart: unless-stopped`.
 - Homebrew in `/opt/homebrew` (shellenv in `~/.zprofile`).
+- **OrbStack watchdog** (`host/orbstack-watchdog`, a user LaunchAgent, installed with `hosts/mac-mini/host/orbstack-watchdog/install.sh`). After a power cycle on 2026-10-15, the OrbStack app started at login but its engine stayed *Stopped*, so every container was down. The watchdog runs at login and every 2 minutes: if `docker info` fails it runs `orb start`, and if Docker is still down it relaunches the OrbStack app. It's silent when all is well and logs only its actions to `~/Library/Logs/homelab-orbstack-watchdog.log`. Tested by stopping OrbStack: Docker and all containers were back in about 2 minutes.
+
+### After a reboot, what comes back on its own
+| Component | How it starts | Verified 2026-10-15 |
+|---|---|---|
+| Login session | auto-login `tyndorael` | ✓ |
+| Docker (OrbStack) + containers | start at login + watchdog + `restart: unless-stopped` | ✓ (with the watchdog) |
+| Ollama | `brew services` LaunchAgent | ✓ |
+| RustDesk | its LaunchDaemons (service + server) | ✓ re-registered with the Pi |
+| Screen Sharing / SSH | macOS services | ✓ |
 
 ## Stacks
 | Stack | Port(s) | Notes |
