@@ -107,7 +107,7 @@ pages:
                 url: https://cockpit.${DOMAIN}
                 icon: di:cockpit
               - title: Unraid (herta)
-                url: http://${UNRAID_IP}
+                url: https://herta.${DOMAIN}
                 check-url: http://${UNRAID_IP}/login
                 icon: di:unraid
               - title: Open WebUI

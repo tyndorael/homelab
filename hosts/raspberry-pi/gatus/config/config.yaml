@@ -67,6 +67,10 @@ endpoints:
     group: 1. Web (via NPM)
     url: "https://termix.${DOMAIN}/"
     <<: *https
+  - name: Unraid (herta)
+    group: 1. Web (via NPM)
+    url: "https://herta.${DOMAIN}/login"
+    <<: *https
   - name: Open WebUI (AI)
     group: 1. Web (via NPM)
     url: "https://ai.${DOMAIN}/health"

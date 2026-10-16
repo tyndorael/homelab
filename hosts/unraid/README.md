@@ -55,6 +55,9 @@ No onboard M.2: an NVMe cache needs a PCIe adapter. That's the upgrade that lets
 - Install the **Nvidia Driver** plugin.
 - Set a disk spin-down delay (e.g. 30 min) in **Settings → Disk Settings**.
 
+## Web UI
+NPM proxy host: `herta.<domain>` → `http://192.168.50.153:80`, websockets on, Force SSL on.
+
 ## Storage setup
 Step-by-step UI guide (disks, pool, shares, Docker, VMs, plugins): **[SETUP.md](SETUP.md)**.
 

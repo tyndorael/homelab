@@ -77,7 +77,7 @@
         container: tailscale
     - Unraid:
         icon: unraid.png
-        href: http://{{HOMEPAGE_VAR_UNRAID_IP}}
+        href: https://herta.{{HOMEPAGE_VAR_DOMAIN}}
         description: herta · Dell Precision 5820 · NAS, media, VMs
         siteMonitor: http://{{HOMEPAGE_VAR_UNRAID_IP}}
         widget:

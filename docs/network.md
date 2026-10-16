@@ -25,7 +25,7 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Pi | 3001 / 8083 | AdGuard Home setup / UI | `127.0.0.1` only (via `adguard.<domain>`) |
 | Pi | 41641/udp | Tailscale (host network) | WAN outbound/UDP, no port forward needed |
 | Pi | 21115–21117 tcp, 21116 udp | RustDesk ID + relay (host network) | LAN / tailnet, never forwarded |
-| Unraid | 80/443 | Unraid web UI | LAN |
+| Unraid | 80/443 | Unraid web UI | LAN (via `herta.<domain>`) |
 | Unraid | 9001 | Portainer Agent | LAN (Pi only, ideally) |
 | Unraid | 8096 | Jellyfin | LAN |
 | Unraid | 8989 / 7878 / 9696 | Sonarr / Radarr / Prowlarr | LAN |
