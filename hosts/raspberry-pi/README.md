@@ -107,7 +107,7 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
     > ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml; unset PW
   head -3 ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml   # should start with "users:"
   ```
-  **Other hosts** run a Dozzle agent (`hosts/<host>/dozzle-agent`) and are listed in `REMOTE_AGENTS` in `dozzle/.env` (today: the Mac mini, `192.168.50.206:7007|mac-mini`). Hub and agents share a **private certificate pair** so agents accept only this Dozzle (the image's built-in cert is the same for everyone). Create/rotate it on the Pi and copy it to each agent:
+  **Other hosts** run a Dozzle agent (`hosts/<host>/dozzle-agent`) and are listed in `REMOTE_AGENTS` in `dozzle/.env` (today: the Mac mini, `192.168.50.206:7007|silverwolf`). Hub and agents share a **private certificate pair** so agents accept only this Dozzle (the image's built-in cert is the same for everyone). Create/rotate it on the Pi and copy it to each agent:
   ```bash
   mkdir -p ~/homelab/hosts/raspberry-pi/dozzle/data/certs
   docker run --rm -v ~/homelab/hosts/raspberry-pi/dozzle/data/certs:/out amir20/dozzle:v11.3.2 \
