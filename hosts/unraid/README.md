@@ -15,8 +15,10 @@ Previously `iono`, the Proxmox host of the `v1-proxmox` setup.
 | GPU | NVIDIA GeForce RTX 3050 6 GB (GA107) | Jellyfin NVENC/NVDEC transcoding (H.264, HEVC, AV1 decode) via the **Nvidia Driver** plugin. Keep it for Docker, don't pass it through to a VM |
 | NIC | Aquantia AQC107 10GBASE-T (RJ45) | `eth0`, to a 10G port on the GT-AXE16000, Cat6a |
 | NIC | Intel I219-LM 1G (onboard) | Fallback / initial install |
-| SSD | Micron M600 1 TB SATA | Cache pool: `appdata`, `system`, `domains` (check SMART wear first) |
-| HDD | WD Blue 1 TB (WD10EZEX) | Array disk 1. No parity until a second drive ≥ the largest data disk is added |
+| HDD | WD Red Plus 8 TB (WD80EFPX), CMR | Array **parity** |
+| HDD | WD Red Plus 8 TB (WD80EFZZ), CMR | Array **disk 1** (XFS). Both Reds came from the old TrueNAS mirror, wiped |
+| SSD | Micron M600 1 TB SATA | Pool `cache` (ZFS, single device): `appdata`, `system`, `domains` |
+| HDD | WD Blue 1 TB (WD10EZEX) | Unused (old, small); optional disk 2 for scratch data |
 
 No onboard M.2: an NVMe cache needs a PCIe adapter. That's the upgrade that lets the 10G link reach full speed; the SATA SSD tops out at about 4.4 Gbps.
 
