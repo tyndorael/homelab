@@ -94,11 +94,12 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
   - NPM: *Users → Add user* with **View Only** permissions → `NPM_USERNAME` / `NPM_PASSWORD`.
   - Portainer: *My account → Access tokens → Add* → `PORTAINER_KEY`; `PORTAINER_ENV` is the number in the local environment's URL.
   - AdGuard Home: `ADGUARD_USERNAME` / `ADGUARD_PASSWORD`.
+  - Unraid (herta): *Settings → Management Access → API Keys → Create*, role **ADMIN** (required by the widget) → `UNRAID_KEY`.
   Then `make up HOST=raspberry-pi STACK=homepage`.
 - **Glance** (`glance.<domain>`) is the personal start page: search, weather, calendar, homelab blogs (noted.lol, Jeff Geerling, ServeTheHome), Hacker News, Lobsters, selfh.st, release notes for the homelab apps and a service monitor. Edit `glance/config/glance.yml` — it reloads on save, no restart needed. It's stateless and runs read-only, so it never writes to the SD card.
 
 ## Monitoring & logs
-- **Gatus** (`status.<domain>`) checks every service three ways: through NPM over HTTPS (also alerting on certificates with < 20 days left), directly on the `proxy` network, and DNS (local records, ad blocking, upstream), plus router, internet and Tailscale reachability. Checks live in `gatus/config/config.yaml` — edit, commit, `make up HOST=raspberry-pi STACK=gatus`. History is kept **in memory** (no SD writes) and resets on restart. Alerting is not configured yet; add an `alerting:` block (Telegram/ntfy/Discord) when wanted. Unraid/Mac checks are pre-written as comments.
+- **Gatus** (`status.<domain>`) checks every service three ways: through NPM over HTTPS (also alerting on certificates with < 20 days left), directly on the `proxy` network, and DNS (local records, ad blocking, upstream), plus router, internet and Tailscale reachability. Checks live in `gatus/config/config.yaml` — edit, commit, `make up HOST=raspberry-pi STACK=gatus`. History is kept **in memory** (no SD writes) and resets on restart. Alerting is not configured yet; add an `alerting:` block (Telegram/ntfy/Discord) when wanted. Unraid (herta) and Mac mini (silverwolf) are checked in *5. Hosts*; checks for stacks not deployed yet are pre-written as comments.
 - **Dozzle** (`logs.<domain>`) streams container logs, read-only (actions and shell disabled), through its own socket proxy. Logs can contain secrets, so it requires a login. Create the user file once on the Pi. The password is read silently and piped in, so it never lands in shell history (don't use `docker run -it … > users.yml`: with a TTY the prompt and errors end up inside the file):
   ```bash
   mkdir -p ~/homelab/hosts/raspberry-pi/dozzle/data

@@ -78,8 +78,14 @@
     - Unraid:
         icon: unraid.png
         href: http://{{HOMEPAGE_VAR_UNRAID_IP}}
-        description: NAS
+        description: herta · Dell Precision 5820 · NAS, media, VMs
         siteMonitor: http://{{HOMEPAGE_VAR_UNRAID_IP}}
+        widget:
+          type: unraid
+          url: http://{{HOMEPAGE_VAR_UNRAID_IP}}
+          key: "{{HOMEPAGE_VAR_UNRAID_KEY}}"
+          pool1: cache
+          fields: ["status", "cpu", "memoryPercent", "arrayFree", "pool1FreeSpace"]
 
 - Media:
     - Jellyfin:

@@ -22,6 +22,7 @@ services:
       ROUTER_IP: ${ROUTER_IP:?set ROUTER_IP in .env}
       PROXY_GATEWAY: ${PROXY_GATEWAY:?set PROXY_GATEWAY in .env}
       MAC_IP: ${MAC_IP:?set MAC_IP in .env}
+      UNRAID_IP: ${UNRAID_IP:?set UNRAID_IP in .env}
     ports:
       - "${GATUS_BIND:-0.0.0.0}:8085:8080"   # drop/restrict once proxied by NPM
     volumes:

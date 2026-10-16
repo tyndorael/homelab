@@ -7,7 +7,7 @@ ui:
   title: Homelab status
   header: Homelab
   dashboard-heading: Homelab status
-  dashboard-subheading: Raspberry Pi (cyrene) and Mac mini (silverwolf) — Unraid (herta) to come
+  dashboard-subheading: Raspberry Pi (cyrene), Unraid (herta) and Mac mini (silverwolf)
   default-sort-by: group
 
 storage:
@@ -173,15 +173,29 @@ endpoints:
     conditions:
       - "[CONNECTED] == true"
 
-  # --- Next hosts (uncomment when they are online) ---
-  # - name: Unraid web UI
-  #   group: 5. Hosts
-  #   url: "http://<unraid-ip>/"
-  #   conditions: ["[STATUS] < 400"]
+  - name: Unraid web UI
+    group: 5. Hosts
+    url: "http://${UNRAID_IP}/"
+    interval: 1m
+    client:
+      timeout: 5s
+      ignore-redirect: true   # / answers 302 -> /Main or /login
+    conditions: ["[STATUS] < 400"]
+  - name: Unraid SSH
+    group: 5. Hosts
+    url: "tcp://${UNRAID_IP}:22"
+    interval: 2m
+    conditions: ["[CONNECTED] == true"]
+  # Uncomment once the stacks run on Unraid:
   # - name: Unraid Portainer agent
   #   group: 5. Hosts
-  #   url: "tcp://<unraid-ip>:9001"
-  #   conditions: ["[CONNECTED] == true"]
+  #   url: "https://${UNRAID_IP}:9001/ping"
+  #   client: { timeout: 5s, insecure: true }
+  #   conditions: ["[STATUS] == 204"]
+  # - name: Unraid Jellyfin (direct)
+  #   group: 5. Hosts
+  #   url: "http://${UNRAID_IP}:8096/health"
+  #   conditions: ["[STATUS] == 200"]
   - name: Mac mini Portainer agent
     group: 5. Hosts
     url: "https://${MAC_IP}:9001/ping"

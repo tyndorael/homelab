@@ -28,6 +28,7 @@ services:
       HOMEPAGE_VAR_PORTAINER_KEY: ${PORTAINER_KEY:-}
       HOMEPAGE_VAR_ADGUARD_USERNAME: ${ADGUARD_USERNAME:-}
       HOMEPAGE_VAR_ADGUARD_PASSWORD: ${ADGUARD_PASSWORD:-}
+      HOMEPAGE_VAR_UNRAID_KEY: ${UNRAID_KEY:-}
     ports:
       - "${HOMEPAGE_BIND:-0.0.0.0}:3000:3000"   # drop/restrict once proxied by NPM
     volumes:
