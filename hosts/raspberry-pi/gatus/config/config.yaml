@@ -7,7 +7,7 @@ ui:
   title: Homelab status
   header: Homelab
   dashboard-heading: Homelab status
-  dashboard-subheading: Raspberry Pi (cyrene) and Mac mini (silverwolf) — Unraid to come
+  dashboard-subheading: Raspberry Pi (cyrene) and Mac mini (silverwolf) — Unraid (herta) to come
   default-sort-by: group
 
 storage:
