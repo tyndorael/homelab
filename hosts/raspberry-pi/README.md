@@ -94,7 +94,7 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
   - NPM: *Users → Add user* with **View Only** permissions → `NPM_USERNAME` / `NPM_PASSWORD`.
   - Portainer: *My account → Access tokens → Add* → `PORTAINER_KEY`; `PORTAINER_ENV` is the number in the local environment's URL.
   - AdGuard Home: `ADGUARD_USERNAME` / `ADGUARD_PASSWORD`.
-  - Unraid (herta): *Settings → Management Access → API Keys → Create*, role **ADMIN** (required by the widget) → `UNRAID_KEY`.
+  - Unraid (herta): *Settings → Management Access → API Keys → Create*, role **VIEWER** (read-only; enough for every widget field, despite Homepage's docs asking for ADMIN) → `UNRAID_KEY`.
   Then `make up HOST=raspberry-pi STACK=homepage`.
 - **Glance** (`glance.<domain>`) is the personal start page: search, weather, calendar, homelab blogs (noted.lol, Jeff Geerling, ServeTheHome), Hacker News, Lobsters, selfh.st, release notes for the homelab apps and a service monitor. Edit `glance/config/glance.yml` — it reloads on save, no restart needed. It's stateless and runs read-only, so it never writes to the SD card.
 
