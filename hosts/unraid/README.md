@@ -55,8 +55,11 @@ No onboard M.2: an NVMe cache needs a PCIe adapter. That's the upgrade that lets
 - Install the **Nvidia Driver** plugin.
 - Set a disk spin-down delay (e.g. 30 min) in **Settings → Disk Settings**.
 
+## Storage setup
+Step-by-step UI guide (disks, pool, shares, Docker, VMs, plugins): **[SETUP.md](SETUP.md)**.
+
 ## Host preparation
-1. **Settings → Docker**: enable Docker, use the default `docker.img`/directory on the **cache pool**.
+1. **Settings → Docker**: enable Docker with data-root **directory** at `/mnt/user/system/docker/` (cache pool), see [SETUP.md](SETUP.md) part 5.
 2. Install the **Docker Compose Manager** plugin (Apps tab) — it provides `docker compose` on the CLI.
 3. Create the `data` share (cache → array, "Move" via mover) with this layout:
    ```
