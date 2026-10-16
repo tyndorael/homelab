@@ -6,7 +6,7 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Host | Role | IP (DHCP reservation) | Hostname |
 |---|---|---|---|
 | Raspberry Pi 4 (8 GB, microSD) | Proxy, Portainer, dashboard | `192.168.50.106` | `cyrene` |
-| Unraid (Dell Precision 5820, 10GbE) | NAS, media, VMs | `192.168.50.x` (TBD) | `herta` |
+| Unraid (Dell Precision 5820, 10GbE) | NAS, media, VMs | `192.168.50.153` (10GbE) | `herta` |
 | Mac mini M2 (8 GB) | Development, apps | `192.168.50.206` (Ethernet) | `silverwolf` |
 
 ## Ports
