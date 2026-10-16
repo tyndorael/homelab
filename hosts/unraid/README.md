@@ -5,6 +5,54 @@
 | `portainer-agent` | 9001 |
 | `media` | Jellyfin 8096 · Sonarr 8989 · Radarr 7878 · Prowlarr 9696 · qBittorrent 8080, 6881 tcp/udp |
 
+## Hardware — Dell Precision 5820 Tower
+Previously `iono`, the Proxmox host of the `v1-proxmox` setup.
+
+| Part | Detail | Unraid role / notes |
+|---|---|---|
+| CPU | Intel Xeon W-2133, 6C/12T, no iGPU | Docker, media stack, HAOS VM |
+| RAM | 6 × 16 GB DDR4-2133 (DIMM1–6; DIMM7–8 empty), 96 GB | Plenty. Adding 2 × 16 GB fills all 4 channels evenly |
+| GPU | NVIDIA GeForce RTX 3050 6 GB (GA107) | Jellyfin NVENC/NVDEC transcoding (H.264, HEVC, AV1 decode) via the **Nvidia Driver** plugin. Keep it for Docker, don't pass it through to a VM |
+| NIC | Aquantia AQC107 10GBASE-T (RJ45) | `eth0`, to a 10G port on the GT-AXE16000, Cat6a |
+| NIC | Intel I219-LM 1G (onboard) | Fallback / initial install |
+| SSD | Micron M600 1 TB SATA | Cache pool: `appdata`, `system`, `domains` (check SMART wear first) |
+| HDD | WD Blue 1 TB (WD10EZEX) | Array disk 1. No parity until a second drive ≥ the largest data disk is added |
+
+No onboard M.2: an NVMe cache needs a PCIe adapter. That's the upgrade that lets the 10G link reach full speed; the SATA SSD tops out at about 4.4 Gbps.
+
+## Before installing
+**Router (GT-AXE16000)**
+- If the internet plan is ≤ 2.5 Gbps, move the WAN to the 2.5G port so both 10G ports are LAN.
+- After first boot, add a DHCP reservation for the AQC107's MAC address.
+- Leave jumbo frames off.
+
+**Back up the old Proxmox data.** The ZFS pool on the HDD and the VMs on the SSD are wiped by the install.
+
+**BIOS (F2)**: update the BIOS first, then set:
+
+| Setting | Value |
+|---|---|
+| System Configuration → SATA Operation | AHCI |
+| Intel VMD (Storage / Slot settings) | Disabled: it hides NVMe drives behind the VMD RAID controller |
+| Secure Boot | Off |
+| Boot | UEFI, USB first |
+| Virtualization Support | Virtualization + VT for Direct I/O on |
+| Power Management → AC Recovery | Power On |
+| Power Management → Deep Sleep Control | Disabled (needed for Wake-on-LAN) |
+| Power Management → Wake on LAN | LAN Only |
+| POST Behavior → Keyboard Errors | Disabled |
+| POST Behavior → Warnings and Errors | Continue on Warnings and Errors |
+| PCIe bifurcation | x4x4x4x4 only if a multi-M.2 card is added |
+
+**Other**
+- Run memtest86+ overnight and a SMART extended test on both drives.
+- Write the USB stick (good 16–32 GB stick, e.g. SanDisk Cruzer Fit / Samsung Bar Plus) with the **Unraid USB Creator**, and boot from a rear USB 2.0 port.
+
+**After first boot**
+- **Settings → Network → Interface Rules**: make the AQC107 `eth0`.
+- Install the **Nvidia Driver** plugin.
+- Set a disk spin-down delay (e.g. 30 min) in **Settings → Disk Settings**.
+
 ## Host preparation
 1. **Settings → Docker**: enable Docker, use the default `docker.img`/directory on the **cache pool**.
 2. Install the **Docker Compose Manager** plugin (Apps tab) — it provides `docker compose` on the CLI.
