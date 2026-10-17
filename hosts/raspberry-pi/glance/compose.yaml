@@ -21,6 +21,7 @@ services:
       WEATHER_LOCATION: ${WEATHER_LOCATION:-Santiago, Chile}
       MAC_IP: ${MAC_IP:?set MAC_IP in .env}
       UNRAID_IP: ${UNRAID_IP:?set UNRAID_IP in .env}
+      HA_IP: ${HA_IP:?set HA_IP in .env}
     ports:
       - "${GLANCE_BIND:-0.0.0.0}:8084:8080"   # drop/restrict once proxied by NPM
     volumes:

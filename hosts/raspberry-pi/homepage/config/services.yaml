@@ -109,6 +109,17 @@
         href: https://qbittorrent.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://{{HOMEPAGE_VAR_UNRAID_IP}}:8080
 
+- Home:
+    - Home Assistant:
+        icon: home-assistant.png
+        href: https://ha.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Home automation · HAOS VM on herta
+        siteMonitor: http://{{HOMEPAGE_VAR_HA_IP}}:8123/manifest.json
+        widget:
+          type: homeassistant
+          url: http://{{HOMEPAGE_VAR_HA_IP}}:8123
+          key: "{{HOMEPAGE_VAR_HA_TOKEN}}"
+
 - Development:
     - Mac mini:
         icon: mdi-apple

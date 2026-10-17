@@ -21,6 +21,7 @@ services:
       HOMEPAGE_VAR_PI_IP: ${PI_IP}
       HOMEPAGE_VAR_UNRAID_IP: ${UNRAID_IP}
       HOMEPAGE_VAR_MAC_IP: ${MAC_IP}
+      HOMEPAGE_VAR_HA_IP: ${HA_IP}
       # Widget credentials (empty = the widget shows an error until filled in .env)
       HOMEPAGE_VAR_NPM_USERNAME: ${NPM_USERNAME:-}
       HOMEPAGE_VAR_NPM_PASSWORD: ${NPM_PASSWORD:-}
@@ -29,6 +30,7 @@ services:
       HOMEPAGE_VAR_ADGUARD_USERNAME: ${ADGUARD_USERNAME:-}
       HOMEPAGE_VAR_ADGUARD_PASSWORD: ${ADGUARD_PASSWORD:-}
       HOMEPAGE_VAR_UNRAID_KEY: ${UNRAID_KEY:-}
+      HOMEPAGE_VAR_HA_TOKEN: ${HA_TOKEN:-}
     ports:
       - "${HOMEPAGE_BIND:-0.0.0.0}:3000:3000"   # drop/restrict once proxied by NPM
     volumes:

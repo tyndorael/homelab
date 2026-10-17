@@ -110,6 +110,10 @@ pages:
                 url: https://herta.${DOMAIN}
                 check-url: http://${UNRAID_IP}/login
                 icon: di:unraid
+              - title: Home Assistant
+                url: https://ha.${DOMAIN}
+                check-url: http://${HA_IP}:8123/manifest.json
+                icon: di:home-assistant
               - title: Open WebUI
                 url: https://ai.${DOMAIN}
                 check-url: http://${MAC_IP}:8088/health

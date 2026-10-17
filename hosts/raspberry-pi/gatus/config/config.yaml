@@ -1,5 +1,5 @@
 # https://github.com/TwiN/gatus#configuration
-# Environment placeholders (DOMAIN, PI_IP, PI_TAILSCALE_IP, ROUTER_IP, PROXY_GATEWAY, MAC_IP) come from gatus/.env via compose.yaml.
+# Environment placeholders (DOMAIN, PI_IP, PI_TAILSCALE_IP, ROUTER_IP, PROXY_GATEWAY, MAC_IP, UNRAID_IP, HA_IP) come from gatus/.env via compose.yaml.
 # Alerting is not configured yet: add an `alerting:` block (Telegram, ntfy, Discord…) and
 # `alerts:` per endpoint when you want notifications.
 
@@ -90,6 +90,10 @@ endpoints:
   - name: qBittorrent
     group: 1. Web (via NPM)
     url: "https://qbittorrent.${DOMAIN}/"
+    <<: *https
+  - name: Home Assistant
+    group: 1. Web (via NPM)
+    url: "https://ha.${DOMAIN}/manifest.json"
     <<: *https
   - name: Open WebUI (AI)
     group: 1. Web (via NPM)
@@ -248,6 +252,16 @@ endpoints:
   - name: qBittorrent
     group: 7. Media (herta)
     url: "http://${UNRAID_IP}:8080/"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: Home Assistant
+    group: 8. Home Assistant (herta VM)
+    url: "http://${HA_IP}:8123/manifest.json"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: Home Assistant Observer
+    group: 8. Home Assistant (herta VM)
+    url: "http://${HA_IP}:4357/"   # Supervisor health page; answers even when Core is down
     <<: *internal
     conditions: ["[STATUS] == 200"]
   - name: Mac mini Portainer agent

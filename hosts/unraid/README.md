@@ -5,6 +5,7 @@
 | `portainer-agent` | 9001 |
 | `dozzle-agent` | 7007 (logs show in `logs.<domain>`; cert pair in `dozzle-agent/data/certs`, copied from the Pi) |
 | `media` | Jellyfin 8096 · Sonarr 8989 · Radarr 7878 · Prowlarr 9696 · qBittorrent 8080, 6881 tcp/udp |
+| `homeassistant` VM | 8123, 4357 on its own IP (`br0`), see [Home Assistant OS VM](#home-assistant-os-vm) |
 
 ## Hardware — Dell Precision 5820 Tower
 Previously `iono`, the Proxmox host of the `v1-proxmox` setup.
@@ -97,20 +98,84 @@ Jellyfin uses the RTX 3050 through the nvidia runtime (NVENC H.264/HEVC verified
 - Consider routing qBittorrent through a VPN container (e.g. gluetun) before using public trackers.
 - Back up `appdata` with the **Appdata Backup** plugin, or `scripts/backup.sh` (see [docs/backups.md](../../docs/backups.md)).
 
-## Planned: Home Assistant OS VM
-Decided 2026-10-15: Home Assistant runs here as a **Home Assistant OS VM**, not on the Pi. HAOS keeps add-ons (Mosquitto, Zigbee2MQTT, ESPHome…), and its constant database writes stay off the Pi's SD card. Home Assistant Container on the Pi was the alternative (it meets the requirements, but has no add-ons and would wear the card).
+## Home Assistant OS VM
+Decided 2026-10-15: Home Assistant runs here as a **Home Assistant OS (HAOS) VM**, not on the Pi. HAOS keeps add-ons (Mosquitto, Zigbee2MQTT, ESPHome…), and its constant database writes stay off the Pi's SD card. Home Assistant Container was the alternative (no add-ons).
 
-When Unraid is up:
-1. **Settings → VM Manager**: enable VMs (libvirt image on the cache pool).
-2. Download the HAOS **`generic-x86-64` KVM image** (`haos_ova-<version>.qcow2.xz`) from the Home Assistant releases, extract it into the `domains` share, e.g. `/mnt/user/domains/homeassistant/haos.qcow2`.
-3. New VM, template **Linux**: BIOS **OVMF (UEFI)**, machine Q35, 2 vCPU, 4 GB RAM, primary vDisk = the qcow2 above (bus **VirtIO** or SATA), network **br0** so it gets its own LAN IP (DHCP reservation on the router).
-4. Autostart the VM. Then `ha.<domain>` in NPM → `http://<ha-ip>:8123` (websockets on), and in Home Assistant `configuration.yaml`:
+| | |
+|---|---|
+| VM | `homeassistant`, 2 vCPU, 4 GB RAM, Q35 + OVMF (UEFI) |
+| Disk | `/mnt/user/domains/homeassistant/haos.qcow2`, 64 GB, VirtIO (cache pool) |
+| Network | `br0`, own LAN IP (DHCP reservation) → `HA_IP` |
+| Ports | 8123 web UI · 4357 Observer (Supervisor health) |
+| URL | `https://ha.<domain>` (NPM on the Pi) |
+
+### 1. Prepare the disk (SSH, as root)
+VMs must be enabled with `br0` as default network ([SETUP.md](SETUP.md) part 6). If `br0` is missing, set *Settings → Network → Enable bridging: Yes* (array stopped).
+```bash
+cd /mnt/user/appdata/homelab && git pull
+hosts/unraid/host/homeassistant/prepare-disk.sh            # HAOS 18.3, checksum-verified, 64G
+```
+For a newer release pass `<version> <sha256>` (the `digest` of `haos_ova-<version>.qcow2.xz` on the GitHub release page). This only matters for a fresh install; HAOS updates itself afterwards.
+
+### 2. Create the VM (Unraid UI)
+**VMs → Add VM → Linux** (`/VMs`), then:
+
+| Field | Set to |
+|---|---|
+| Name | `homeassistant` · Description `Home Assistant OS` · Icon: Home Assistant |
+| CPU Mode | Host Passthrough |
+| Logical CPUs | 2 threads, not CPU 0/6 (Unraid itself prefers core 0), e.g. **5 / 11** (one core + its hyperthread) |
+| Initial / Max Memory | 4096 MB / 4096 MB |
+| Machine | Q35 (latest) |
+| BIOS | **OVMF** (HAOS only boots UEFI) |
+| USB Controller | 3.0 (qemu XHCI) |
+| Primary vDisk Location | **Manual** → `/mnt/user/domains/homeassistant/haos.qcow2` |
+| Primary vDisk Type / Bus | qcow2 / **VirtIO** |
+| Graphics | VNC (only for the console) |
+| Network Source / Model | **br0** / virtio-net |
+| USB Devices | Zigbee/Thread/Bluetooth dongle, once plugged in (see step 6) |
+
+Leave the rest at defaults and click **Create**. On the **VMs** tab turn **Autostart** on for `homeassistant` (it starts after the array and Docker).
+
+### 3. First boot
+1. VMs tab → `homeassistant` icon → **VNC Remote**: the HAOS banner shows the IP after 1–2 minutes.
+2. Router (GT-AXE16000): DHCP reservation for that MAC (the banner or VM *Edit* shows it). Write the IP into `docs/network.md` and `HA_IP` below.
+3. Open `http://<ha-ip>:8123`: setup downloads Core (5–20 min), then **Create my smart home** → owner account, location (Santiago), units metric, time zone `America/Santiago`. Store the password in the password manager.
+
+### 4. Reverse proxy (NPM on the Pi)
+1. NPM proxy host `ha.<domain>` → **`http://<ha-ip>:8123`**, wildcard cert, *Force SSL*, *HTTP/2*, **Websockets support on** (HA's UI is a websocket app).
+2. In Home Assistant install the **File editor** add-on (*Settings → Add-ons → Add-on store*), enable *Show in sidebar*, and add to `/config/configuration.yaml`:
    ```yaml
    http:
      use_x_forwarded_for: true
      trusted_proxies:
-       - 192.168.50.106   # the Pi (NPM)
+       - 192.168.50.106   # the Pi (NPM); requests arrive from its LAN IP
+   homeassistant:
+     external_url: https://ha.<domain>
+     internal_url: http://<ha-ip>:8123
    ```
-5. **Bluetooth**: the Pi's onboard chip can't be used by a VM on another machine. Use either a **USB Bluetooth adapter** passed through to the VM (VM settings → USB devices), or **ESPHome Bluetooth proxies** (cheap ESP32 boards placed around the house; best range). Same for Zigbee/Thread: pass a USB coordinator through to the VM.
-6. Add checks/entries: Gatus (`https://ha.<domain>/`), Homepage (`homeassistant` widget with a long-lived token), Glance monitor.
-7. Backups: HAOS's own backups to a Samba/NFS share on Unraid (Settings → System → Backups → network storage), plus the VM vdisk in the regular Unraid backup.
+   *Developer tools → YAML → Check configuration*, then *Restart*. Without `trusted_proxies` HA answers **400 Bad Request** through NPM.
+3. `https://ha.<domain>` now works, also away from home over Tailscale.
+
+### 5. Monitoring (Pi)
+Set `HA_IP=<ha-ip>` in the Pi's `gatus/.env`, `glance/.env` and `homepage/.env` (**required** in Gatus and Glance: they refuse to start without it). For the Homepage widget, create a non-admin HA user `homepage`, log in as it, *Profile → Security → Long-lived access tokens* → `HA_TOKEN` in `homepage/.env`. Then:
+```bash
+make up HOST=raspberry-pi STACK=gatus && make up HOST=raspberry-pi STACK=glance && make up HOST=raspberry-pi STACK=homepage
+```
+Gatus checks HA through NPM (*1. Web*) and directly, plus the Supervisor's Observer (*8. Home Assistant*). Dozzle/Portainer don't see it: HAOS's containers live inside the VM.
+
+### 6. Radios: Bluetooth, Zigbee, Thread
+The Pi's onboard Bluetooth can't reach a VM on another machine.
+- **Bluetooth**: **ESPHome Bluetooth proxies** (ESP32 boards around the house; best range) or a USB Bluetooth adapter passed to the VM.
+- **Zigbee / Thread**: a USB coordinator (e.g. SONOFF ZBDongle-E / Home Assistant Connect ZBT-1) on a **USB extension cable** away from the case and USB 3 ports. *VM → Edit → USB Devices*, tick it, **Update**; it reappears by vendor/product ID after reboots. Then the ZHA integration, or the Mosquitto + Zigbee2MQTT add-ons.
+
+### 7. Backups
+1. Unraid: **Add Share** `backups` (primary **Array**, no cache; SMB `Yes`, Security *Private*, user `tyndorael` Read/Write, see SETUP.md part 8). Create a dedicated Unraid user `homeassistant` with Read/Write on it rather than reusing yours.
+2. HA: *Settings → System → Storage → Add network storage* → Usage **Backup**, Server `192.168.50.153`, Protocol Samba/Windows, Share `backups`, the user above.
+3. *Settings → System → Backups → Configure automatic backups*: daily, keep 7, location the network storage (and local). **Save the backup encryption key** to the password manager: restores are impossible without it.
+4. The vdisk itself is not backed up by *Appdata Backup*; HA's own backups are what you restore from (fresh VM from step 1–2, then *Restore from backup* on the onboarding screen).
+
+### Notes
+- Updates (OS, Supervisor, Core, add-ons) happen in *Settings → Updates*; take a backup first (it's the default). Renovate doesn't track the VM.
+- 4 GB RAM is plenty for HA + a few add-ons; raise it if heavier add-ons come later. The RTX 3050 stays with Docker (Jellyfin), never passed to this VM.
+- Stopping the array or rebooting Unraid shuts the VM down first; HAOS handles the ACPI shutdown cleanly.
