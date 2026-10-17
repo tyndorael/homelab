@@ -182,6 +182,7 @@ Then tell Claude it's done. The next steps run over SSH:
 | Symptom | Fix |
 |---|---|
 | A disk is missing from the dropdowns | Check its SATA/power cable; *Tools → System Devices* should list it |
+| Cache stays "Unmountable" after Format; syslog says `mkfs…: Device or resource busy` | The SSD still holds old LVM volumes (e.g. Proxmox `pve`) that the kernel activated. Stop Docker/VMs, run `vgchange -an pve` and `sgdisk --zap-all /dev/sdX` on the SSD, then stop the array, set the pool's file system and format again. Shares meant for the cache may have been created on disk1 meanwhile; remove them so they're recreated on the pool. |
 | Format list shows a device other than disk1/cache | **Don't format.** Stop, recheck the assignments |
 | Disk shows a red ✖ or "disabled" | Stop. Check cables and SMART (*click the disk → Self-Test / Attributes*) before anything else |
 | Parity sync very slow (< 80 MB/s) | Normal at the end of the disk (inner tracks); otherwise check that nothing heavy is copying |
