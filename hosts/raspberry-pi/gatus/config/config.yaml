@@ -190,16 +190,46 @@ endpoints:
     url: "tcp://${UNRAID_IP}:22"
     interval: 2m
     conditions: ["[CONNECTED] == true"]
-  # Uncomment once the stacks run on Unraid:
-  # - name: Unraid Portainer agent
-  #   group: 5. Hosts
-  #   url: "https://${UNRAID_IP}:9001/ping"
-  #   client: { timeout: 5s, insecure: true }
-  #   conditions: ["[STATUS] == 204"]
-  # - name: Unraid Jellyfin (direct)
-  #   group: 5. Hosts
-  #   url: "http://${UNRAID_IP}:8096/health"
-  #   conditions: ["[STATUS] == 200"]
+  - name: Unraid Portainer agent
+    group: 5. Hosts
+    url: "https://${UNRAID_IP}:9001/ping"
+    interval: 1m
+    client:
+      timeout: 5s
+      insecure: true   # the agent's self-signed TLS cert
+    conditions: ["[STATUS] == 204"]
+  - name: Unraid Dozzle agent
+    group: 5. Hosts
+    url: "tcp://${UNRAID_IP}:7007"
+    interval: 2m
+    conditions: ["[CONNECTED] == true"]
+
+  # --- Media stack on Unraid (direct, LAN) ---
+  - name: Jellyfin
+    group: 7. Media (herta)
+    url: "http://${UNRAID_IP}:8096/health"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: Sonarr
+    group: 7. Media (herta)
+    url: "http://${UNRAID_IP}:8989/ping"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: Radarr
+    group: 7. Media (herta)
+    url: "http://${UNRAID_IP}:7878/ping"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: Prowlarr
+    group: 7. Media (herta)
+    url: "http://${UNRAID_IP}:9696/ping"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: qBittorrent
+    group: 7. Media (herta)
+    url: "http://${UNRAID_IP}:8080/"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
   - name: Mac mini Portainer agent
     group: 5. Hosts
     url: "https://${MAC_IP}:9001/ping"

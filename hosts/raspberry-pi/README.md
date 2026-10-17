@@ -99,7 +99,7 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
 - **Glance** (`glance.<domain>`) is the personal start page: search, weather, calendar, homelab blogs (noted.lol, Jeff Geerling, ServeTheHome), Hacker News, Lobsters, selfh.st, release notes for the homelab apps and a service monitor. Edit `glance/config/glance.yml` — it reloads on save, no restart needed. It's stateless and runs read-only, so it never writes to the SD card.
 
 ## Monitoring & logs
-- **Gatus** (`status.<domain>`) checks every service three ways: through NPM over HTTPS (also alerting on certificates with < 20 days left), directly on the `proxy` network, and DNS (local records, ad blocking, upstream), plus router, internet and Tailscale reachability. Checks live in `gatus/config/config.yaml` — edit, commit, `make up HOST=raspberry-pi STACK=gatus`. History is kept **in memory** (no SD writes) and resets on restart. Alerting is not configured yet; add an `alerting:` block (Telegram/ntfy/Discord) when wanted. Unraid (herta) and Mac mini (silverwolf) are checked in *5. Hosts*; checks for stacks not deployed yet are pre-written as comments.
+- **Gatus** (`status.<domain>`) checks every service three ways: through NPM over HTTPS (also alerting on certificates with < 20 days left), directly on the `proxy` network, and DNS (local records, ad blocking, upstream), plus router, internet and Tailscale reachability. Checks live in `gatus/config/config.yaml` — edit, commit, `make up HOST=raspberry-pi STACK=gatus`. History is kept **in memory** (no SD writes) and resets on restart. Alerting is not configured yet; add an `alerting:` block (Telegram/ntfy/Discord) when wanted. Unraid (herta) and Mac mini (silverwolf) are checked in *5. Hosts*, the Unraid media stack in *7. Media (herta)*.
 - **Dozzle** (`logs.<domain>`) streams container logs, read-only (actions and shell disabled), through its own socket proxy. Logs can contain secrets, so it requires a login. Create the user file once on the Pi. The password is read silently and piped in, so it never lands in shell history (don't use `docker run -it … > users.yml`: with a TTY the prompt and errors end up inside the file):
   ```bash
   mkdir -p ~/homelab/hosts/raspberry-pi/dozzle/data
@@ -108,7 +108,7 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
     > ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml; unset PW
   head -3 ~/homelab/hosts/raspberry-pi/dozzle/data/users.yml   # should start with "users:"
   ```
-  **Other hosts** run a Dozzle agent (`hosts/<host>/dozzle-agent`) and are listed in `REMOTE_AGENTS` in `dozzle/.env` (today: the Mac mini, `192.168.50.206:7007|silverwolf`). Hub and agents share a **private certificate pair** so agents accept only this Dozzle (the image's built-in cert is the same for everyone). Create/rotate it on the Pi and copy it to each agent:
+  **Other hosts** run a Dozzle agent (`hosts/<host>/dozzle-agent`) and are listed in `REMOTE_AGENTS` in `dozzle/.env` (today: `192.168.50.206:7007|silverwolf,192.168.50.153:7007|herta`). Hub and agents share a **private certificate pair** so agents accept only this Dozzle (the image's built-in cert is the same for everyone). Create/rotate it on the Pi and copy it to each agent:
   ```bash
   mkdir -p ~/homelab/hosts/raspberry-pi/dozzle/data/certs
   docker run --rm -v ~/homelab/hosts/raspberry-pi/dozzle/data/certs:/out amir20/dozzle:v11.3.2 \
