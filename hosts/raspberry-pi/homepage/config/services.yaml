@@ -114,10 +114,10 @@
         icon: home-assistant.png
         href: https://ha.{{HOMEPAGE_VAR_DOMAIN}}
         description: Home automation · HAOS VM on herta
-        siteMonitor: http://{{HOMEPAGE_VAR_HA_IP}}:8123/manifest.json
+        siteMonitor: http://{{HOMEPAGE_VAR_HA_IP}}/manifest.json
         widget:
           type: homeassistant
-          url: http://{{HOMEPAGE_VAR_HA_IP}}:8123
+          url: http://{{HOMEPAGE_VAR_HA_IP}}
           key: "{{HOMEPAGE_VAR_HA_TOKEN}}"
 
 - Development:

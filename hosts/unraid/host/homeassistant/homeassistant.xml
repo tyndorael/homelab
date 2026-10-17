@@ -1,0 +1,76 @@
+<!-- Home Assistant OS VM on herta. Define with hosts/unraid/README.md → Home Assistant OS VM, step 2:
+     virsh define <this file> && virsh autostart homeassistant && virsh start homeassistant
+     2 vCPU pinned to core 5 + its hyperthread (5/11), 4 GB, Q35 + OVMF (UEFI), VirtIO disk, br0. -->
+<domain type='kvm'>
+  <name>homeassistant</name>
+  <description>Home Assistant OS</description>
+  <metadata>
+    <vmtemplate xmlns="unraid" name="Linux" icon="linux.png" os="linux"/>
+  </metadata>
+  <memory unit='KiB'>4194304</memory>
+  <currentMemory unit='KiB'>4194304</currentMemory>
+  <memoryBacking>
+    <nosharepages/>
+  </memoryBacking>
+  <vcpu placement='static'>2</vcpu>
+  <cputune>
+    <vcpupin vcpu='0' cpuset='5'/>
+    <vcpupin vcpu='1' cpuset='11'/>
+  </cputune>
+  <os>
+    <type arch='x86_64' machine='pc-q35-10.2'>hvm</type>
+    <loader readonly='yes' type='pflash'>/usr/share/qemu/ovmf-x64/OVMF_CODE-pure-efi.fd</loader>
+    <nvram template='/usr/share/qemu/ovmf-x64/OVMF_VARS-pure-efi.fd'>/etc/libvirt/qemu/nvram/homeassistant_VARS-pure-efi.fd</nvram>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode='host-passthrough' check='none' migratable='on'>
+    <topology sockets='1' dies='1' clusters='1' cores='1' threads='2'/>
+    <cache mode='passthrough'/>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='hpet' present='no'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <emulator>/usr/local/sbin/qemu</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' cache='writeback' discard='unmap'/>
+      <source file='/mnt/user/domains/homeassistant/haos.qcow2'/>
+      <target dev='hdc' bus='virtio'/>
+      <serial>vdisk1</serial>
+      <boot order='1'/>
+    </disk>
+    <controller type='usb' model='qemu-xhci' ports='15'/>
+    <interface type='bridge'>
+      <mac address='52:54:00:b6:ff:3f'/>   <!-- keeps the DHCP reservation across redefines -->
+      <source bridge='br0'/>
+      <model type='virtio-net'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+    <channel type='unix'>
+      <target type='virtio' name='org.qemu.guest_agent.0'/>
+    </channel>
+    <input type='tablet' bus='usb'/>
+    <input type='mouse' bus='ps2'/>
+    <input type='keyboard' bus='ps2'/>
+    <graphics type='vnc' port='-1' autoport='yes' websocket='-1' listen='0.0.0.0' keymap='en-us'>
+      <listen type='address' address='0.0.0.0'/>
+    </graphics>
+    <video>
+      <model type='qxl' ram='65536' vram='65536' vgamem='16384' heads='1' primary='yes'/>
+    </video>
+    <memballoon model='none'/>
+  </devices>
+</domain>

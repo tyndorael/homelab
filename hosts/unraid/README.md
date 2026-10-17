@@ -5,7 +5,7 @@
 | `portainer-agent` | 9001 |
 | `dozzle-agent` | 7007 (logs show in `logs.<domain>`; cert pair in `dozzle-agent/data/certs`, copied from the Pi) |
 | `media` | Jellyfin 8096 · Sonarr 8989 · Radarr 7878 · Prowlarr 9696 · qBittorrent 8080, 6881 tcp/udp |
-| `homeassistant` VM | 8123, 4357 on its own IP (`br0`), see [Home Assistant OS VM](#home-assistant-os-vm) |
+| `homeassistant` VM | 80 (8123 redirects), 4357 on `192.168.50.217` (`br0`), see [Home Assistant OS VM](#home-assistant-os-vm) |
 
 ## Hardware — Dell Precision 5820 Tower
 Previously `iono`, the Proxmox host of the `v1-proxmox` setup.
@@ -105,8 +105,8 @@ Decided 2026-10-15: Home Assistant runs here as a **Home Assistant OS (HAOS) VM*
 |---|---|
 | VM | `homeassistant`, 2 vCPU, 4 GB RAM, Q35 + OVMF (UEFI) |
 | Disk | `/mnt/user/domains/homeassistant/haos.qcow2`, 64 GB, VirtIO (cache pool) |
-| Network | `br0`, own LAN IP (DHCP reservation) → `HA_IP` |
-| Ports | 8123 web UI · 4357 Observer (Supervisor health) |
+| Network | `br0`, `192.168.50.217` (DHCP reservation) → `HA_IP` |
+| Ports | **80** web UI (8123 answers with a redirect to 80) · 4357 Observer (Supervisor health) |
 | URL | `https://ha.<domain>` (NPM on the Pi) |
 
 ### 1. Prepare the disk (SSH, as root)
@@ -117,33 +117,32 @@ hosts/unraid/host/homeassistant/prepare-disk.sh            # HAOS 18.3, checksum
 ```
 For a newer release pass `<version> <sha256>` (the `digest` of `haos_ova-<version>.qcow2.xz` on the GitHub release page). This only matters for a fresh install; HAOS updates itself afterwards.
 
-### 2. Create the VM (Unraid UI)
-**VMs → Add VM → Linux** (`/VMs`), then:
+### 2. Create the VM (SSH)
+The VM definition is tracked in [`host/homeassistant/homeassistant.xml`](host/homeassistant/homeassistant.xml) (Unraid's own libvirt format, so it shows and edits normally in the **VMs** tab):
 
-| Field | Set to |
+| Setting | Value |
 |---|---|
-| Name | `homeassistant` · Description `Home Assistant OS` · Icon: Home Assistant |
-| CPU Mode | Host Passthrough |
-| Logical CPUs | 2 threads, not CPU 0/6 (Unraid itself prefers core 0), e.g. **5 / 11** (one core + its hyperthread) |
-| Initial / Max Memory | 4096 MB / 4096 MB |
-| Machine | Q35 (latest) |
-| BIOS | **OVMF** (HAOS only boots UEFI) |
-| USB Controller | 3.0 (qemu XHCI) |
-| Primary vDisk Location | **Manual** → `/mnt/user/domains/homeassistant/haos.qcow2` |
-| Primary vDisk Type / Bus | qcow2 / **VirtIO** |
-| Graphics | VNC (only for the console) |
-| Network Source / Model | **br0** / virtio-net |
-| USB Devices | Zigbee/Thread/Bluetooth dongle, once plugged in (see step 6) |
+| CPU | Host passthrough, 2 threads pinned to **5 / 11** (one core + its hyperthread; Unraid keeps core 0) |
+| Memory | 4096 MB, no balloon |
+| Machine / BIOS | Q35 / **OVMF** (HAOS only boots UEFI) |
+| Disk | `haos.qcow2`, **VirtIO**, writeback, discard |
+| Network | **br0**, virtio-net |
+| USB | qemu XHCI (for dongles, step 6) · VNC console |
 
-Leave the rest at defaults and click **Create**. On the **VMs** tab turn **Autostart** on for `homeassistant` (it starts after the array and Docker).
+```bash
+virsh define hosts/unraid/host/homeassistant/homeassistant.xml
+virsh autostart homeassistant && virsh start homeassistant
+virsh domiflist homeassistant          # MAC for the DHCP reservation
+```
+Created 2026-10-17: MAC `52:54:00:b6:ff:3f`, IP `192.168.50.217`.
 
 ### 3. First boot
-1. VMs tab → `homeassistant` icon → **VNC Remote**: the HAOS banner shows the IP after 1–2 minutes.
+1. The IP shows in the HAOS banner (VMs tab → `homeassistant` → **VNC Remote**) or `ip neigh show dev br0 | grep -i <mac>` on Unraid.
 2. Router (GT-AXE16000): DHCP reservation for that MAC (the banner or VM *Edit* shows it). Write the IP into `docs/network.md` and `HA_IP` below.
-3. Open `http://<ha-ip>:8123`: setup downloads Core (5–20 min), then **Create my smart home** → owner account, location (Santiago), units metric, time zone `America/Santiago`. Store the password in the password manager.
+3. Open `http://<ha-ip>/` (HAOS 18 serves the UI on port 80; `:8123` redirects there): setup downloads Core (a few minutes), then **Create my smart home** → owner account, location (Santiago), units metric, time zone `America/Santiago`. Store the password in the password manager.
 
 ### 4. Reverse proxy (NPM on the Pi)
-1. NPM proxy host `ha.<domain>` → **`http://<ha-ip>:8123`**, wildcard cert, *Force SSL*, *HTTP/2*, **Websockets support on** (HA's UI is a websocket app).
+1. NPM proxy host `ha.<domain>` → **`http://<ha-ip>:80`**, wildcard cert, *Force SSL*, *HTTP/2*, **Websockets support on** (HA's UI is a websocket app).
 2. In Home Assistant install the **File editor** add-on (*Settings → Add-ons → Add-on store*), enable *Show in sidebar*, and add to `/config/configuration.yaml`:
    ```yaml
    http:
@@ -152,7 +151,7 @@ Leave the rest at defaults and click **Create**. On the **VMs** tab turn **Autos
        - 192.168.50.106   # the Pi (NPM); requests arrive from its LAN IP
    homeassistant:
      external_url: https://ha.<domain>
-     internal_url: http://<ha-ip>:8123
+     internal_url: http://<ha-ip>
    ```
    *Developer tools → YAML → Check configuration*, then *Restart*. Without `trusted_proxies` HA answers **400 Bad Request** through NPM.
 3. `https://ha.<domain>` now works, also away from home over Tailscale.

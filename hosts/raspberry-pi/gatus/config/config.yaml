@@ -256,7 +256,7 @@ endpoints:
     conditions: ["[STATUS] == 200"]
   - name: Home Assistant
     group: 8. Home Assistant (herta VM)
-    url: "http://${HA_IP}:8123/manifest.json"
+    url: "http://${HA_IP}/manifest.json"
     <<: *internal
     conditions: ["[STATUS] == 200"]
   - name: Home Assistant Observer

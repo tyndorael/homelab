@@ -112,7 +112,7 @@ pages:
                 icon: di:unraid
               - title: Home Assistant
                 url: https://ha.${DOMAIN}
-                check-url: http://${HA_IP}:8123/manifest.json
+                check-url: http://${HA_IP}/manifest.json
                 icon: di:home-assistant
               - title: Open WebUI
                 url: https://ai.${DOMAIN}

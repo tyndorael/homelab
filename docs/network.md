@@ -8,7 +8,7 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Raspberry Pi 4 (8 GB, microSD) | Proxy, Portainer, dashboard | `192.168.50.106` | `cyrene` |
 | Unraid (Dell Precision 5820, 10GbE) | NAS, media, VMs | `192.168.50.153` (10GbE) | `herta` |
 | Mac mini M2 (8 GB) | Development, apps | `192.168.50.206` (Ethernet) | `silverwolf` |
-| Home Assistant OS (VM on Unraid, `br0`) | Home automation | TBD (reservation after first boot) | `homeassistant` |
+| Home Assistant OS (VM on Unraid, `br0`) | Home automation | `192.168.50.217` (MAC `52:54:00:b6:ff:3f`) | `homeassistant` |
 
 ## Ports
 | Host | Port | Service | Exposure |
@@ -31,7 +31,7 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Unraid | 8096 | Jellyfin | LAN |
 | Unraid | 8989 / 7878 / 9696 | Sonarr / Radarr / Prowlarr | LAN |
 | Unraid | 8080, 6881 tcp/udp | qBittorrent | LAN |
-| HA VM | 8123 | Home Assistant | LAN (via `ha.<domain>`) |
+| HA VM | 80 (8123 redirects to 80) | Home Assistant | LAN (via `ha.<domain>`) |
 | HA VM | 4357 | HAOS Observer (Supervisor health) | LAN |
 | Mac mini | 9001 | Portainer Agent | LAN (Pi only, ideally) |
 | Mac mini | 22 | SSH (key only) | LAN |
