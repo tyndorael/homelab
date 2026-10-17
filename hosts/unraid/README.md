@@ -4,7 +4,7 @@
 |---|---|
 | `portainer-agent` | 9001 |
 | `dozzle-agent` | 7007 (logs show in `logs.<domain>`; cert pair in `dozzle-agent/data/certs`, copied from the Pi) |
-| `media` | Jellyfin 8096 · Sonarr 8989 · Radarr 7878 · Prowlarr 9696 · qBittorrent 8080, 6881 tcp/udp |
+| `media` | Jellyfin 8096 · Navidrome 4533 · Sonarr 8989 · Radarr 7878 · Prowlarr 9696 · qBittorrent 8080, 6881 tcp/udp |
 | `homeassistant` VM | 80 (8123 redirects), 4357 on `192.168.50.217` (`br0`), see [Home Assistant OS VM](#home-assistant-os-vm) |
 
 ## Hardware — Dell Precision 5820 Tower
@@ -91,6 +91,23 @@ Unraid has no `make`, so run `docker compose` inside each stack folder.
 Media folders (owned `nobody:users`, `775`): `/mnt/user/data/{torrents,media}/{movies,tv}`.
 
 Jellyfin uses the RTX 3050 through the nvidia runtime (NVENC H.264/HEVC verified). Enable it in *Dashboard → Playback → Transcoding → Hardware acceleration: NVIDIA NVENC*.
+
+## Music (Navidrome)
+Added 2026-10-17. [Navidrome](https://www.navidrome.org/) (GPL-3) streams `/mnt/user/data/media/audio` (read-only, rescanned hourly; music currently under `audio/Music`) and speaks the **Subsonic API**, so any Subsonic app works. Chosen over Jellyfin's music library: purpose-built for music, ~50 MB RAM, far more (and better) mobile clients.
+
+1. Open `http://192.168.50.153:4533` and create the **admin** user on the first visit (password manager). Add a normal user per person in *Settings → Users*.
+2. NPM proxy host `music.<domain>` → `http://192.168.50.153:4533`, wildcard cert, *Force SSL*, *HTTP/2*, websockets on.
+3. Mobile apps, server `https://music.<domain>` + Navidrome user/password (works away from home over Tailscale):
+
+   | Platform | App | |
+   |---|---|---|
+   | Android | **Tempus** (F-Droid / GitHub) | Free, open source, Material You, offline downloads |
+   | Android | Symfonium | Paid (one-time, best-in-class), not open source |
+   | iOS | **Amperfy** | Free, open source, offline, CarPlay |
+   | iOS | play:Sub / substreamer | Free alternatives |
+   | Desktop | Feishin | Open source; or just the web UI |
+
+Drop new albums into `audio/Music/<Artist>/<Album>/` (tagged files; `Cover.jpg` is picked up as art). Trigger an immediate rescan from the web UI (*Activity* icon → *Quick scan*).
 
 ## Notes
 - Containers run as `nobody:users` (`99:100`) with `UMASK=002`, matching Unraid share permissions.

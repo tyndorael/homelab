@@ -49,6 +49,29 @@ services:
       retries: 3
       start_period: 1m
 
+  # Music server with a Subsonic API: mobile apps (Tempus/Symfonium on Android, Amperfy on iOS)
+  # connect to https://music.<domain> with the Navidrome user.
+  navidrome:
+    <<: *common
+    image: deluan/navidrome:0.64.2
+    container_name: navidrome
+    user: "${PUID:-99}:${PGID:-100}"
+    environment:
+      TZ: ${TZ:-UTC}
+      ND_MUSICFOLDER: /music
+      ND_SCANNER_SCHEDULE: "@every 1h"
+      ND_ENABLEINSIGHTSCOLLECTOR: "false"
+    ports:
+      - "4533:4533"
+    volumes:
+      - ./config/navidrome:/data
+      - ${DATA_ROOT}/media/audio:/music:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4533/ping"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
   sonarr:
     <<: *common
     image: lscr.io/linuxserver/sonarr:4.0.20.3014-ls328

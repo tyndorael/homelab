@@ -75,6 +75,10 @@ endpoints:
     group: 1. Web (via NPM)
     url: "https://jellyfin.${DOMAIN}/health"
     <<: *https
+  - name: Navidrome
+    group: 1. Web (via NPM)
+    url: "https://music.${DOMAIN}/ping"
+    <<: *https
   - name: Sonarr
     group: 1. Web (via NPM)
     url: "https://sonarr.${DOMAIN}/ping"
@@ -232,6 +236,11 @@ endpoints:
   - name: Jellyfin
     group: 7. Media (herta)
     url: "http://${UNRAID_IP}:8096/health"
+    <<: *internal
+    conditions: ["[STATUS] == 200"]
+  - name: Navidrome
+    group: 7. Media (herta)
+    url: "http://${UNRAID_IP}:4533/ping"
     <<: *internal
     conditions: ["[STATUS] == 200"]
   - name: Sonarr

@@ -33,6 +33,7 @@ pages:
               - AdguardTeam/AdGuardHome
               - tailscale/tailscale
               - jellyfin/jellyfin
+              - navidrome/navidrome
 
       - size: full
         widgets:

@@ -92,6 +92,11 @@
         icon: jellyfin.png
         href: https://jellyfin.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://{{HOMEPAGE_VAR_UNRAID_IP}}:8096
+    - Navidrome:
+        icon: navidrome.png
+        href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Music · Subsonic API for the mobile apps
+        siteMonitor: http://{{HOMEPAGE_VAR_UNRAID_IP}}:4533/ping
     - Sonarr:
         icon: sonarr.png
         href: https://sonarr.{{HOMEPAGE_VAR_DOMAIN}}
