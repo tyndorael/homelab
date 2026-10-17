@@ -143,17 +143,16 @@ Created 2026-10-17: MAC `52:54:00:b6:ff:3f`, IP `192.168.50.217`.
 
 ### 4. Reverse proxy (NPM on the Pi)
 1. NPM proxy host `ha.<domain>` → **`http://<ha-ip>:80`**, wildcard cert, *Force SSL*, *HTTP/2*, **Websockets support on** (HA's UI is a websocket app).
-2. In Home Assistant install the **File editor** add-on (*Settings → Add-ons → Add-on store*), enable *Show in sidebar*, and add to `/config/configuration.yaml`:
-   ```yaml
-   http:
-     use_x_forwarded_for: true
-     trusted_proxies:
-       - 192.168.50.106   # the Pi (NPM); requests arrive from its LAN IP
-   homeassistant:
-     external_url: https://ha.<domain>
-     internal_url: http://<ha-ip>
+2. **Trust the Pi.** Since 2026.10 Home Assistant keeps its HTTP settings (port, proxies, SSL) in `.storage/http`, not in `configuration.yaml`: once `yaml_migration_done` is set, an `http:` block in YAML is **ignored**. Without the Pi in `trusted_proxies`, HA answers **400 Bad Request** through NPM and logs *"A request from a reverse proxy was received from 192.168.50.106…"*. Set (done 2026-10-17, from Unraid over the QEMU guest agent):
+   ```json
+   "stable": {
+     "server_port": 80,
+     "use_x_forwarded_for": true,
+     "trusted_proxies": ["192.168.50.106"],
+     …
    ```
-   *Developer tools → YAML → Check configuration*, then *Restart*. Without `trusted_proxies` HA answers **400 Bad Request** through NPM.
+   Prefer the UI if your version exposes these settings (*Settings → System → Network*). Otherwise edit the file with Core **stopped** (`ha core stop`, edit `/mnt/data/supervisor/homeassistant/.storage/http`, `ha core start`). The original is kept as `http.bak-20261017`.
+   From Unraid, a command runs inside HAOS with `virsh qemu-agent-command homeassistant '{"execute":"guest-exec","arguments":{"path":"/bin/sh","arg":["-c","<cmd>"],"capture-output":true}}'` (then `guest-exec-status` with the returned pid; output is base64).
 3. `https://ha.<domain>` now works, also away from home over Tailscale.
 
 ### 5. Monitoring (Pi)
