@@ -71,6 +71,26 @@ endpoints:
     group: 1. Web (via NPM)
     url: "https://herta.${DOMAIN}/login"
     <<: *https
+  - name: Jellyfin
+    group: 1. Web (via NPM)
+    url: "https://jellyfin.${DOMAIN}/health"
+    <<: *https
+  - name: Sonarr
+    group: 1. Web (via NPM)
+    url: "https://sonarr.${DOMAIN}/ping"
+    <<: *https
+  - name: Radarr
+    group: 1. Web (via NPM)
+    url: "https://radarr.${DOMAIN}/ping"
+    <<: *https
+  - name: Prowlarr
+    group: 1. Web (via NPM)
+    url: "https://prowlarr.${DOMAIN}/ping"
+    <<: *https
+  - name: qBittorrent
+    group: 1. Web (via NPM)
+    url: "https://qbittorrent.${DOMAIN}/"
+    <<: *https
   - name: Open WebUI (AI)
     group: 1. Web (via NPM)
     url: "https://ai.${DOMAIN}/health"
