@@ -155,8 +155,8 @@ Click **Add Share**.
 | Plugin | Why |
 |---|---|
 | **Nvidia Driver** (ich777) | RTX 3050 for Jellyfin. After install open *Settings → Nvidia Driver*, keep *latest production*, then **reboot after parity sync finishes** |
-| **Docker Compose Manager** | `docker compose` on the CLI, used by this repo |
 | **Unassigned Devices** + **Unassigned Devices Plus** | mount USB drives and shares outside the array |
+| ~~Docker Compose Manager~~ | deprecated; `docker compose` is installed from the official release instead (see [README](README.md)) |
 | **Fix Common Problems** | scans for misconfigurations. Run it once at the end and read its warnings |
 | **Appdata Backup** | scheduled backup of `appdata` (configure later) |
 

@@ -63,7 +63,7 @@ Step-by-step UI guide (disks, pool, shares, Docker, VMs, plugins): **[SETUP.md](
 
 ## Host preparation
 1. **Settings → Docker**: enable Docker with data-root **directory** at `/mnt/user/system/docker/` (cache pool), see [SETUP.md](SETUP.md) part 5.
-2. Install the **Docker Compose Manager** plugin (Apps tab) — it provides `docker compose` on the CLI.
+2. `docker compose`: the **official Compose CLI plugin**, kept on the flash drive and installed at boot by `/boot/config/go`. Install or upgrade with `hosts/unraid/host/docker-compose/install.sh <version>` (checksum-verified; currently **v5.6.0**). The *Docker Compose Manager* app is deprecated and hidden in Apps.
 3. Create the `data` share (cache → array, "Move" via mover) with this layout:
    ```
    /mnt/user/data/torrents/{movies,tv}
@@ -84,7 +84,7 @@ cp hosts/unraid/media/.env.example hosts/unraid/media/.env
 make up HOST=unraid STACK=portainer-agent
 make up HOST=unraid STACK=media
 ```
-Without `make`, run `docker compose up -d` inside each stack folder.
+Unraid has no `make`: run `docker compose up -d` inside each stack folder instead (e.g. `cd hosts/unraid/media && docker compose up -d`).
 
 ## Notes
 - Containers run as `nobody:users` (`99:100`) with `UMASK=002`, matching Unraid share permissions.
