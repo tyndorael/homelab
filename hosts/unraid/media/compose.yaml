@@ -32,14 +32,16 @@ services:
     environment:
       <<: *lsio-env
       JELLYFIN_PublishedServerUrl: ${JELLYFIN_URL:-}
+      # NVIDIA GPU (Unraid "Nvidia Driver" plugin registers the nvidia runtime).
+      # In Jellyfin: Dashboard -> Playback -> Transcoding -> Hardware acceleration: NVIDIA NVENC.
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
+    runtime: nvidia
     ports:
       - "8096:8096"
     volumes:
       - ./config/jellyfin:/config
       - ${DATA_ROOT:?set DATA_ROOT in .env}/media:/data/media:ro
-    # Intel/AMD iGPU hardware transcoding:
-    # devices:
-    #   - /dev/dri:/dev/dri
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8096/health"]
       interval: 1m
