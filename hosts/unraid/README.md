@@ -3,6 +3,7 @@
 | Stack | Port(s) |
 |---|---|
 | `portainer-agent` | 9001 |
+| `dozzle-agent` | 7007 (logs show in `logs.<domain>`; cert pair in `dozzle-agent/data/certs`, copied from the Pi) |
 | `media` | Jellyfin 8096 · Sonarr 8989 · Radarr 7878 · Prowlarr 9696 · qBittorrent 8080, 6881 tcp/udp |
 
 ## Hardware — Dell Precision 5820 Tower
@@ -77,14 +78,18 @@ Step-by-step UI guide (disks, pool, shares, Docker, VMs, plugins): **[SETUP.md](
    (Install git via the NerdTools / un-get plugin if it isn't available.)
 
 ## Start
+Deployed on herta 2026-10-17 from `/mnt/user/appdata/homelab` (cache, exclusive share).
 ```bash
-cd /mnt/user/appdata/homelab
-cp hosts/unraid/portainer-agent/.env.example hosts/unraid/portainer-agent/.env   # same AGENT_SECRET as the Pi
-cp hosts/unraid/media/.env.example hosts/unraid/media/.env
-make up HOST=unraid STACK=portainer-agent
-make up HOST=unraid STACK=media
+cd /mnt/user/appdata/homelab && git pull
+# .env files (gitignored): portainer-agent needs the Pi's AGENT_SECRET; dozzle-agent needs the
+# Pi's Dozzle cert pair in data/certs; media uses DATA_ROOT=/mnt/user/data.
+for s in portainer-agent dozzle-agent media; do (cd hosts/unraid/$s && docker compose up -d); done
 ```
-Unraid has no `make`: run `docker compose up -d` inside each stack folder instead (e.g. `cd hosts/unraid/media && docker compose up -d`).
+Unraid has no `make`, so run `docker compose` inside each stack folder.
+
+Media folders (owned `nobody:users`, `775`): `/mnt/user/data/{torrents,media}/{movies,tv}`.
+
+Jellyfin uses the RTX 3050 through the nvidia runtime (NVENC H.264/HEVC verified). Enable it in *Dashboard → Playback → Transcoding → Hardware acceleration: NVIDIA NVENC*.
 
 ## Notes
 - Containers run as `nobody:users` (`99:100`) with `UMASK=002`, matching Unraid share permissions.
