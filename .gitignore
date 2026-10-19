@@ -27,3 +27,6 @@ keys/
 .DS_Store
 .vscode/
 .idea/
+
+# Claude Code: machine-specific notes
+CLAUDE.local.md
