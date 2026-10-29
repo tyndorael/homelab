@@ -79,6 +79,10 @@ endpoints:
     group: 1. Web (via NPM)
     url: "https://music.${DOMAIN}/ping"
     <<: *https
+  - name: Immich
+    group: 1. Web (via NPM)
+    url: "https://photos.${DOMAIN}/api/server/ping"
+    <<: *https
   - name: Sonarr
     group: 1. Web (via NPM)
     url: "https://sonarr.${DOMAIN}/ping"
