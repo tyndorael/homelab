@@ -5,6 +5,7 @@
 | `portainer-agent` | 9001 |
 | `dozzle-agent` | 7007 (logs show in `logs.<domain>`; cert pair in `dozzle-agent/data/certs`, copied from the Pi) |
 | `media` | Jellyfin 8096 · Navidrome 4533 · Sonarr 8989 · Radarr 7878 · Prowlarr 9696 · qBittorrent 8080, 6881 tcp/udp |
+| `immich` | 2283 (`photos.<domain>`), see [Photos (Immich)](#photos-immich) |
 | `homeassistant` VM | 80 (8123 redirects), 4357 on `192.168.50.217` (`br0`), see [Home Assistant OS VM](#home-assistant-os-vm) |
 
 ## Hardware — Dell Precision 5820 Tower
@@ -84,7 +85,7 @@ Deployed on herta 2026-10-17 from `/mnt/user/appdata/homelab` (cache, exclusive 
 cd /mnt/user/appdata/homelab && git pull
 # .env files (gitignored): portainer-agent needs the Pi's AGENT_SECRET; dozzle-agent needs the
 # Pi's Dozzle cert pair in data/certs; media uses DATA_ROOT=/mnt/user/data.
-for s in portainer-agent dozzle-agent media; do (cd hosts/unraid/$s && docker compose up -d); done
+for s in portainer-agent dozzle-agent media immich; do (cd hosts/unraid/$s && docker compose up -d); done
 ```
 Unraid has no `make`, so run `docker compose` inside each stack folder.
 
@@ -108,6 +109,40 @@ Added 2026-10-17. [Navidrome](https://www.navidrome.org/) (GPL-3) streams `/mnt/
    | Desktop | Feishin | Open source; or just the web UI |
 
 Drop new albums into `audio/Music/<Artist>/<Album>/` (tagged files; `Cover.jpg` is picked up as art). Trigger an immediate rescan from the web UI (*Activity* icon → *Quick scan*).
+
+## Photos (Immich)
+Added 2026-10-29. [Immich](https://immich.app/) v3.3.3 (AGPL-3): phone photo/video backup with face recognition, smart search and shared albums. Separate stack in [`immich/`](immich/compose.yaml), all four containers (server, machine learning, Valkey, Postgres) running as `nobody:users`.
+
+| What | Where | Notes |
+|---|---|---|
+| Originals, encoded video, daily DB dumps | `/mnt/user/data/photos` (`UPLOAD_LOCATION`) | Array, parity. **Back this up off-site**: it's the only copy of your photos. Don't edit files here over SMB; Immich owns the layout |
+| Postgres | `immich/data/postgres` | Cache SSD (network shares not supported) |
+| Thumbnails | `immich/data/thumbs` | Cache SSD, regenerable; keeps the timeline fast while the array sleeps |
+| ML models, Valkey | `immich/data/{model-cache,redis}` | Cache SSD, regenerable |
+
+GPU: the RTX 3050 is shared with Jellyfin through the nvidia runtime. Machine learning uses the `-cuda` image; enable NVENC in *Administration → Settings → Video Transcoding → Hardware Acceleration*.
+
+**First deploy** (as root on herta):
+```bash
+cd /mnt/user/appdata/homelab/hosts/unraid/immich
+cp .env.example .env && sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$(openssl rand -hex 24)/" .env
+mkdir -p data/{postgres,thumbs,model-cache,redis} /mnt/user/data/photos
+chown -R 99:100 data /mnt/user/data/photos
+docker compose up -d
+```
+1. Open `http://192.168.50.153:2283` and create the **admin** account on the first visit (password manager). Add a user per person in *Administration → Users*.
+2. NPM proxy host `photos.<domain>` → `http://192.168.50.153:2283`, wildcard cert, *Force SSL*, *HTTP/2*, websockets on. In the *Advanced* tab add the following, so large video uploads don't fail:
+   ```nginx
+   client_max_body_size 50000M;
+   proxy_read_timeout 600s;
+   proxy_send_timeout 600s;
+   send_timeout 600s;
+   ```
+3. *Administration → Settings → Server → External domain*: `https://photos.<domain>` (used in shared links).
+4. Mobile app (iOS / Android, F-Droid too): server `https://photos.<domain>`, then turn on *Backup* for the albums to upload. Works away from home over Tailscale.
+5. Import an existing library (e.g. Google Takeout) with [immich-go](https://github.com/simulot/immich-go) and an API key from *Account settings → API keys*.
+
+Upgrades: Immich ships breaking changes in minor releases. Read the release notes before bumping, and when a release changes the Postgres or Valkey image, copy the new digest from its `docker-compose.yml`.
 
 ## SMB
 Only `data` is exported (Private, `tyndorael` Read/Write); macOS support (*fruit*), Bonjour and WSD discovery are on. Extra global settings live in [`host/samba/smb-extra.conf`](host/samba/smb-extra.conf), applied 2026-10-29:

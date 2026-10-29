@@ -243,6 +243,11 @@ endpoints:
     url: "http://${UNRAID_IP}:4533/ping"
     <<: *internal
     conditions: ["[STATUS] == 200"]
+  - name: Immich
+    group: 7. Media (herta)
+    url: "http://${UNRAID_IP}:2283/api/server/ping"
+    <<: *internal
+    conditions: ["[STATUS] == 200", "[BODY].res == pong"]
   - name: Sonarr
     group: 7. Media (herta)
     url: "http://${UNRAID_IP}:8989/ping"

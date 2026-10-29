@@ -97,6 +97,11 @@
         href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
         description: Music · Subsonic API for the mobile apps
         siteMonitor: http://{{HOMEPAGE_VAR_UNRAID_IP}}:4533/ping
+    - Immich:
+        icon: immich.png
+        href: https://photos.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Photos · phone backup, faces, smart search
+        siteMonitor: http://{{HOMEPAGE_VAR_UNRAID_IP}}:2283/api/server/ping
     - Sonarr:
         icon: sonarr.png
         href: https://sonarr.{{HOMEPAGE_VAR_DOMAIN}}
