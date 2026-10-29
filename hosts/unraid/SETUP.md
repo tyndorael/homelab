@@ -32,7 +32,8 @@ The **format** step (part 4) erases disk 1 and the Micron. The Micron still hold
 | Default file system | **xfs** | already set |
 | Default spin down delay | **30 minutes** | HDDs sleep when idle (currently *Never*) |
 | Default warning / critical disk utilization | 90 / 95 % | leave defaults |
-| Tunable (enable NCQ / md_write_method) | leave defaults | |
+| Tunable (enable NCQ) | leave default | |
+| Tunable (md_write_method) | **reconstruct write** | "turbo write": with a single data disk it reads no other disks, so array writes (and the mover) are faster |
 
 Click **Apply**.
 
@@ -145,6 +146,7 @@ Click **Add Share**.
 1. **Users** (`/Users`) → **Add User** → name `tyndorael`, password → **Add**.
 2. **Shares → data → SMB Security Settings** → user `tyndorael` = **Read/Write** → **Apply**.
 3. On the Mac: Finder → *Go → Connect to Server* → `smb://192.168.50.153/data`.
+4. Samba extras (NTLMv2 only, faster Finder listings): see [README → SMB](README.md#smb).
 
 ## Part 9 — Mover, plugins, notifications
 **Settings → Scheduler** (`/Settings/Scheduler`)

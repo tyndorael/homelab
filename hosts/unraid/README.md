@@ -109,6 +109,18 @@ Added 2026-10-17. [Navidrome](https://www.navidrome.org/) (GPL-3) streams `/mnt/
 
 Drop new albums into `audio/Music/<Artist>/<Album>/` (tagged files; `Cover.jpg` is picked up as art). Trigger an immediate rescan from the web UI (*Activity* icon → *Quick scan*).
 
+## SMB
+Only `data` is exported (Private, `tyndorael` Read/Write); macOS support (*fruit*), Bonjour and WSD discovery are on. Extra global settings live in [`host/samba/smb-extra.conf`](host/samba/smb-extra.conf), applied 2026-10-29:
+```bash
+cat hosts/unraid/host/samba/smb-extra.conf | ssh root@192.168.50.153 'cat > /boot/config/smb-extra.conf && testparm -s >/dev/null && smbcontrol smbd reload-config'
+```
+- `ntlm auth = ntlmv2-only` (Unraid's default still allows NTLMv1).
+- `readdir_attr:aapl_max_access = no` and a few `fruit:` options: faster Finder listings in big folders like `media/movies`.
+- Array writes use **reconstruct write** (*Settings → Disk Settings → md_write_method*), set 2026-10-29.
+- Clients are 1 GbE (Mac mini) or Wi-Fi, so SMB tops out around 110 MB/s; multichannel and TCP tuning don't help until a client has 10 GbE.
+
+On each Mac (optional): stop `.DS_Store` files on shares with `defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true`, and turn off client-side signing (faster) with `printf '[default]\nsigning_required=no\n' | sudo tee /etc/nsmb.conf`.
+
 ## Notes
 - Containers run as `nobody:users` (`99:100`) with `UMASK=002`, matching Unraid share permissions.
 - In Sonarr/Radarr use `/data/media/...` as root folders and qBittorrent saves to `/data/torrents/...` — identical paths in every container, no remote path mappings needed.
