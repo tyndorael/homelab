@@ -111,6 +111,10 @@ endpoints:
     group: 1. Web (via NPM)
     url: "https://changes.${DOMAIN}/"
     <<: *https
+  - name: ntfy
+    group: 1. Web (via NPM)
+    url: "https://ntfy.${DOMAIN}/v1/health"
+    <<: *https
 
   # --- Containers directly over the proxy network (tells NPM problems apart from app problems) ---
   - name: homepage
