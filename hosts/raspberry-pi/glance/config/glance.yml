@@ -35,6 +35,7 @@ pages:
               - jellyfin/jellyfin
               - navidrome/navidrome
               - immich-app/immich
+              - dgtlmoon/changedetection.io
 
       - size: full
         widgets:

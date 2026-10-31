@@ -6,6 +6,7 @@
 | `dozzle-agent` | 7007 (logs show in `logs.<domain>`; cert pair in `dozzle-agent/data/certs`, copied from the Pi) |
 | `media` | Jellyfin 8096 · Navidrome 4533 · Sonarr 8989 · Radarr 7878 · Prowlarr 9696 · qBittorrent 8080, 6881 tcp/udp |
 | `immich` | 2283 (`photos.<domain>`), see [Photos (Immich)](#photos-immich) |
+| `changedetection` | 5000 (`changes.<domain>`), see [Website watcher (changedetection.io)](#website-watcher-changedetectionio) |
 | `homeassistant` VM | 80 (8123 redirects), 4357 on `192.168.50.217` (`br0`), see [Home Assistant OS VM](#home-assistant-os-vm) |
 
 ## Hardware — Dell Precision 5820 Tower
@@ -85,7 +86,7 @@ Deployed on herta 2026-10-17 from `/mnt/user/appdata/homelab` (cache, exclusive 
 cd /mnt/user/appdata/homelab && git pull
 # .env files (gitignored): portainer-agent needs the Pi's AGENT_SECRET; dozzle-agent needs the
 # Pi's Dozzle cert pair in data/certs; media uses DATA_ROOT=/mnt/user/data.
-for s in portainer-agent dozzle-agent media immich; do (cd hosts/unraid/$s && docker compose up -d); done
+for s in portainer-agent dozzle-agent media immich changedetection; do (cd hosts/unraid/$s && docker compose up -d); done
 ```
 Unraid has no `make`, so run `docker compose` inside each stack folder.
 
@@ -144,6 +145,25 @@ docker compose up -d
 
 Upgrades: Immich ships breaking changes in minor releases. Read the release notes before bumping, and when a release changes the Postgres or Valkey image, copy the new digest from its `docker-compose.yml`.
 
+## Website watcher (changedetection.io)
+Added 2026-10-30. [changedetection.io](https://changedetection.io/) 0.60.9 (Apache-2.0) checks web pages on a schedule and notifies when they change: new products in a shop category, "Add to cart" appearing on an out-of-stock page, price drops. Stack in [`changedetection/`](changedetection/compose.yaml): the app (runs as `nobody:users`, state in `changedetection/data`) plus `sockpuppetbrowser`, a headless Chrome that renders JavaScript-heavy pages. The browser has no published port and is capped at 2 GB RAM.
+
+**First deploy** (as root on herta):
+```bash
+cd /mnt/user/appdata/homelab/hosts/unraid/changedetection
+cp .env.example .env   # set BASE_URL=https://changes.<domain>
+mkdir -p data && chown 99:100 data
+docker compose up -d
+```
+1. NPM proxy host `changes.<domain>` → `http://192.168.50.153:5000`, wildcard cert, *Force SSL*, *HTTP/2*, websockets on.
+2. *Settings → General*: set a password (the UI is open by default).
+3. *Settings → Notifications*: add an [Apprise URL](https://github.com/caronc/apprise/wiki), e.g. `ntfys://ntfy.sh/<long-random-topic>` (ntfy app on the phone, subscribe to the same topic) or `tgram://<bot-token>/<chat-id>`. Use *Send test notification*.
+4. Add a watch per page. Useful settings for "new product" alerts:
+   - *Request → Fetch method*: **Playwright Chromium** when the product list is rendered by JavaScript (the plain HTTP fetcher shows an empty list), otherwise the faster plain fetcher.
+   - *Filters & Triggers → CSS/JSONPath filter*: only the product grid (e.g. `.product-grid`), or use the *Visual Filter Selector* to click it, so banners and timestamps don't trigger alerts.
+   - *Filters & Triggers → Only trigger when unique lines appear*: alerts on products never seen before, not on reordering.
+   - Or set the watch type to **Re-stock & price detection** for a single product page.
+   - Check interval: hours, not minutes, to stay polite and avoid getting blocked.
 ## SMB
 Only `data` is exported (Private, `tyndorael` Read/Write); macOS support (*fruit*), Bonjour and WSD discovery are on. Extra global settings live in [`host/samba/smb-extra.conf`](host/samba/smb-extra.conf), applied 2026-10-29:
 ```bash

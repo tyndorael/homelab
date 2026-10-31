@@ -312,6 +312,13 @@ endpoints:
     client:
       timeout: 5s
     conditions: ["[STATUS] == 200"]
+  - name: herta changedetection.io (direct)
+    group: 5. Hosts
+    url: "http://${UNRAID_IP}:5000/"
+    interval: 1m
+    client:
+      timeout: 5s
+    conditions: ["[STATUS] == 200"]
 
   # --- Remote desktop ---
   - name: RustDesk ID server (hbbs)

@@ -31,6 +31,7 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Unraid | 8096 | Jellyfin | LAN |
 | Unraid | 4533 | Navidrome (music) | LAN (via `music.<domain>`) |
 | Unraid | 2283 | Immich (photos) | LAN (via `photos.<domain>`) |
+| Unraid | 5000 | changedetection.io (website watcher) | LAN (via `changes.<domain>`) |
 | Unraid | 8989 / 7878 / 9696 | Sonarr / Radarr / Prowlarr | LAN |
 | Unraid | 8080, 6881 tcp/udp | qBittorrent | LAN |
 | HA VM | 80 (8123 redirects to 80) | Home Assistant | LAN (via `ha.<domain>`) |

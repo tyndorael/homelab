@@ -130,6 +130,12 @@
           url: http://{{HOMEPAGE_VAR_HA_IP}}
           key: "{{HOMEPAGE_VAR_HA_TOKEN}}"
 
+    - changedetection.io:
+        icon: changedetection.png
+        href: https://changes.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Website watcher · new products, restocks, prices
+        siteMonitor: http://{{HOMEPAGE_VAR_UNRAID_IP}}:5000
+
 - Development:
     - Mac mini:
         icon: mdi-apple

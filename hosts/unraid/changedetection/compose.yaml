@@ -1,0 +1,64 @@
+# changedetection.io — watches web pages and notifies on changes (new products, restocks, price drops).
+# Based on the official 0.60.9 docker-compose.yml, with its sockpuppetbrowser (headless Chrome over the
+# Playwright protocol) enabled for pages that render with JavaScript. Pick the fetcher per watch:
+# "Basic fast plaintext/HTTP client" for plain HTML, "Playwright Chromium/Javascript" for the rest.
+# Notifications are Apprise URLs set in the UI (Settings -> Notifications), e.g. ntfys://ntfy.sh/<topic>
+# or tgram://<bot-token>/<chat-id>; they live in ./data, not in .env.
+name: changedetection
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:0.60.9
+    container_name: changedetection
+    hostname: changedetection
+    restart: unless-stopped
+    # The image has no PUID/PGID support; run it as nobody:users so ./data stays Unraid-owned.
+    user: "${PUID:-99}:${PGID:-100}"
+    environment:
+      TZ: ${TZ:-UTC}
+      PLAYWRIGHT_DRIVER_URL: ws://browser:3000
+      # Used for links in notifications ({{watch_url}} diff links).
+      BASE_URL: ${BASE_URL:-}
+      FETCH_WORKERS: ${FETCH_WORKERS:-5}
+      HIDE_REFERER: "true"
+    ports:
+      - "${CHANGEDETECTION_PORT:-5000}:5000"
+    volumes:
+      - ./data:/datastore
+    depends_on:
+      - browser
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *logging
+
+  browser:
+    image: dgtlmoon/sockpuppetbrowser:0.0.3
+    container_name: changedetection_browser
+    hostname: browser
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      SCREEN_WIDTH: 1920
+      SCREEN_HEIGHT: 1024
+      SCREEN_DEPTH: 16
+      MAX_CONCURRENT_CHROME_PROCESSES: ${MAX_CONCURRENT_CHROME_PROCESSES:-4}
+    # No published port: only changedetection reaches it, on the stack network.
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    logging: *logging
