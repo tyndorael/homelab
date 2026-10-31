@@ -107,6 +107,10 @@ endpoints:
     group: 1. Web (via NPM)
     url: "https://ai.${DOMAIN}/health"
     <<: *https
+  - name: changedetection.io
+    group: 1. Web (via NPM)
+    url: "https://changes.${DOMAIN}/"
+    <<: *https
 
   # --- Containers directly over the proxy network (tells NPM problems apart from app problems) ---
   - name: homepage
