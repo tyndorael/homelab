@@ -1,0 +1,49 @@
+# ntfy — self-hosted push notifications (ntfy.<domain>). Apps publish with an HTTP POST, phones get a push.
+# Configured with NTFY_* env vars (no server.yml). Locked down: anonymous users can't read or write;
+# users and access tokens live in ./data/auth.db (create them with `ntfy user` / `ntfy token`, see README).
+# iOS push goes through ntfy.sh (upstream-base-url): it only forwards a "poll" hint, never the message.
+name: ntfy
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  ntfy:
+    image: binwiederhier/ntfy:v2.31.1
+    container_name: ntfy
+    restart: unless-stopped
+    command: serve
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      TZ: ${TZ:-UTC}
+      NTFY_BASE_URL: ${NTFY_BASE_URL:?set NTFY_BASE_URL in .env}
+      NTFY_LISTEN_HTTP: ":8080"
+      NTFY_BEHIND_PROXY: "true"
+      NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+      NTFY_CACHE_DURATION: 24h
+      NTFY_AUTH_FILE: /var/lib/ntfy/auth.db
+      NTFY_AUTH_DEFAULT_ACCESS: deny-all
+      NTFY_ENABLE_LOGIN: "true"
+      NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
+    ports:
+      - "${NTFY_BIND:-127.0.0.1}:8088:8080"   # NPM reaches it as ntfy:8080
+    volumes:
+      - ./data:/var/lib/ntfy
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --tries=1 http://localhost:8080/v1/health -O - | grep -Eq '\"healthy\" *: *true'"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging: *logging
+
+networks:
+  proxy:
+    external: true

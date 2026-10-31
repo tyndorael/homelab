@@ -2,8 +2,8 @@
 # Based on the official 0.60.9 docker-compose.yml, with its sockpuppetbrowser (headless Chrome over the
 # Playwright protocol) enabled for pages that render with JavaScript. Pick the fetcher per watch:
 # "Basic fast plaintext/HTTP client" for plain HTML, "Playwright Chromium/Javascript" for the rest.
-# Notifications are Apprise URLs set in the UI (Settings -> Notifications), e.g. ntfys://ntfy.sh/<topic>
-# or tgram://<bot-token>/<chat-id>; they live in ./data, not in .env.
+# Notifications are Apprise URLs set in the UI (Settings -> Notifications), e.g. the Pi's ntfy:
+# ntfys://ntfy.<domain>/alerts-shop?token=tk_…; they live in ./data, not in .env.
 name: changedetection
 
 x-logging: &logging

@@ -148,6 +148,11 @@ endpoints:
     url: "http://termix:8080/"
     <<: *internal
     conditions: ["[STATUS] == 200"]
+  - name: ntfy
+    group: 2. Containers
+    url: "http://ntfy:8080/v1/health"
+    <<: *internal
+    conditions: ["[STATUS] == 200", "[BODY].healthy == true"]
   - name: cockpit (host, via proxy gateway)
     group: 2. Containers
     url: "https://${PROXY_GATEWAY}:9090/"

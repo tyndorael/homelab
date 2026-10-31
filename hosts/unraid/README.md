@@ -157,7 +157,7 @@ docker compose up -d
 ```
 1. NPM proxy host `changes.<domain>` → `http://192.168.50.153:5000`, wildcard cert, *Force SSL*, *HTTP/2*, websockets on.
 2. *Settings → General*: set a password (the UI is open by default).
-3. *Settings → Notifications*: add an [Apprise URL](https://github.com/caronc/apprise/wiki), e.g. `ntfys://ntfy.sh/<long-random-topic>` (ntfy app on the phone, subscribe to the same topic) or `tgram://<bot-token>/<chat-id>`. Use *Send test notification*.
+3. *Settings → Notifications*: add an [Apprise URL](https://github.com/caronc/apprise/wiki). Push goes through the self-hosted ntfy on the Pi: `ntfys://ntfy.<domain>/alerts-shop?token=tk_…` (token and phone setup in the [Pi README](../raspberry-pi/README.md#notifications-ntfy)). Use *Send test notification*.
 4. Add a watch per page. Useful settings for "new product" alerts:
    - *Request → Fetch method*: **Playwright Chromium** when the product list is rendered by JavaScript (the plain HTTP fetcher shows an empty list), otherwise the faster plain fetcher.
    - *Filters & Triggers → CSS/JSONPath filter*: only the product grid (e.g. `.product-grid`), or use the *Visual Filter Selector* to click it, so banners and timestamps don't trigger alerts.

@@ -36,6 +36,7 @@ pages:
               - navidrome/navidrome
               - immich-app/immich
               - dgtlmoon/changedetection.io
+              - binwiederhier/ntfy
 
       - size: full
         widgets:
@@ -106,6 +107,10 @@ pages:
                 url: https://termix.${DOMAIN}
                 check-url: http://termix:8080/
                 icon: di:termix
+              - title: ntfy
+                url: https://ntfy.${DOMAIN}
+                check-url: http://ntfy:8080/v1/health
+                icon: di:ntfy
               - title: Cockpit
                 url: https://cockpit.${DOMAIN}
                 icon: di:cockpit

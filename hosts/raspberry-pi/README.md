@@ -24,6 +24,7 @@ Runs the always-on, lightweight services: reverse proxy, Docker management and t
 | `gatus` | 8085 | `https://status.<domain>` |
 | `dozzle` | 8086 | `https://logs.<domain>` |
 | `termix` (+ `guacd`) | 8087 | `https://termix.<domain>` |
+| `ntfy` | 8088 | `https://ntfy.<domain>` |
 | `rustdesk` | 21115–21117 (host network) | RustDesk clients → `192.168.50.106` |
 | Cockpit (host, not a container) | 9090 | `https://cockpit.<domain>` |
 | `tailscale` | host network (41641/udp) | tailnet node `cyrene`, subnet router for `192.168.50.0/24` |
@@ -58,7 +59,7 @@ The Pi boots and runs everything from the microSD card, so the setup minimises w
 ## First start
 ```bash
 make network HOST=raspberry-pi                 # creates the shared `proxy` network (once)
-for s in nginx-proxy-manager portainer homepage glance gatus dozzle termix rustdesk adguard-home tailscale; do
+for s in nginx-proxy-manager portainer homepage glance gatus dozzle termix ntfy rustdesk adguard-home tailscale; do
   cp hosts/raspberry-pi/$s/.env.example hosts/raspberry-pi/$s/.env   # then edit each .env
 done
 make up HOST=raspberry-pi STACK=nginx-proxy-manager
@@ -68,6 +69,7 @@ make up HOST=raspberry-pi STACK=glance
 make up HOST=raspberry-pi STACK=gatus
 make up HOST=raspberry-pi STACK=dozzle      # after creating dozzle/data/users.yml (see Monitoring & logs)
 make up HOST=raspberry-pi STACK=termix
+make up HOST=raspberry-pi STACK=ntfy         # then create the users (see Notifications)
 make up HOST=raspberry-pi STACK=rustdesk
 hosts/raspberry-pi/host/cockpit/install.sh <domain>   # Cockpit on the host (see Server admin)
 make up HOST=raspberry-pi STACK=adguard-home
@@ -116,6 +118,25 @@ Same pattern for Portainer (`-L 9443:127.0.0.1:9443`, open `https://localhost:94
   # copy both files to hosts/<host>/dozzle-agent/data/certs/ on each agent, then restart hub and agents
   ```
 - NPM proxy hosts: `status.<domain>` → `gatus:8080`, `logs.<domain>` → `dozzle:8080` (enable **Websockets** for Dozzle).
+
+## Notifications (ntfy)
+Added 2026-10-30. [ntfy](https://ntfy.sh/) v2.31.1 (Apache-2.0/GPL-2) sends push notifications to phones: anything that can make an HTTP request publishes to a *topic*, and the ntfy app shows it. First user: changedetection.io on herta. Gatus alerting can use it too.
+
+Locked down: anonymous access is `deny-all`, so every client needs a user or token. Users, tokens and the 24 h message cache are SQLite files in `ntfy/data` (tiny, few writes; fine on the SD card). NPM proxy host: `ntfy.<domain>` → `ntfy:8080`, wildcard cert, *Force SSL*, *HTTP/2*, websockets on. Away from home the phones reach it over Tailscale; it is never port-forwarded.
+
+Set up users on the Pi (passwords are typed at the prompt, never on the command line):
+```bash
+mkdir -p ~/homelab/hosts/raspberry-pi/ntfy/data && make up HOST=raspberry-pi STACK=ntfy
+docker exec -it ntfy ntfy user add --role=admin <you>     # you: full access, for the phone app
+docker exec -it ntfy ntfy user add changedetection         # publisher for changedetection.io
+docker exec ntfy ntfy access changedetection 'alerts*' write-only
+docker exec ntfy ntfy token add changedetection            # prints tk_…: paste it into changedetection, don't commit it
+```
+- **Phone**: install ntfy (Android: F-Droid or Play; iOS: App Store). *Settings → Manage users → Add* `https://ntfy.<domain>` with your user, set the default server to the same URL, then subscribe to `alerts-shop` (or any `alerts-*` topic).
+  - Android: turn on *Use another server* and *Instant delivery* for reliable pushes without Google.
+  - iOS: Apple only delivers pushes through ntfy.sh, so the server sends ntfy.sh a "poll" hint (`NTFY_UPSTREAM_BASE_URL`, no message content) and the app then fetches the message from `ntfy.<domain>`.
+- **changedetection.io** (*Settings → Notifications*): `ntfys://ntfy.<domain>/alerts-shop?token=tk_…`. herta resolves `ntfy.<domain>` through AdGuard, so the traffic stays on the LAN.
+- **Test** from any LAN machine: `curl -H "Authorization: Bearer tk_…" -d "hello" https://ntfy.<domain>/alerts-shop`.
 
 ## Server admin
 - **Cockpit** (`cockpit.<domain>`) runs on the Pi **host** (Debian package, socket-activated: no RAM used until you open it). Log in with your Linux user. Installed and configured by [`host/cockpit/install.sh`](host/cockpit/install.sh): packages `cockpit`, `cockpit-networkmanager`, `cockpit-storaged` (no `cockpit-packagekit` — updates stay with apt/unattended-upgrades). It listens only on `127.0.0.1:9090` and the `proxy` network gateway (`172.19.0.1:9090`), never on the LAN. NPM proxy host: `cockpit.<domain>` → **https** `172.19.0.1:9090`, websockets on. If the `proxy` network is ever recreated, re-run the script (the gateway may change) and update NPM + `PROXY_GATEWAY` in `gatus/.env`.

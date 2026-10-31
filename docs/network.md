@@ -21,6 +21,7 @@ LAN `192.168.50.0/24`. Replace the TBD values as machines come online (keep this
 | Pi | 8085 | Gatus | `127.0.0.1` only (via `status.<domain>`) |
 | Pi | 8086 | Dozzle | `127.0.0.1` only (via `logs.<domain>`) |
 | Pi | 8087 | Termix | `127.0.0.1` only (via `termix.<domain>`) |
+| Pi | 8088 | ntfy (push notifications) | `127.0.0.1` only (via `ntfy.<domain>`) |
 | Pi | 9090 | Cockpit (host service) | `127.0.0.1` + `proxy` gateway only (via `cockpit.<domain>`) |
 | Pi | 53 tcp/udp | AdGuard Home DNS | LAN |
 | Pi | 3001 / 8083 | AdGuard Home setup / UI | `127.0.0.1` only (via `adguard.<domain>`) |

@@ -69,6 +69,12 @@
         description: Browser SSH to all hosts
         server: pi
         container: termix
+    - ntfy:
+        icon: ntfy.png
+        href: https://ntfy.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Push notifications to the phones
+        server: pi
+        container: ntfy
     - Tailscale:
         icon: tailscale.png
         href: https://login.tailscale.com/admin/machines
