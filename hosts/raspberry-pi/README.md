@@ -150,6 +150,9 @@ docker exec ntfy ntfy token add changedetection            # prints tk_…: past
 5. SD card: *Settings → General* → query log retention **24 h** (or keep it in memory only via *Query logs → Disable log* / anonymise), statistics **24 h–7 days**.
 6. Router DHCP: primary DNS `192.168.50.106`, **secondary a public resolver** (e.g. `1.1.1.1`) so the internet keeps working if the Pi is down. (The secondary bypasses blocking when used; accept that trade-off or add a second AdGuard instance on Unraid later.)
 
+**Allowlist** (*Filters → Custom filtering rules*; stored as `user_rules` in `data/conf/AdGuardHome.yaml`, which AdGuard rewrites, so edit the file only while the container is stopped):
+- `@@||analytics.google.com^$important` — the Google Analytics dashboard (the AdGuard DNS filter blocks it). The GA trackers (`google-analytics.com`, `doubleclick.net`) stay blocked.
+
 The Pi itself keeps the router (`192.168.50.1`) as its resolver so Docker pulls and Tailscale never depend on a container that might be down.
 
 ## Tailscale
